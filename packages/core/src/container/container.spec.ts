@@ -1,6 +1,6 @@
-import type { Logger } from '../logger';
-import { Container, InjectionToken } from '.';
-import { stringifyToken } from './container';
+import type { Logger } from "../logger";
+import { Container, InjectionToken } from ".";
+import { stringifyToken } from "./container";
 
 const silentLogger = {
   info() {},
@@ -12,24 +12,25 @@ const silentLogger = {
   exit: async () => {},
 } as unknown as Logger;
 
-const makeContainer = (parent?: Container) => new Container(silentLogger, 'test', parent);
+const makeContainer = (parent?: Container) =>
+  new Container(silentLogger, "test", parent);
 
-describe('Container', () => {
-  describe('value providers', () => {
-    it('returns the registered value', () => {
-      const token = new InjectionToken<string>('greeting');
+describe("Container", () => {
+  describe("value providers", () => {
+    it("returns the registered value", () => {
+      const token = new InjectionToken<string>("greeting");
       const container = makeContainer();
-      container.add({ provide: token, value: 'hello' });
-      expect(container.get(token)).toBe('hello');
+      container.add({ provide: token, value: "hello" });
+      expect(container.get(token)).toBe("hello");
     });
 
     it('supports falsy values without treating them as "invalid provider"', () => {
       const container = makeContainer();
       const cases: [InjectionToken<unknown>, unknown][] = [
-        [new InjectionToken('zero'), 0],
-        [new InjectionToken('empty'), ''],
-        [new InjectionToken('false'), false],
-        [new InjectionToken('null'), null],
+        [new InjectionToken("zero"), 0],
+        [new InjectionToken("empty"), ""],
+        [new InjectionToken("false"), false],
+        [new InjectionToken("null"), null],
       ];
       for (const [token, value] of cases) {
         container.add({ provide: token, value });
@@ -38,20 +39,24 @@ describe('Container', () => {
     });
   });
 
-  describe('factory providers', () => {
-    it('calls the factory with injected dependencies in order', () => {
-      const a = new InjectionToken<string>('a');
-      const b = new InjectionToken<string>('b');
-      const c = new InjectionToken<string>('c');
+  describe("factory providers", () => {
+    it("calls the factory with injected dependencies in order", () => {
+      const a = new InjectionToken<string>("a");
+      const b = new InjectionToken<string>("b");
+      const c = new InjectionToken<string>("c");
       const container = makeContainer();
-      container.add({ provide: a, value: 'A' });
-      container.add({ provide: b, value: 'B' });
-      container.add({ provide: c, factory: (x: string, y: string) => `${x}+${y}`, inject: [a, b] });
-      expect(container.get(c)).toBe('A+B');
+      container.add({ provide: a, value: "A" });
+      container.add({ provide: b, value: "B" });
+      container.add({
+        provide: c,
+        factory: (x: string, y: string) => `${x}+${y}`,
+        inject: [a, b],
+      });
+      expect(container.get(c)).toBe("A+B");
     });
 
-    it('memoizes the result (singleton): the factory runs once', () => {
-      const token = new InjectionToken<object>('obj');
+    it("memoizes the result (singleton): the factory runs once", () => {
+      const token = new InjectionToken<object>("obj");
       let calls = 0;
       const container = makeContainer();
       container.add({
@@ -67,8 +72,8 @@ describe('Container', () => {
       expect(calls).toBe(1);
     });
 
-    it('caches a falsy factory result (regression: must use `has`, not truthiness)', () => {
-      const token = new InjectionToken<number>('zero');
+    it("caches a falsy factory result (regression: must use `has`, not truthiness)", () => {
+      const token = new InjectionToken<number>("zero");
       let calls = 0;
       const container = makeContainer();
       container.add({
@@ -84,15 +89,15 @@ describe('Container', () => {
     });
   });
 
-  describe('class providers', () => {
-    it('instantiates a class with no dependencies', () => {
+  describe("class providers", () => {
+    it("instantiates a class with no dependencies", () => {
       class Service {}
       const container = makeContainer();
       container.add({ provide: Service });
       expect(container.get(Service)).toBeInstanceOf(Service);
     });
 
-    it('injects constructor dependencies', () => {
+    it("injects constructor dependencies", () => {
       class Dep {}
       class Service {
         constructor(public dep: Dep) {}
@@ -105,7 +110,7 @@ describe('Container', () => {
       expect(service.dep).toBeInstanceOf(Dep);
     });
 
-    it('returns a singleton instance', () => {
+    it("returns a singleton instance", () => {
       class Service {}
       const container = makeContainer();
       container.add({ provide: Service });
@@ -113,88 +118,94 @@ describe('Container', () => {
     });
   });
 
-  describe('delegate providers', () => {
-    it('delegates resolution to the provided function', () => {
-      const token = new InjectionToken<number>('delegated');
+  describe("delegate providers", () => {
+    it("delegates resolution to the provided function", () => {
+      const token = new InjectionToken<number>("delegated");
       const container = makeContainer();
       container.add({ provide: token, delegate: () => 42 });
       expect(container.get(token)).toBe(42);
     });
   });
 
-  describe('parent resolution', () => {
-    it('falls back to the parent container', () => {
-      const token = new InjectionToken<string>('shared');
+  describe("parent resolution", () => {
+    it("falls back to the parent container", () => {
+      const token = new InjectionToken<string>("shared");
       const parent = makeContainer();
-      parent.add({ provide: token, value: 'from-parent' });
+      parent.add({ provide: token, value: "from-parent" });
       const child = makeContainer(parent);
-      expect(child.get(token)).toBe('from-parent');
+      expect(child.get(token)).toBe("from-parent");
     });
 
-    it('prefers its own registration over the parent', () => {
-      const token = new InjectionToken<string>('shared');
+    it("prefers its own registration over the parent", () => {
+      const token = new InjectionToken<string>("shared");
       const parent = makeContainer();
-      parent.add({ provide: token, value: 'from-parent' });
+      parent.add({ provide: token, value: "from-parent" });
       const child = makeContainer(parent);
-      child.add({ provide: token, value: 'from-child' });
-      expect(child.get(token)).toBe('from-child');
+      child.add({ provide: token, value: "from-child" });
+      expect(child.get(token)).toBe("from-child");
     });
   });
 
-  describe('has', () => {
-    it('reflects registration state', () => {
-      const token = new InjectionToken('x');
+  describe("has", () => {
+    it("reflects registration state", () => {
+      const token = new InjectionToken("x");
       const container = makeContainer();
       expect(container.has(token)).toBe(false);
       container.add({ provide: token, value: 1 });
       expect(container.has(token)).toBe(true);
     });
 
-    it('ignores a second registration of the same token (idempotent)', () => {
-      const token = new InjectionToken<string>('x');
+    it("ignores a second registration of the same token (idempotent)", () => {
+      const token = new InjectionToken<string>("x");
       const container = makeContainer();
-      container.add({ provide: token, value: 'first' });
-      container.add({ provide: token, value: 'second' });
-      expect(container.get(token)).toBe('first');
+      container.add({ provide: token, value: "first" });
+      container.add({ provide: token, value: "second" });
+      expect(container.get(token)).toBe("first");
     });
   });
 
-  describe('unknown provider errors', () => {
-    it('hints that a class token is likely a misused Module/service', () => {
+  describe("unknown provider errors", () => {
+    it("hints that a class token is likely a misused Module/service", () => {
       class NotRegistered {}
       const container = makeContainer();
-      expect(() => container.get(NotRegistered)).toThrow(/Unknown provider NotRegistered/);
+      expect(() => container.get(NotRegistered)).toThrow(
+        /Unknown provider NotRegistered/
+      );
       expect(() => container.get(NotRegistered)).toThrow(/is a class/);
     });
 
-    it('describes an unregistered InjectionToken', () => {
-      const token = new InjectionToken('config');
+    it("describes an unregistered InjectionToken", () => {
+      const token = new InjectionToken("config");
       const container = makeContainer();
       expect(() => container.get(token)).toThrow(/InjectionToken\(config\)/);
-      expect(() => container.get(token)).toThrow(/not registered as a provider/);
+      expect(() => container.get(token)).toThrow(
+        /not registered as a provider/
+      );
     });
 
-    it('includes the resolution chain for nested failures', () => {
+    it("includes the resolution chain for nested failures", () => {
       class Missing {}
       class Service {
         constructor(public missing: Missing) {}
       }
       const container = makeContainer();
       container.add({ provide: Service, inject: [Missing] });
-      expect(() => container.get(Service)).toThrow(/Resolution chain: Service -> Missing/);
+      expect(() => container.get(Service)).toThrow(
+        /Resolution chain: Service -> Missing/
+      );
     });
   });
 
-  describe('circular dependency detection', () => {
-    it('rejects a provider that injects itself (at registration)', () => {
+  describe("circular dependency detection", () => {
+    it("rejects a provider that injects itself (at registration)", () => {
       class SelfRef {}
       const container = makeContainer();
-      expect(() => container.add({ provide: SelfRef, inject: [SelfRef] })).toThrow(
-        /injects itself/,
-      );
+      expect(() =>
+        container.add({ provide: SelfRef, inject: [SelfRef] })
+      ).toThrow(/injects itself/);
     });
 
-    it('detects a direct cycle (A <-> B) at resolution', () => {
+    it("detects a direct cycle (A <-> B) at resolution", () => {
       class A {}
       class B {}
       const container = makeContainer();
@@ -203,7 +214,7 @@ describe('Container', () => {
       expect(() => container.get(A)).toThrow(/Circular dependency/);
     });
 
-    it('detects a transitive cycle (A -> B -> C -> A)', () => {
+    it("detects a transitive cycle (A -> B -> C -> A)", () => {
       class A {}
       class B {}
       class C {}
@@ -214,7 +225,7 @@ describe('Container', () => {
       expect(() => container.get(A)).toThrow(/Circular dependency/);
     });
 
-    it('does not flag a diamond (shared dependency) as a cycle', () => {
+    it("does not flag a diamond (shared dependency) as a cycle", () => {
       class D {}
       class B {
         constructor(public d: D) {}
@@ -238,13 +249,15 @@ describe('Container', () => {
   });
 });
 
-describe('stringifyToken', () => {
-  it('uses the class name for constructor tokens', () => {
+describe("stringifyToken", () => {
+  it("uses the class name for constructor tokens", () => {
     class MyService {}
-    expect(stringifyToken(MyService)).toBe('MyService');
+    expect(stringifyToken(MyService)).toBe("MyService");
   });
 
-  it('uses the description for InjectionToken instances', () => {
-    expect(stringifyToken(new InjectionToken('my-token'))).toBe('InjectionToken(my-token)');
+  it("uses the description for InjectionToken instances", () => {
+    expect(stringifyToken(new InjectionToken("my-token"))).toBe(
+      "InjectionToken(my-token)"
+    );
   });
 });

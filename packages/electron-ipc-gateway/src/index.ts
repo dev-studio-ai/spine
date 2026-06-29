@@ -1,6 +1,9 @@
-export { ElectronIpcGateway } from './electron-ipc.gateway';
-export type { ElectronIpcBaseContext, ElectronIpcRaw } from './electron-ipc-base.types';
-export { ElectronIpcGatewayModule } from './electron-ipc-gateway.module';
-export { IpcLoggingInterceptor } from './ipc-logging.interceptor';
-export { ZodValidator } from './zod.validator';
-export { ipcFeature, IpcModule } from './electron-ipc-module';
+export { ElectronIpcGateway } from "./electron-ipc.gateway";
+export type {
+  ElectronIpcBaseContext,
+  ElectronIpcRaw,
+} from "./electron-ipc-base.types";
+export { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
+export { IpcLoggingInterceptor } from "./ipc-logging.interceptor";
+export { ZodValidator } from "./zod.validator";
+export { ipcFeature, IpcModule } from "./electron-ipc-module";

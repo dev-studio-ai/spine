@@ -10,9 +10,9 @@ Electron lifecycle integration for SpineJS. Manages `BrowserWindow` creation, El
 ## Setup
 
 ```typescript
-import { App } from '@spinejs/core';
-import { ElectronModule } from '@spinejs/electron';
-import { MainModule } from './main.module';
+import { App } from "@spinejs/core";
+import { ElectronModule } from "@spinejs/electron";
+import { MainModule } from "./main.module";
 
 const app = new App(
   [
@@ -21,17 +21,17 @@ const app = new App(
         width: 1280,
         height: 800,
         webPreferences: {
-          preload: join(__dirname, 'preload.js'),
+          preload: join(__dirname, "preload.js"),
           contextIsolation: true,
           nodeIntegration: false,
         },
       },
-      devUrl:      'http://localhost:5173',
-      packagePath: join(__dirname, '../renderer/index.html'),
+      devUrl: "http://localhost:5173",
+      packagePath: join(__dirname, "../renderer/index.html"),
     }),
     MainModule,
   ],
-  { handleProcessExit: false },  // required — Electron controls process exit
+  { handleProcessExit: false } // required — Electron controls process exit
 );
 
 await app.init();
@@ -40,28 +40,33 @@ await app.start();
 
 ## `ElectronModuleOptions`
 
-| Field | Type | Description |
-|---|---|---|
-| `window` | `BrowserWindowConstructorOptions` | Passed to `new BrowserWindow(…)`. Persisted bounds are merged on top. |
-| `devUrl` | `string` | URL loaded when `app.isPackaged === false` (Vite dev server). |
-| `packagePath` | `string` | Path to the bundled renderer HTML, loaded in production. |
+| Field         | Type                              | Description                                                           |
+| ------------- | --------------------------------- | --------------------------------------------------------------------- |
+| `window`      | `BrowserWindowConstructorOptions` | Passed to `new BrowserWindow(…)`. Persisted bounds are merged on top. |
+| `devUrl`      | `string`                          | URL loaded when `app.isPackaged === false` (Vite dev server).         |
+| `packagePath` | `string`                          | Path to the bundled renderer HTML, loaded in production.              |
 
 ## Window creation
 
 The window is not created automatically during `onInit()`. Call `createMainWindow()` explicitly — typically after restoring auth or other startup state:
 
 ```typescript
-import { Module, OnInit } from '@spinejs/core';
-import { ElectronModule } from '@spinejs/electron';
+import { Module, OnInit } from "@spinejs/core";
+import { ElectronModule } from "@spinejs/electron";
 
 @Module({
-  imports: [ElectronModule.configure({ /* … */ }), AuthModule],
-  inject:  [ElectronModule, AuthService],
+  imports: [
+    ElectronModule.configure({
+      /* … */
+    }),
+    AuthModule,
+  ],
+  inject: [ElectronModule, AuthService],
 })
 export class MainModule implements OnInit {
   constructor(
     private readonly electron: ElectronModule,
-    private readonly auth: AuthService,
+    private readonly auth: AuthService
   ) {}
 
   async onInit() {
@@ -74,7 +79,7 @@ export class MainModule implements OnInit {
 ## `WindowService`
 
 ```typescript
-import { WindowService } from '@spinejs/electron';
+import { WindowService } from "@spinejs/electron";
 
 @Inject([WindowService])
 export class TrayService {

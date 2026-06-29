@@ -1,4 +1,4 @@
-import { InjectionToken } from './injection-token';
+import { InjectionToken } from "./injection-token";
 
 export type Token<T = unknown> = ProviderConstructor<T> | InjectionToken<T>;
 

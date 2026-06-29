@@ -9,12 +9,15 @@ A **module** is the structural unit of an SpineJS application. It groups provide
 ## `@Module` decorator
 
 ```typescript
-import { Module, InjectionToken } from '@spinejs/core';
+import { Module, InjectionToken } from "@spinejs/core";
 
-const dbToken = new InjectionToken<Database>('database');
+const dbToken = new InjectionToken<Database>("database");
 
 @Module({
-  providers: [DatabaseService, { provide: dbToken, factory: () => new Database() }],
+  providers: [
+    DatabaseService,
+    { provide: dbToken, factory: () => new Database() },
+  ],
   exports: [DatabaseService, dbToken],
 })
 export class DatabaseModule {}
@@ -22,24 +25,24 @@ export class DatabaseModule {}
 
 ### Metadata fields
 
-| Field | Type | Description |
-|---|---|---|
-| `inject` | `Token[]` | Constructor dependencies of the module class itself. Typed by the generic `D` — wrong order or type is a compile error. |
-| `imports` | `ModuleEntry[]` | Other modules whose exported providers become available inside this module. |
-| `providers` | `ProviderEntry[]` | Providers (classes, factories, values) local to this module. |
-| `exports` | `Token[]` | Tokens made available to any module that imports this one. |
+| Field       | Type              | Description                                                                                                             |
+| ----------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `inject`    | `Token[]`         | Constructor dependencies of the module class itself. Typed by the generic `D` — wrong order or type is a compile error. |
+| `imports`   | `ModuleEntry[]`   | Other modules whose exported providers become available inside this module.                                             |
+| `providers` | `ProviderEntry[]` | Providers (classes, factories, values) local to this module.                                                            |
+| `exports`   | `Token[]`         | Tokens made available to any module that imports this one.                                                              |
 
 ### Typed constructor injection
 
 The `D` generic on `@Module` ties the `inject` array to the constructor signature at compile time:
 
 ```typescript
-import { Module, InjectionToken } from '@spinejs/core';
+import { Module, InjectionToken } from "@spinejs/core";
 
-const configToken = new InjectionToken<AppConfig>('app.config');
+const configToken = new InjectionToken<AppConfig>("app.config");
 
 @Module({
-  inject: [configToken],            // D = [InjectionToken<AppConfig>]
+  inject: [configToken], // D = [InjectionToken<AppConfig>]
   imports: [ConfigModule],
 })
 export class AppModule {
@@ -53,18 +56,18 @@ export class AppModule {
 A `DynamicModule` is the standard pattern for parameterizing a module at import time. The classic idiom is a `static configure()` method that returns the dynamic module object:
 
 ```typescript
-import { Module, DynamicModule, InjectionToken } from '@spinejs/core';
+import { Module, DynamicModule, InjectionToken } from "@spinejs/core";
 
 export interface HttpModuleOptions {
   baseUrl: string;
   timeout?: number;
 }
 
-const httpOptionsToken = new InjectionToken<HttpModuleOptions>('http.options');
+const httpOptionsToken = new InjectionToken<HttpModuleOptions>("http.options");
 
 @Module({
   inject: [httpOptionsToken],
-  providers: [{ provide: httpOptionsToken, value: { baseUrl: '' } }],
+  providers: [{ provide: httpOptionsToken, value: { baseUrl: "" } }],
   exports: [HttpService],
 })
 export class HttpModule {
@@ -84,7 +87,7 @@ Consuming module:
 ```typescript
 @Module({
   imports: [
-    HttpModule.configure({ baseUrl: 'https://api.example.com', timeout: 5000 }),
+    HttpModule.configure({ baseUrl: "https://api.example.com", timeout: 5000 }),
   ],
 })
 export class ApiModule {}
@@ -92,13 +95,13 @@ export class ApiModule {}
 
 ### `DynamicModule` fields
 
-| Field | Type | Description |
-|---|---|---|
-| `module` | `ModuleConstructor` | The module class this dynamic config applies to. |
-| `imports` | `ModuleEntry[]` | Additional imports for this configuration. |
-| `providers` | `ProviderEntry[]` | Additional or overriding providers. |
-| `exports` | `Token[]` | Additional exports. |
-| `fresh` | `boolean` | When `true`, each `configure()` call produces a separate module instance. Default (`false`) merges all configs into a single instance. |
+| Field       | Type                | Description                                                                                                                            |
+| ----------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `module`    | `ModuleConstructor` | The module class this dynamic config applies to.                                                                                       |
+| `imports`   | `ModuleEntry[]`     | Additional imports for this configuration.                                                                                             |
+| `providers` | `ProviderEntry[]`   | Additional or overriding providers.                                                                                                    |
+| `exports`   | `Token[]`           | Additional exports.                                                                                                                    |
+| `fresh`     | `boolean`           | When `true`, each `configure()` call produces a separate module instance. Default (`false`) merges all configs into a single instance. |
 
 ### `fresh: true` — multiple instances
 
@@ -119,8 +122,8 @@ export class DbModule {
 // Two independent database connections:
 @Module({
   imports: [
-    DbModule.configure({ url: 'postgres://primary' }),
-    DbModule.configure({ url: 'postgres://replica' }),
+    DbModule.configure({ url: "postgres://primary" }),
+    DbModule.configure({ url: "postgres://replica" }),
   ],
 })
 export class AppModule {}
@@ -165,7 +168,7 @@ export class OrderModule {}
 Module classes may implement lifecycle interfaces. The `App` calls them automatically in the right order:
 
 ```typescript
-import { Module, OnInit, OnStart, OnStop } from '@spinejs/core';
+import { Module, OnInit, OnStart, OnStop } from "@spinejs/core";
 
 @Module({ inject: [DatabaseService] })
 export class AppModule implements OnInit, OnStart, OnStop {

@@ -1,5 +1,5 @@
-import { ipcMain } from 'electron';
-import { Logger } from '@spinejs/core';
+import { ipcMain } from "electron";
+import { Logger } from "@spinejs/core";
 import {
   ContextFactory,
   ErrorMapper,
@@ -7,8 +7,11 @@ import {
   GatewayInterceptor,
   RouteDescriptor,
   Validator,
-} from '@spinejs/gateway';
-import { ElectronIpcBaseContext, ElectronIpcRaw } from './electron-ipc-base.types';
+} from "@spinejs/gateway";
+import {
+  ElectronIpcBaseContext,
+  ElectronIpcRaw,
+} from "./electron-ipc-base.types";
 
 /**
  * Generic electron IPC transport binding of the `Gateway`. App-agnostic: it knows only `ipcMain`
@@ -18,20 +21,23 @@ import { ElectronIpcBaseContext, ElectronIpcRaw } from './electron-ipc-base.type
  */
 export class ElectronIpcGateway<
   Ctx extends ElectronIpcBaseContext = ElectronIpcBaseContext,
-  Code extends string = string,
+  Code extends string = string
 > extends Gateway<Ctx, Code> {
   constructor(
     validator: Validator,
     errorMapper: ErrorMapper<Code>,
     private readonly contextFactory: ContextFactory<ElectronIpcRaw, Ctx>,
     private readonly logger: Logger,
-    interceptors: GatewayInterceptor<Ctx, Code>[] = [],
+    interceptors: GatewayInterceptor<Ctx, Code>[] = []
   ) {
     super(validator, errorMapper, interceptors);
   }
 
   protected bind(route: RouteDescriptor<Ctx>): void {
-    this.logger.debug(`Register IPC route ${route.address}.`, ElectronIpcGateway.name);
+    this.logger.debug(
+      `Register IPC route ${route.address}.`,
+      ElectronIpcGateway.name
+    );
 
     ipcMain.handle(route.address, async (event, ...args) => {
       const ctx = this.contextFactory.create({ event, args });
@@ -40,7 +46,7 @@ export class ElectronIpcGateway<
       if (!envelope.ok) {
         this.logger.debug(
           `IPC route ${route.address} failed: ${envelope.code}`,
-          ElectronIpcGateway.name,
+          ElectronIpcGateway.name
         );
       }
       return envelope;

@@ -12,19 +12,19 @@ Module system, DI container, and lifecycle orchestrator for SpineJS.
 ## Quick start
 
 ```typescript
-import { App, Module, OnInit, InjectionToken, Inject } from '@spinejs/core';
+import { App, Module, OnInit, InjectionToken, Inject } from "@spinejs/core";
 
-const greetingToken = new InjectionToken<string>('greeting');
+const greetingToken = new InjectionToken<string>("greeting");
 
 @Module({
-  providers: [{ provide: greetingToken, value: 'Hello, world!' }],
-  exports:   [greetingToken],
+  providers: [{ provide: greetingToken, value: "Hello, world!" }],
+  exports: [greetingToken],
 })
 export class GreetingModule {}
 
 @Module({
   imports: [GreetingModule],
-  inject:  [greetingToken],
+  inject: [greetingToken],
 })
 export class AppModule implements OnInit {
   constructor(private readonly greeting: string) {}
@@ -42,16 +42,16 @@ await app.start();
 
 ## `AppOptions`
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `logger` | `Logger` | `AppLogger` | Custom logger (e.g. `WinstonLogger`). |
-| `loggerOptions` | `LoggerOptions` | `{}` | Built-in logger options (`level`). |
-| `handleProcessExit` | `boolean` | `true` | Register SIGINT/SIGTERM handlers. Pass `false` in Electron (use `ElectronModule` instead). |
+| Option              | Type            | Default     | Description                                                                                |
+| ------------------- | --------------- | ----------- | ------------------------------------------------------------------------------------------ |
+| `logger`            | `Logger`        | `AppLogger` | Custom logger (e.g. `WinstonLogger`).                                                      |
+| `loggerOptions`     | `LoggerOptions` | `{}`        | Built-in logger options (`level`).                                                         |
+| `handleProcessExit` | `boolean`       | `true`      | Register SIGINT/SIGTERM handlers. Pass `false` in Electron (use `ElectronModule` instead). |
 
 ## Global tokens
 
 ```typescript
-import { appToken, loggerToken } from '@spinejs/core';
+import { appToken, loggerToken } from "@spinejs/core";
 
 @Module({ inject: [appToken, loggerToken] })
 export class MyModule {
@@ -61,11 +61,11 @@ export class MyModule {
 
 ## Lifecycle hooks
 
-| Interface | Method | When |
-|---|---|---|
-| `OnInit` | `onInit()` | After all modules in the dependency graph are resolved. |
-| `OnStart` | `onStart()` | After `app.init()` completes. |
-| `OnStop` | `onStop()` | In reverse init order, on shutdown. |
+| Interface | Method      | When                                                    |
+| --------- | ----------- | ------------------------------------------------------- |
+| `OnInit`  | `onInit()`  | After all modules in the dependency graph are resolved. |
+| `OnStart` | `onStart()` | After `app.init()` completes.                           |
+| `OnStop`  | `onStop()`  | In reverse init order, on shutdown.                     |
 
 ## Provider types
 

@@ -8,14 +8,14 @@ Works equally well in Electron main processes, background workers, CLI daemons, 
 
 ## Packages
 
-| Package | Role |
-|---|---|
-| `@spinejs/core` | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger |
-| `@spinejs/gateway` | Transport-agnostic pipeline: `@Controller`, `@Handler`, `@UseGuards`, `Envelope` |
-| `@spinejs/electron-ipc-gateway` | Binds `Gateway` to `ipcMain.handle` |
-| `@spinejs/electron` | `ElectronModule` (window + lifecycle) and `WindowService` |
-| `@spinejs/config` | Typed, async-capable config loading |
-| `@spinejs/winston-logger` | Drop-in `Logger` implementation backed by Winston |
+| Package                         | Role                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `@spinejs/core`                 | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger |
+| `@spinejs/gateway`              | Transport-agnostic pipeline: `@Controller`, `@Handler`, `@UseGuards`, `Envelope`  |
+| `@spinejs/electron-ipc-gateway` | Binds `Gateway` to `ipcMain.handle`                                               |
+| `@spinejs/electron`             | `ElectronModule` (window + lifecycle) and `WindowService`                         |
+| `@spinejs/config`               | Typed, async-capable config loading                                               |
+| `@spinejs/winston-logger`       | Drop-in `Logger` implementation backed by Winston                                 |
 
 ## Why SpineJS?
 
@@ -30,12 +30,12 @@ SpineJS answers the same architectural questions at a fraction of the weight:
 ## Quick start
 
 ```typescript
-import { Module, OnInit, App } from '@spinejs/core';
+import { Module, OnInit, App } from "@spinejs/core";
 
 @Module({ inject: [] })
 export class GreeterModule implements OnInit {
   async onInit() {
-    console.log('Hello from GreeterModule');
+    console.log("Hello from GreeterModule");
   }
 }
 
@@ -48,14 +48,14 @@ await app.start();
 ### With Electron IPC
 
 ```typescript
-import { Controller, Handler } from '@spinejs/gateway';
-import { IpcModule } from '@spinejs/electron-ipc-gateway';
+import { Controller, Handler } from "@spinejs/gateway";
+import { IpcModule } from "@spinejs/electron-ipc-gateway";
 
 @Controller()
 export class PingController {
-  @Handler({ address: 'ping' })
+  @Handler({ address: "ping" })
   ping(_ctx: GatewayContext): string {
-    return 'pong';
+    return "pong";
   }
 }
 

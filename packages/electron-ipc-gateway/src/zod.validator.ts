@@ -1,5 +1,5 @@
-import { ZodError } from 'zod';
-import { ParseableSchema, ValidationError, Validator } from '@spinejs/gateway';
+import { ZodError } from "zod";
+import { ParseableSchema, ValidationError, Validator } from "@spinejs/gateway";
 
 /**
  * zod-backed `Validator` adapter. Carries the zod dependency so the gateway core stays
@@ -13,8 +13,10 @@ export class ZodValidator implements Validator {
     } catch (err) {
       if (err instanceof ZodError) {
         const detail = err.issues
-          .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
-          .join('; ');
+          .map(
+            (issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`
+          )
+          .join("; ");
         throw new ValidationError(detail);
       }
       throw err;

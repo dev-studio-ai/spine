@@ -1,12 +1,12 @@
-import { Timer } from './utils';
-import { Logger } from './logger/logger.interface';
-import { AppOptions } from './types';
-import { AppLogger } from './logger';
-import { Container, InjectionToken } from './container';
-import { ModuleEntry, ModuleLoader, hasOnStart, hasOnStop } from './module';
+import { Timer } from "./utils";
+import { Logger } from "./logger/logger.interface";
+import { AppOptions } from "./types";
+import { AppLogger } from "./logger";
+import { Container, InjectionToken } from "./container";
+import { ModuleEntry, ModuleLoader, hasOnStart, hasOnStop } from "./module";
 
-export const appToken = new InjectionToken<App>('global.app');
-export const loggerToken = new InjectionToken<Logger>('global.logger');
+export const appToken = new InjectionToken<App>("global.app");
+export const loggerToken = new InjectionToken<Logger>("global.logger");
 /**
  * Application root class.
  * Orchestrates config, logger, DI container and plugin manager,
@@ -24,7 +24,8 @@ export class App {
 
   // Stable handler refs: stored so process.removeListener() can detach them on stop().
   // Inline closures would be anonymous and impossible to remove → leaked across App instances.
-  private readonly onUncaughtException = (error: unknown) => this.uncaughtExceptionHandler(error);
+  private readonly onUncaughtException = (error: unknown) =>
+    this.uncaughtExceptionHandler(error);
   private readonly onUnhandledRejection = (reason: unknown) =>
     this.uncaughtRejectionHandler(reason);
   private readonly onSignalExit = () => this.exitHandler();
@@ -38,8 +39,8 @@ export class App {
       this.logger = new AppLogger(options?.loggerOptions ?? {});
     }
 
-    this.timer.start('boot');
-    this.logger.info('🚀 Application initialization...', App.name);
+    this.timer.start("boot");
+    this.logger.info("🚀 Application initialization...", App.name);
 
     this.handleProcessErrors();
 
@@ -48,7 +49,7 @@ export class App {
       this.handleProcessExit();
     }
 
-    this.globalContainer = new Container(this.logger, 'Container.Global');
+    this.globalContainer = new Container(this.logger, "Container.Global");
     this.globalContainer.addMany([
       { provide: appToken, value: this },
       { provide: loggerToken, value: this.logger },
@@ -58,7 +59,7 @@ export class App {
   }
 
   async init() {
-    this.timer.start('init');
+    this.timer.start("init");
     try {
       // The loader builds the nodes, detects cycles and runs every onInit() (deps before
       // dependents). Loaded modules live on `this.loader.modules` (read by start()/stop()).
@@ -70,13 +71,16 @@ export class App {
       await this.stop();
       throw e;
     }
-    this.logger.debug(`App initialized in ${this.timer.getTime('init')} ms`, App.name);
+    this.logger.debug(
+      `App initialized in ${this.timer.getTime("init")} ms`,
+      App.name
+    );
   }
 
   public async start(): Promise<void> {
     // Terminal once stopped: modules are not cleared on stop(), so re-running onStart would fire
     // hooks on torn-down instances. Idempotent on a live App (a second start() is a no-op).
-    if (this.stopped) throw new Error('Cannot start a stopped App');
+    if (this.stopped) throw new Error("Cannot start a stopped App");
     if (this.started) return;
     this.started = true;
     // onStart hooks in init order (deps before dependents), after the whole graph is initialized.
@@ -92,7 +96,10 @@ export class App {
       throw e;
     }
     // 'boot' started in the constructor → full startup time.
-    this.logger.debug(`App started in ${this.timer.getTime('boot')} ms`, App.name);
+    this.logger.debug(
+      `App started in ${this.timer.getTime("boot")} ms`,
+      App.name
+    );
   }
 
   public async stop(): Promise<void> {
@@ -100,7 +107,7 @@ export class App {
     if (this.stopped) return;
     this.stopped = true;
 
-    this.logger.debug('Application shutdown ...', App.name);
+    this.logger.debug("Application shutdown ...", App.name);
 
     // onStop hooks in reverse init order (dependents stop before their deps).
     for (const ref of [...this.loader.modules.values()].reverse()) {
@@ -109,7 +116,7 @@ export class App {
     // Release the process-level listeners installed at construction: the App is now terminal.
     this.detachProcessHandlers();
 
-    this.logger.info('⏹️ Application stopped', App.name);
+    this.logger.info("⏹️ Application stopped", App.name);
   }
 
   /** Clean exit: stops the app, lets the logger flush, then exits the process. */
@@ -140,7 +147,7 @@ export class App {
 
   private uncaughtExceptionHandler(error: unknown): Promise<void> {
     if (!this.hasExitLogger) {
-      this.logger.error('💥 App: Uncaught Exception :(');
+      this.logger.error("💥 App: Uncaught Exception :(");
       this.logger.error(error);
     } else {
       console.error(error);
@@ -150,7 +157,7 @@ export class App {
 
   private uncaughtRejectionHandler(error: unknown): Promise<void> {
     if (!this.hasExitLogger) {
-      this.logger.error('💥 App: Uncaught Rejection :(');
+      this.logger.error("💥 App: Uncaught Rejection :(");
       this.logger.error(error);
     } else {
       console.error(error);
@@ -160,8 +167,8 @@ export class App {
 
   private handleProcessErrors(): void {
     // uncaught exceptions
-    process.on('uncaughtException', this.onUncaughtException);
-    process.on('unhandledRejection', this.onUnhandledRejection);
+    process.on("uncaughtException", this.onUncaughtException);
+    process.on("unhandledRejection", this.onUnhandledRejection);
   }
 
   private handleProcessExit(): void {
@@ -169,9 +176,9 @@ export class App {
     // stop()/logger.exit() would be silently skipped. We only watch signals that fire while
     // the process is still alive, leaving room for graceful async shutdown.
     // ctrl+c
-    process.on('SIGINT', this.onSignalExit);
+    process.on("SIGINT", this.onSignalExit);
     // kill / docker stop / systemd
-    process.on('SIGTERM', this.onSignalExit);
+    process.on("SIGTERM", this.onSignalExit);
   }
 
   /**
@@ -182,9 +189,9 @@ export class App {
    * even when handleProcessExit was disabled by option.
    */
   private detachProcessHandlers(): void {
-    process.removeListener('uncaughtException', this.onUncaughtException);
-    process.removeListener('unhandledRejection', this.onUnhandledRejection);
-    process.removeListener('SIGINT', this.onSignalExit);
-    process.removeListener('SIGTERM', this.onSignalExit);
+    process.removeListener("uncaughtException", this.onUncaughtException);
+    process.removeListener("unhandledRejection", this.onUnhandledRejection);
+    process.removeListener("SIGINT", this.onSignalExit);
+    process.removeListener("SIGTERM", this.onSignalExit);
   }
 }

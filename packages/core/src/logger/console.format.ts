@@ -1,6 +1,6 @@
-import { inspect } from 'node:util';
+import { inspect } from "node:util";
 
-import { ConsoleFormatOptions } from './logger.interface';
+import { ConsoleFormatOptions } from "./logger.interface";
 
 /** A single normalized log entry, ready to be rendered. */
 export interface LogRecord {
@@ -47,30 +47,31 @@ const identity = (text: string): string => text;
  */
 export function formatRecord(
   record: LogRecord,
-  appName = 'App',
-  options: ConsoleFormatOptions = {},
+  appName = "App",
+  options: ConsoleFormatOptions = {}
 ): string {
   const opts = { ...defaultOptions, ...options };
-  const level = record.level === 'info' ? 'log' : record.level;
+  const level = record.level === "info" ? "log" : record.level;
 
   const color = (opts.colors && colorScheme[level]) || identity;
   const yellow = opts.colors ? clc.yellow : identity;
 
-  const meta = record.meta && Object.keys(record.meta).length ? record.meta : undefined;
+  const meta =
+    record.meta && Object.keys(record.meta).length ? record.meta : undefined;
   const formattedMeta = meta
     ? opts.prettyPrint
       ? inspect(meta, { colors: opts.colors, depth: null })
       : safeJson(meta)
-    : '';
+    : "";
 
   const line =
-    (opts.appName ? color(`[${appName}]`) + ' ' : '') +
-    (opts.processId ? color(String(process.pid)).padEnd(6) + ' ' : '') +
-    (record.timestamp ? `${record.timestamp} ` : '') +
+    (opts.appName ? color(`[${appName}]`) + " " : "") +
+    (opts.processId ? color(String(process.pid)).padEnd(6) + " " : "") +
+    (record.timestamp ? `${record.timestamp} ` : "") +
     `${color(level.toUpperCase().padStart(7))} ` +
-    (record.context ? `${yellow('[' + record.context + ']')}` : '') +
-    (record.message ? ` ${color(record.message)}` : '') +
-    (formattedMeta ? ` - ${formattedMeta}` : '');
+    (record.context ? `${yellow("[" + record.context + "]")}` : "") +
+    (record.message ? ` ${color(record.message)}` : "") +
+    (formattedMeta ? ` - ${formattedMeta}` : "");
 
   return record.stack ? `${line}\n${record.stack}` : line;
 }
@@ -79,8 +80,8 @@ export function formatRecord(
 function safeJson(value: unknown): string {
   const seen = new WeakSet<object>();
   return JSON.stringify(value, (_key, val) => {
-    if (val && typeof val === 'object') {
-      if (seen.has(val)) return '[Circular]';
+    if (val && typeof val === "object") {
+      if (seen.has(val)) return "[Circular]";
       seen.add(val);
     }
     return val;

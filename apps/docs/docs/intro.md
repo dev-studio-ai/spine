@@ -37,12 +37,12 @@ A minimal app with one service and a clean shutdown:
 ### 1. Define a module
 
 ```typescript
-import { Module, OnInit } from '@spinejs/core';
+import { Module, OnInit } from "@spinejs/core";
 
 @Module({ inject: [] })
 export class GreeterModule implements OnInit {
   async onInit() {
-    console.log('Hello from GreeterModule');
+    console.log("Hello from GreeterModule");
   }
 }
 ```
@@ -50,8 +50,8 @@ export class GreeterModule implements OnInit {
 ### 2. Boot the app
 
 ```typescript
-import { App } from '@spinejs/core';
-import { GreeterModule } from './greeter.module';
+import { App } from "@spinejs/core";
+import { GreeterModule } from "./greeter.module";
 
 const app = new App([GreeterModule]);
 
@@ -68,9 +68,9 @@ If you are building an Electron main process, the same module system wires up IP
 ```typescript
 @Controller()
 export class PingController {
-  @Handler({ address: 'ping' })
+  @Handler({ address: "ping" })
   ping(_ctx: GatewayContext): string {
-    return 'pong';
+    return "pong";
   }
 }
 
@@ -83,11 +83,11 @@ See the [Electron IPC transport](transports/electron-ipc) page for the full setu
 
 ## Package overview
 
-| Package | Role |
-|---|---|
-| `@spinejs/core` | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger |
-| `@spinejs/gateway` | Transport-agnostic pipeline: `@Controller`, `@Handler`, `@UseGuards`, `Envelope` |
-| `@spinejs/electron-ipc-gateway` | Binds `Gateway` to `ipcMain.handle` |
-| `@spinejs/electron` | `ElectronModule` (window + lifecycle) and `WindowService` |
-| `@spinejs/config` | Typed, async-capable config loading |
-| `@spinejs/winston-logger` | Drop-in `Logger` implementation backed by Winston |
+| Package                         | Role                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `@spinejs/core`                 | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger |
+| `@spinejs/gateway`              | Transport-agnostic pipeline: `@Controller`, `@Handler`, `@UseGuards`, `Envelope`  |
+| `@spinejs/electron-ipc-gateway` | Binds `Gateway` to `ipcMain.handle`                                               |
+| `@spinejs/electron`             | `ElectronModule` (window + lifecycle) and `WindowService`                         |
+| `@spinejs/config`               | Typed, async-capable config loading                                               |
+| `@spinejs/winston-logger`       | Drop-in `Logger` implementation backed by Winston                                 |

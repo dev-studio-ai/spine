@@ -1,5 +1,14 @@
-import type { Envelope, GatewayContext, RouteDescriptor } from './gateway.types';
-import { ErrorMapper, GatewayInterceptor, UnauthorizedError, Validator } from './ports';
+import type {
+  Envelope,
+  GatewayContext,
+  RouteDescriptor,
+} from "./gateway.types";
+import {
+  ErrorMapper,
+  GatewayInterceptor,
+  UnauthorizedError,
+  Validator,
+} from "./ports";
 
 /**
  * Transport-agnostic gateway. Owns the shared request pipeline
@@ -9,11 +18,14 @@ import { ErrorMapper, GatewayInterceptor, UnauthorizedError, Validator } from '.
  *
  * Optional interceptors wrap every `dispatch()` call in registration order (first = outermost).
  */
-export abstract class Gateway<Ctx extends GatewayContext, Code extends string = string> {
+export abstract class Gateway<
+  Ctx extends GatewayContext,
+  Code extends string = string
+> {
   protected constructor(
     private readonly validator: Validator,
     private readonly errorMapper: ErrorMapper<Code>,
-    private readonly interceptors: GatewayInterceptor<Ctx, Code>[] = [],
+    private readonly interceptors: GatewayInterceptor<Ctx, Code>[] = []
   ) {}
 
   /** Registers pre-resolved route descriptors on the transport. */
@@ -28,12 +40,13 @@ export abstract class Gateway<Ctx extends GatewayContext, Code extends string = 
   protected dispatch(
     route: RouteDescriptor<Ctx>,
     ctx: Ctx,
-    rawInput: unknown,
+    rawInput: unknown
   ): Promise<Envelope<unknown, Code>> {
     const run = () => this.runPipeline(route, ctx, rawInput);
     const chain = this.interceptors.reduceRight(
-      (next, interceptor) => () => interceptor.intercept(route, ctx, rawInput, next),
-      run,
+      (next, interceptor) => () =>
+        interceptor.intercept(route, ctx, rawInput, next),
+      run
     );
     return chain();
   }
@@ -42,13 +55,15 @@ export abstract class Gateway<Ctx extends GatewayContext, Code extends string = 
   private async runPipeline(
     route: RouteDescriptor<Ctx>,
     ctx: Ctx,
-    rawInput: unknown,
+    rawInput: unknown
   ): Promise<Envelope<unknown, Code>> {
     try {
       for (const guard of route.guards) {
         if (!(await guard.canActivate(ctx))) throw new UnauthorizedError();
       }
-      const input = route.input ? this.validator.validate(route.input, rawInput) : rawInput;
+      const input = route.input
+        ? this.validator.validate(route.input, rawInput)
+        : rawInput;
       const data = await route.invoke(ctx, input);
       return { ok: true, data };
     } catch (err) {

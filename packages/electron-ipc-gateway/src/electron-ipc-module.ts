@@ -1,6 +1,9 @@
-import { gatewayFeatureFactory, gatewayModuleDecorator } from '@spinejs/gateway';
-import { ElectronIpcGateway } from './electron-ipc.gateway';
-import { ElectronIpcGatewayModule } from './electron-ipc-gateway.module';
+import {
+  gatewayFeatureFactory,
+  gatewayModuleDecorator,
+} from "@spinejs/gateway";
+import { ElectronIpcGateway } from "./electron-ipc.gateway";
+import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 
 /**
  * IPC sugar to register controllers on the gateway, bound to `ElectronIpcGateway` +
@@ -16,5 +19,11 @@ import { ElectronIpcGatewayModule } from './electron-ipc-gateway.module';
  *   @IpcModule({ controllers: [PingController] })
  *   export class PingModule {}
  */
-export const ipcFeature = gatewayFeatureFactory(ElectronIpcGateway, ElectronIpcGatewayModule);
-export const IpcModule = gatewayModuleDecorator(ElectronIpcGateway, ElectronIpcGatewayModule);
+export const ipcFeature = gatewayFeatureFactory(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);
+export const IpcModule = gatewayModuleDecorator(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);

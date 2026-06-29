@@ -1,9 +1,9 @@
-import type { ProviderEntry, ResolvedTuple, Token } from '../container';
-import { defineOwnMeta, readOwnMeta } from '../utils';
-import type { ModuleConstructor, ModuleNode } from './module-node';
+import type { ProviderEntry, ResolvedTuple, Token } from "../container";
+import { defineOwnMeta, readOwnMeta } from "../utils";
+import type { ModuleConstructor, ModuleNode } from "./module-node";
 
 /** Metadata set by `@Module` on the class (read by App at startup). */
-const MODULE_META = Symbol.for('app-core:module-meta');
+const MODULE_META = Symbol.for("app-core:module-meta");
 
 export interface ModuleMetadata {
   /** Constructor deps of the module, injected in order (typed by `@Module`'s generic). */
@@ -36,9 +36,12 @@ export type ModuleEntry = ModuleConstructor | DynamicModule | ModuleNode;
  * wrong type/order = compile error. The lifecycle is optional via `OnInit`/`OnStop`.
  */
 export function Module<const D extends readonly Token[] = []>(
-  meta: ModuleMetadata & { inject?: D } = {},
+  meta: ModuleMetadata & { inject?: D } = {}
 ) {
-  return <C extends new (...args: ResolvedTuple<D>) => object>(cls: C, _ctx?: unknown): C => {
+  return <C extends new (...args: ResolvedTuple<D>) => object>(
+    cls: C,
+    _ctx?: unknown
+  ): C => {
     defineOwnMeta(cls, MODULE_META, meta);
     return cls;
   };

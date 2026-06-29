@@ -1,7 +1,7 @@
-import type { Logger } from '../logger';
-import { App } from '../app';
-import { Inject, InjectionToken } from '../container';
-import { Module, DynamicModule } from './index';
+import type { Logger } from "../logger";
+import { App } from "../app";
+import { Inject, InjectionToken } from "../container";
+import { Module, DynamicModule } from "./index";
 
 const silentLogger = {
   info() {},
@@ -17,27 +17,29 @@ const makeApp = (modules: ConstructorParameters<typeof App>[0]) =>
   new App(modules, { logger: silentLogger, handleProcessExit: false });
 
 const SIGNALS = [
-  'uncaughtException',
-  'unhandledRejection',
-  'exit',
-  'SIGINT',
-  'SIGUSR1',
-  'SIGUSR2',
+  "uncaughtException",
+  "unhandledRejection",
+  "exit",
+  "SIGINT",
+  "SIGUSR1",
+  "SIGUSR2",
 ] as const;
 let snapshot: Record<string, unknown[]>;
 beforeEach(() => {
   snapshot = {};
-  for (const s of SIGNALS) snapshot[s] = process.listeners(s as NodeJS.Signals).slice();
+  for (const s of SIGNALS)
+    snapshot[s] = process.listeners(s as NodeJS.Signals).slice();
 });
 afterEach(() => {
   for (const s of SIGNALS)
     for (const l of process.listeners(s as NodeJS.Signals))
-      if (!snapshot[s].includes(l)) process.removeListener(s as NodeJS.Signals, l as never);
+      if (!snapshot[s].includes(l))
+        process.removeListener(s as NodeJS.Signals, l as never);
 });
 
-describe('@Module / @Inject / configure', () => {
-  it('wires the full decorator path end-to-end', async () => {
-    const optToken = new InjectionToken<{ name: string }>('deco:opt');
+describe("@Module / @Inject / configure", () => {
+  it("wires the full decorator path end-to-end", async () => {
+    const optToken = new InjectionToken<{ name: string }>("deco:opt");
 
     @Inject([optToken])
     class Greeter {
@@ -48,12 +50,15 @@ describe('@Module / @Inject / configure', () => {
     }
 
     @Module({
-      providers: [{ provide: optToken, value: { name: 'default' } }, Greeter],
+      providers: [{ provide: optToken, value: { name: "default" } }, Greeter],
       exports: [Greeter],
     })
     class GreeterModule {
       static configure(name: string): DynamicModule {
-        return { module: GreeterModule, providers: [{ provide: optToken, value: { name } }] };
+        return {
+          module: GreeterModule,
+          providers: [{ provide: optToken, value: { name } }],
+        };
       }
     }
 
@@ -61,7 +66,7 @@ describe('@Module / @Inject / configure', () => {
     let inited = false;
 
     // Module constructor deps declared via `inject`.
-    @Module({ inject: [Greeter], imports: [GreeterModule.configure('world')] })
+    @Module({ inject: [Greeter], imports: [GreeterModule.configure("world")] })
     class RootModule {
       constructor(private readonly greeter: Greeter) {}
       onInit() {
@@ -74,16 +79,22 @@ describe('@Module / @Inject / configure', () => {
 
     expect(inited).toBe(true);
     // configure('world') did override the default provider { name: 'default' }.
-    expect(captured).toBe('hi world');
+    expect(captured).toBe("hi world");
   });
 
-  it('applies configure() even when a bare import sits in another branch (no resolution-order race)', async () => {
-    const tagToken = new InjectionToken<string>('deco:tag');
+  it("applies configure() even when a bare import sits in another branch (no resolution-order race)", async () => {
+    const tagToken = new InjectionToken<string>("deco:tag");
 
-    @Module({ providers: [{ provide: tagToken, value: 'base' }], exports: [tagToken] })
+    @Module({
+      providers: [{ provide: tagToken, value: "base" }],
+      exports: [tagToken],
+    })
     class SharedModule {
       static configure(tag: string): DynamicModule {
-        return { module: SharedModule, providers: [{ provide: tagToken, value: tag }] };
+        return {
+          module: SharedModule,
+          providers: [{ provide: tagToken, value: tag }],
+        };
       }
     }
 
@@ -98,7 +109,7 @@ describe('@Module / @Inject / configure', () => {
     }
 
     // **Separate** branch that configures the same SharedModule.
-    @Module({ imports: [SharedModule.configure('configured')] })
+    @Module({ imports: [SharedModule.configure("configured")] })
     class BranchConfigured {}
 
     // BranchBare first: without the expansion pre-pass, it would resolve SharedModule
@@ -108,6 +119,6 @@ describe('@Module / @Inject / configure', () => {
 
     await makeApp([Root]).init();
 
-    expect(seenByBare).toBe('configured');
+    expect(seenByBare).toBe("configured");
   });
 });

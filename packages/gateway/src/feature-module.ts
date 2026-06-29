@@ -7,9 +7,14 @@ import {
   ModuleMetadata,
   OnInit,
   ProviderConstructor,
-} from '@spinejs/core';
-import type { Guard, GatewayContext, GuardConstructor, RouteDescriptor } from './gateway.types';
-import { getGuardClasses, getRoutes } from './route';
+} from "@spinejs/core";
+import type {
+  Guard,
+  GatewayContext,
+  GuardConstructor,
+  RouteDescriptor,
+} from "./gateway.types";
+import { getGuardClasses, getRoutes } from "./route";
 
 /** Minimal structural view of a gateway: all the feature module needs is to register routes. */
 interface GatewayRegistrar {
@@ -17,7 +22,9 @@ interface GatewayRegistrar {
 }
 
 /** Token resolving to a gateway (a transport's concrete `Gateway`, by class or InjectionToken). */
-type GatewayToken = ProviderConstructor<GatewayRegistrar> | InjectionToken<GatewayRegistrar>;
+type GatewayToken =
+  | ProviderConstructor<GatewayRegistrar>
+  | InjectionToken<GatewayRegistrar>;
 
 /** Feature module config: standard module metadata plus the controllers to auto-register. */
 export interface FeatureModuleConfig extends ModuleMetadata {
@@ -38,15 +45,23 @@ function defineFeatureModuleClass(
   token: GatewayToken,
   transport: ModuleEntry,
   config: FeatureModuleConfig,
-  Base: ModuleBase,
+  Base: ModuleBase
 ): ModuleConstructor {
-  const { controllers, providers = [], imports = [], inject = [], exports } = config;
+  const {
+    controllers,
+    providers = [],
+    imports = [],
+    inject = [],
+    exports,
+  } = config;
 
   // Collect guard constructors at definition time — deduplicated union across all controllers.
   const uniqueGuardClasses: GuardConstructor[] = [];
   const seen = new Set<GuardConstructor>();
   for (const ctrl of controllers) {
-    for (const cls of getGuardClasses(ctrl as unknown as new (...args: never[]) => object)) {
+    for (const cls of getGuardClasses(
+      ctrl as unknown as new (...args: never[]) => object
+    )) {
       if (!seen.has(cls)) {
         seen.add(cls);
         uniqueGuardClasses.push(cls);
@@ -65,9 +80,11 @@ function defineFeatureModuleClass(
       const controllerInstances = rest.slice(0, controllers.length) as object[];
       const guardInstances = rest.slice(
         controllers.length,
-        controllers.length + uniqueGuardClasses.length,
+        controllers.length + uniqueGuardClasses.length
       ) as Guard<GatewayContext>[];
-      const userDeps = rest.slice(controllers.length + uniqueGuardClasses.length);
+      const userDeps = rest.slice(
+        controllers.length + uniqueGuardClasses.length
+      );
       super(...(userDeps as never[]));
       this.__gateway = gateway;
       this.__controllers = controllerInstances;
@@ -76,12 +93,14 @@ function defineFeatureModuleClass(
 
     async onInit(): Promise<void> {
       const guardMap = new Map<GuardConstructor, Guard<GatewayContext>>(
-        uniqueGuardClasses.map((cls, i) => [cls, this.__guardInstances[i]]),
+        uniqueGuardClasses.map((cls, i) => [cls, this.__guardInstances[i]])
       );
-      const allRoutes = this.__controllers.flatMap((ctrl) => getRoutes(ctrl, guardMap));
+      const allRoutes = this.__controllers.flatMap((ctrl) =>
+        getRoutes(ctrl, guardMap)
+      );
       this.__gateway.register(allRoutes);
       const parentInit = (Base.prototype as Partial<OnInit>).onInit;
-      if (typeof parentInit === 'function') await parentInit.call(this);
+      if (typeof parentInit === "function") await parentInit.call(this);
     }
   }
 
@@ -101,12 +120,17 @@ function defineFeatureModuleClass(
  *
  *   imports: [ ipcFeature({ controllers: [PingController] }) ]
  */
-export function gatewayFeatureFactory(token: GatewayToken, transport: ModuleEntry) {
+export function gatewayFeatureFactory(
+  token: GatewayToken,
+  transport: ModuleEntry
+) {
   return (config: FeatureModuleConfig): DynamicModule => {
     const Empty = class {} as ModuleBase;
     const module = defineFeatureModuleClass(token, transport, config, Empty);
-    const label = config.controllers.map((c) => c.name).join(',');
-    Object.defineProperty(module, 'name', { value: `GatewayFeature(${label})` });
+    const label = config.controllers.map((c) => c.name).join(",");
+    Object.defineProperty(module, "name", {
+      value: `GatewayFeature(${label})`,
+    });
     return { module };
   };
 }
@@ -119,16 +143,19 @@ export function gatewayFeatureFactory(token: GatewayToken, transport: ModuleEntr
  *   @IpcModule({ controllers: [PingController] })
  *   export class PingModule {}
  */
-export function gatewayModuleDecorator(token: GatewayToken, transport: ModuleEntry) {
+export function gatewayModuleDecorator(
+  token: GatewayToken,
+  transport: ModuleEntry
+) {
   return (config: FeatureModuleConfig) =>
     <C extends new (...args: never[]) => object>(UserClass: C): C => {
       const module = defineFeatureModuleClass(
         token,
         transport,
         config,
-        UserClass as unknown as ModuleBase,
+        UserClass as unknown as ModuleBase
       );
-      Object.defineProperty(module, 'name', { value: UserClass.name });
+      Object.defineProperty(module, "name", { value: UserClass.name });
       return module as unknown as C;
     };
 }

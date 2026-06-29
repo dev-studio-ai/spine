@@ -29,18 +29,18 @@ The `exit()` method is called by `app.exit()` to let the logger flush buffered w
 `AppLogger` writes colored, timestamped output to `process.stdout`/`process.stderr`. It has no external dependencies.
 
 ```typescript
-import { AppLogger } from '@spinejs/core';
+import { AppLogger } from "@spinejs/core";
 
 const logger = new AppLogger({
-  level: 'debug',    // 'verbose' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
-  appName: 'MyApp',  // Prefix shown in brackets: [MyApp]
-  stdout: true,      // Write info/debug/verbose to stdout (default true)
+  level: "debug", // 'verbose' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+  appName: "MyApp", // Prefix shown in brackets: [MyApp]
+  stdout: true, // Write info/debug/verbose to stdout (default true)
 });
 
-logger.info('Application started', 'Bootstrap');
+logger.info("Application started", "Bootstrap");
 // [timestamp] [info] [MyApp] [Bootstrap] Application started
 
-logger.error(new Error('Something went wrong'), 'AuthService');
+logger.error(new Error("Something went wrong"), "AuthService");
 // [timestamp] [error] [MyApp] [AuthService] Something went wrong
 //   Error: Something went wrong
 //     at ...
@@ -48,26 +48,26 @@ logger.error(new Error('Something went wrong'), 'AuthService');
 
 ### `LoggerOptions`
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `level` | `LogLevel \| string` | `'info'` | Minimum level emitted. |
-| `stdout` | `boolean` | `true` | Emit `info` and below to `stdout` (vs `stderr`). |
-| `appName` | `string` | `'App'` | Prefix shown in every log line. |
-| `console` | `ConsoleFormatOptions` | `{}` | Fine-grained console rendering tweaks (colors, pid, etc.). |
+| Option    | Type                   | Default  | Description                                                |
+| --------- | ---------------------- | -------- | ---------------------------------------------------------- |
+| `level`   | `LogLevel \| string`   | `'info'` | Minimum level emitted.                                     |
+| `stdout`  | `boolean`              | `true`   | Emit `info` and below to `stdout` (vs `stderr`).           |
+| `appName` | `string`               | `'App'`  | Prefix shown in every log line.                            |
+| `console` | `ConsoleFormatOptions` | `{}`     | Fine-grained console rendering tweaks (colors, pid, etc.). |
 
 ## Injecting the logger
 
 The active logger is registered in the global container under `loggerToken`. Inject it into any module or service:
 
 ```typescript
-import { Module, Logger, loggerToken } from '@spinejs/core';
+import { Module, Logger, loggerToken } from "@spinejs/core";
 
 @Module({ inject: [loggerToken] })
 export class AuthModule {
   constructor(private readonly logger: Logger) {}
 
   async onInit(): Promise<void> {
-    this.logger.info('AuthModule initialized', AuthModule.name);
+    this.logger.info("AuthModule initialized", AuthModule.name);
   }
 }
 ```
@@ -79,17 +79,14 @@ Using `Logger` (the interface) as the type — not `AppLogger` — keeps the cod
 Pass any `Logger`-compatible instance to `AppOptions.logger` to replace the built-in:
 
 ```typescript
-import { App } from '@spinejs/core';
-import { WinstonLogger } from '@spinejs/winston-logger';
+import { App } from "@spinejs/core";
+import { WinstonLogger } from "@spinejs/winston-logger";
 
 const app = new App([AppModule], {
   logger: new WinstonLogger({
-    level: 'debug',
-    dir: '/var/log/myapp',
-    files: [
-      { filename: 'app.log' },
-      { filename: 'error.log', level: 'error' },
-    ],
+    level: "debug",
+    dir: "/var/log/myapp",
+    files: [{ filename: "app.log" }, { filename: "error.log", level: "error" }],
   }),
 });
 ```
@@ -100,13 +97,13 @@ See [Winston Logger](../extensions/winston-logger) for the full `WinstonLoggerOp
 
 Levels in ascending severity order:
 
-| Level | Method | Use |
-|---|---|---|
+| Level     | Method             | Use                                               |
+| --------- | ------------------ | ------------------------------------------------- |
 | `verbose` | `logger.verbose()` | Tracing details (container resolution, DI, etc.). |
-| `debug` | `logger.debug()` | Development-time diagnostics. |
-| `info` | `logger.info()` | Normal operational messages. |
-| `warn` | `logger.warn()` | Recoverable anomalies. |
-| `error` | `logger.error()` | Errors that do not crash the process. |
-| `fatal` | `logger.fatal()` | Errors that trigger process exit. |
+| `debug`   | `logger.debug()`   | Development-time diagnostics.                     |
+| `info`    | `logger.info()`    | Normal operational messages.                      |
+| `warn`    | `logger.warn()`    | Recoverable anomalies.                            |
+| `error`   | `logger.error()`   | Errors that do not crash the process.             |
+| `fatal`   | `logger.fatal()`   | Errors that trigger process exit.                 |
 
 Setting `level: 'warn'` emits only `warn`, `error`, and `fatal` — messages at lower levels are silently dropped.

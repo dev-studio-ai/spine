@@ -1,12 +1,18 @@
-import { defineOwnMeta, readOwnMeta } from '@spinejs/core';
-import type { GatewayContext, Guard, GuardConstructor, ParseableSchema, RouteDescriptor } from './gateway.types';
-import { UnauthorizedError } from './ports';
+import { defineOwnMeta, readOwnMeta } from "@spinejs/core";
+import type {
+  GatewayContext,
+  Guard,
+  GuardConstructor,
+  ParseableSchema,
+  RouteDescriptor,
+} from "./gateway.types";
+import { UnauthorizedError } from "./ports";
 
 /** Keys (Symbol.for, stable across module copies) where decorator metadata is stored. */
-const HANDLER_ROUTES = Symbol.for('app-gateway:handler-routes');
-const CONTROLLER = Symbol.for('app-gateway:controller');
-const CONTROLLER_GUARDS = Symbol.for('app-gateway:controller-guards');
-const METHOD_GUARDS = Symbol.for('app-gateway:method-guards');
+const HANDLER_ROUTES = Symbol.for("app-gateway:handler-routes");
+const CONTROLLER = Symbol.for("app-gateway:controller");
+const CONTROLLER_GUARDS = Symbol.for("app-gateway:controller-guards");
+const METHOD_GUARDS = Symbol.for("app-gateway:method-guards");
 
 /** Options accepted by `@Handler`. `In` is inferred from the schema, narrowing the handler input. */
 export interface HandlerOptions<In = unknown> {
@@ -40,7 +46,10 @@ export function Handler<In = unknown>(options: HandlerOptions<In>) {
   return (target: object, propertyKey: string | symbol): void => {
     const ctor = target.constructor;
     const routes = readOwnMeta<HandlerMeta[]>(ctor, HANDLER_ROUTES) ?? [];
-    routes.push({ methodName: propertyKey, options: options as HandlerOptions });
+    routes.push({
+      methodName: propertyKey,
+      options: options as HandlerOptions,
+    });
     defineOwnMeta(ctor, HANDLER_ROUTES, routes);
   };
 }
@@ -58,7 +67,11 @@ export function UseGuards(...guards: GuardConstructor[]) {
     } else {
       // Method decorator — target is the prototype, accumulate per method on constructor
       const ctor = (target as { constructor: object }).constructor;
-      const map = readOwnMeta<Map<string | symbol, GuardConstructor[]>>(ctor, METHOD_GUARDS) ?? new Map();
+      const map =
+        readOwnMeta<Map<string | symbol, GuardConstructor[]>>(
+          ctor,
+          METHOD_GUARDS
+        ) ?? new Map();
       const existing = map.get(propertyKey) ?? [];
       map.set(propertyKey, [...existing, ...guards]);
       defineOwnMeta(ctor, METHOD_GUARDS, map);
@@ -75,9 +88,16 @@ export function isController(controller: object): boolean {
  * Returns a deduplicated list of all guard classes referenced by this controller (class-level +
  * all method-level). Used by feature-module at synthesis time to add guards to the DI inject list.
  */
-export function getGuardClasses(controller: new (...args: never[]) => object): GuardConstructor[] {
-  const classGuards = readOwnMeta<GuardConstructor[]>(controller, CONTROLLER_GUARDS) ?? [];
-  const methodMap = readOwnMeta<Map<string | symbol, GuardConstructor[]>>(controller, METHOD_GUARDS) ?? new Map();
+export function getGuardClasses(
+  controller: new (...args: never[]) => object
+): GuardConstructor[] {
+  const classGuards =
+    readOwnMeta<GuardConstructor[]>(controller, CONTROLLER_GUARDS) ?? [];
+  const methodMap =
+    readOwnMeta<Map<string | symbol, GuardConstructor[]>>(
+      controller,
+      METHOD_GUARDS
+    ) ?? new Map();
   const allMethodGuards = [...methodMap.values()].flat();
   const seen = new Set<GuardConstructor>();
   for (const g of [...classGuards, ...allMethodGuards]) seen.add(g);
@@ -91,23 +111,30 @@ export function getGuardClasses(controller: new (...args: never[]) => object): G
  */
 export function getRoutes<Ctx extends GatewayContext>(
   controller: object,
-  guardMap: Map<GuardConstructor, Guard<GatewayContext>>,
+  guardMap: Map<GuardConstructor, Guard<GatewayContext>>
 ): RouteDescriptor<Ctx>[] {
   if (!isController(controller)) {
     throw new Error(`${controller.constructor.name} is not a @Controller.`);
   }
   const ctor = controller.constructor;
   const metas = readOwnMeta<HandlerMeta[]>(ctor, HANDLER_ROUTES) ?? [];
-  const classGuardClasses = readOwnMeta<GuardConstructor[]>(ctor, CONTROLLER_GUARDS) ?? [];
+  const classGuardClasses =
+    readOwnMeta<GuardConstructor[]>(ctor, CONTROLLER_GUARDS) ?? [];
   const methodGuardsMap =
-    readOwnMeta<Map<string | symbol, GuardConstructor[]>>(ctor, METHOD_GUARDS) ?? new Map();
+    readOwnMeta<Map<string | symbol, GuardConstructor[]>>(
+      ctor,
+      METHOD_GUARDS
+    ) ?? new Map();
 
   return metas.map(({ methodName, options }) => {
     const methodGuardClasses = methodGuardsMap.get(methodName) ?? [];
     const allGuardClasses = [...classGuardClasses, ...methodGuardClasses];
     const guards = allGuardClasses.map((cls) => {
       const instance = guardMap.get(cls);
-      if (!instance) throw new Error(`Guard ${cls.name} is not in the guard map — add it to DI inject.`);
+      if (!instance)
+        throw new Error(
+          `Guard ${cls.name} is not in the guard map — add it to DI inject.`
+        );
       return instance as Guard<Ctx>;
     });
 
@@ -116,10 +143,12 @@ export function getRoutes<Ctx extends GatewayContext>(
       guards,
       input: options.input,
       invoke: (ctx: Ctx, input: unknown) =>
-        (controller as Record<string | symbol, (ctx: Ctx, input: unknown) => unknown>)[methodName](
-          ctx,
-          input,
-        ),
+        (
+          controller as Record<
+            string | symbol,
+            (ctx: Ctx, input: unknown) => unknown
+          >
+        )[methodName](ctx, input),
     };
   });
 }
