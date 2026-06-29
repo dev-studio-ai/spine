@@ -4,8 +4,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'SpineJS',
   tagline: 'Modules, DI, and lifecycle for long-lived Node processes',
-  url: 'http://localhost',
-  baseUrl: '/',
+  url: 'https://dev-studio-ai.github.io',
+  baseUrl: '/spine/',
   onBrokenLinks: 'throw',
   favicon: 'img/favicon.ico',
   markdown: {

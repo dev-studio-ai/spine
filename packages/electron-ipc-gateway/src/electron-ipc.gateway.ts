@@ -1,6 +1,13 @@
 import { ipcMain } from 'electron';
 import { Logger } from '@spinejs/core';
-import { ContextFactory, ErrorMapper, Gateway, RouteDescriptor, Validator } from '@spinejs/gateway';
+import {
+  ContextFactory,
+  ErrorMapper,
+  Gateway,
+  GatewayInterceptor,
+  RouteDescriptor,
+  Validator,
+} from '@spinejs/gateway';
 import { ElectronIpcBaseContext, ElectronIpcRaw } from './electron-ipc-base.types';
 
 /**
@@ -18,8 +25,9 @@ export class ElectronIpcGateway<
     errorMapper: ErrorMapper<Code>,
     private readonly contextFactory: ContextFactory<ElectronIpcRaw, Ctx>,
     private readonly logger: Logger,
+    interceptors: GatewayInterceptor<Ctx, Code>[] = [],
   ) {
-    super(validator, errorMapper);
+    super(validator, errorMapper, interceptors);
   }
 
   protected bind(route: RouteDescriptor<Ctx>): void {

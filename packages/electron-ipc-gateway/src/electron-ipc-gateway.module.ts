@@ -8,7 +8,7 @@ import {
   Provider,
   ProviderConstructor,
 } from '@spinejs/core';
-import type { ContextFactory, ErrorMapper, Validator } from '@spinejs/gateway';
+import type { ContextFactory, ErrorMapper, GatewayInterceptor, Validator } from '@spinejs/gateway';
 import { ElectronIpcGateway } from './electron-ipc.gateway';
 import { ZodValidator } from './zod.validator';
 import type { ElectronIpcBaseContext, ElectronIpcRaw } from './electron-ipc-base.types';
@@ -20,6 +20,9 @@ const errorMapperToken = new InjectionToken<ErrorMapper<string>>(
 const contextFactoryToken = new InjectionToken<
   ContextFactory<ElectronIpcRaw, ElectronIpcBaseContext>
 >('electron-ipc-gateway.context-factory');
+const interceptorsToken = new InjectionToken<GatewayInterceptor[]>(
+  'electron-ipc-gateway.interceptors',
+);
 
 type FactoryAdapter<T> = {
   inject?: (InjectionToken | ProviderConstructor)[];
@@ -47,15 +50,17 @@ function toProvider<T>(provide: InjectionToken<T>, adapter: Adapter<T>): Provide
  */
 @Module({
   providers: [
+    { provide: interceptorsToken, value: [] },
     {
       provide: ElectronIpcGateway,
-      inject: [validatorToken, errorMapperToken, contextFactoryToken, loggerToken],
+      inject: [validatorToken, errorMapperToken, contextFactoryToken, loggerToken, interceptorsToken],
       factory: (
         validator: Validator,
         errorMapper: ErrorMapper<string>,
         contextFactory: ContextFactory<ElectronIpcRaw, ElectronIpcBaseContext>,
         logger: Logger,
-      ) => new ElectronIpcGateway(validator, errorMapper, contextFactory, logger),
+        interceptors: GatewayInterceptor[],
+      ) => new ElectronIpcGateway(validator, errorMapper, contextFactory, logger, interceptors),
     },
   ],
   exports: [ElectronIpcGateway],
@@ -71,6 +76,7 @@ export class ElectronIpcGatewayModule {
     contextFactory: Adapter<ContextFactory<ElectronIpcRaw, ElectronIpcBaseContext>>;
     errorMapper: Adapter<ErrorMapper<string>>;
     validator?: Adapter<Validator>;
+    interceptors?: Adapter<GatewayInterceptor[]>;
   }): DynamicModule {
     return {
       module: ElectronIpcGatewayModule,
@@ -79,6 +85,7 @@ export class ElectronIpcGatewayModule {
         toProvider(contextFactoryToken, options.contextFactory),
         toProvider(errorMapperToken, options.errorMapper),
         toProvider(validatorToken, options.validator ?? { factory: () => new ZodValidator() }),
+        toProvider(interceptorsToken, options.interceptors ?? { value: [] }),
       ],
     };
   }
