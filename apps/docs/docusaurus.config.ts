@@ -1,5 +1,6 @@
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
+import { themes as prismThemes } from "prism-react-renderer";
 
 const config: Config = {
   title: "SpineJS",
@@ -53,7 +54,7 @@ const config: Config = {
       copyright: `Copyright © ${new Date().getFullYear()} Dev Studio`,
     },
     prism: {
-      theme: require("prism-react-renderer").themes.oneDark,
+      theme: prismThemes.oneDark,
       additionalLanguages: ["typescript", "bash"],
     },
   } satisfies Preset.ThemeConfig,

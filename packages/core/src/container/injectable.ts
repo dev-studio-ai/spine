@@ -54,8 +54,7 @@ function ownDeps(cls: object): Token[] | undefined {
  */
 export function Inject<const D extends readonly Token[]>(deps: D) {
   return <C extends new (...args: never[]) => unknown>(
-    cls: C & CtorDepsMatch<C, D>,
-    _ctx?: unknown
+    cls: C & CtorDepsMatch<C, D>
   ): C => {
     defineOwnMeta(cls, INJECT_DEPS, [...deps]);
     return cls;

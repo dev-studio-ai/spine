@@ -4,7 +4,10 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(yarn format *)"
+      "Bash(yarn format *)",
+      "Bash(yarn lint:all)",
+      "Bash(npx nx *)",
+      "Bash(yarn format:write)"
     ]
   }
 }
