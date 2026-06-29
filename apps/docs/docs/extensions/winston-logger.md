@@ -11,18 +11,15 @@ sidebar_position: 2
 Pass a `WinstonLogger` instance to `AppOptions.logger` when constructing your `App`:
 
 ```typescript
-import { App } from '@spinejs/core';
-import { WinstonLogger } from '@spinejs/winston-logger';
+import { App } from "@spinejs/core";
+import { WinstonLogger } from "@spinejs/winston-logger";
 
 const app = new App([AppModule], {
   logger: new WinstonLogger({
-    level:  'info',
+    level: "info",
     stdout: true,
-    dir:    '/var/log/myapp',
-    files: [
-      { filename: 'app.log' },
-      { filename: 'error.log', level: 'error' },
-    ],
+    dir: "/var/log/myapp",
+    files: [{ filename: "app.log" }, { filename: "error.log", level: "error" }],
   }),
 });
 ```
@@ -31,32 +28,32 @@ That is the only change needed. The `WinstonLogger` instance is automatically re
 
 ## `WinstonLoggerOptions`
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `level` | `LogLevel \| string` | Winston default (`'info'`) | Minimum log level emitted. |
-| `stdout` | `boolean` | `true` | When `true`, adds a Console transport with colored output. |
-| `dir` | `string` | — | Base directory for file transports. Required when `files` is non-empty. |
-| `json` | `boolean` | `false` | Emit file logs as JSON (currently disabled — reserved for future use). |
-| `files` | `LogFileConfig[]` | `[]` | Array of file transport configurations (see below). |
-| `transports` | `unknown[]` | `[]` | Raw Winston transports to add (for advanced use cases). |
-| `console` | `ConsoleFormatOptions` | — | Tweaks to the console formatter (colors, timestamps, pid). |
+| Option       | Type                   | Default                    | Description                                                             |
+| ------------ | ---------------------- | -------------------------- | ----------------------------------------------------------------------- |
+| `level`      | `LogLevel \| string`   | Winston default (`'info'`) | Minimum log level emitted.                                              |
+| `stdout`     | `boolean`              | `true`                     | When `true`, adds a Console transport with colored output.              |
+| `dir`        | `string`               | —                          | Base directory for file transports. Required when `files` is non-empty. |
+| `json`       | `boolean`              | `false`                    | Emit file logs as JSON (currently disabled — reserved for future use).  |
+| `files`      | `LogFileConfig[]`      | `[]`                       | Array of file transport configurations (see below).                     |
+| `transports` | `unknown[]`            | `[]`                       | Raw Winston transports to add (for advanced use cases).                 |
+| `console`    | `ConsoleFormatOptions` | —                          | Tweaks to the console formatter (colors, timestamps, pid).              |
 
 ## File transports with `LogFileConfig`
 
 `LogFileConfig` mirrors Winston's `FileTransportOptions`. At minimum you need `filename`:
 
 ```typescript
-import { WinstonLogger } from '@spinejs/winston-logger';
+import { WinstonLogger } from "@spinejs/winston-logger";
 
 const logger = new WinstonLogger({
-  dir: '/var/log/myapp',
+  dir: "/var/log/myapp",
   files: [
     // All log levels:
-    { filename: 'combined.log' },
+    { filename: "combined.log" },
     // Errors only:
-    { filename: 'error.log', level: 'error' },
+    { filename: "error.log", level: "error" },
     // Rotating files (requires winston-daily-rotate-file transport in `transports`):
-    { filename: 'app-%DATE%.log' },
+    { filename: "app-%DATE%.log" },
   ],
 });
 ```
@@ -69,10 +66,10 @@ Each file transport respects its own `level`. The logger-wide `level` acts as th
 
 ```typescript
 const logger = new WinstonLogger({
-  level: 'debug',     // console receives everything from debug up
+  level: "debug", // console receives everything from debug up
   files: [
-    { filename: 'debug.log', level: 'debug' },  // all levels
-    { filename: 'error.log', level: 'error' },  // only error and fatal
+    { filename: "debug.log", level: "debug" }, // all levels
+    { filename: "error.log", level: "error" }, // only error and fatal
   ],
 });
 ```
@@ -82,18 +79,18 @@ const logger = new WinstonLogger({
 Pass any Winston-compatible transport via the `transports` option:
 
 ```typescript
-import * as winston from 'winston';
-import { WinstonLogger } from '@spinejs/winston-logger';
-import DailyRotateFile from 'winston-daily-rotate-file';
+import * as winston from "winston";
+import { WinstonLogger } from "@spinejs/winston-logger";
+import DailyRotateFile from "winston-daily-rotate-file";
 
 const logger = new WinstonLogger({
-  level: 'info',
+  level: "info",
   transports: [
     new DailyRotateFile({
-      dirname:    '/var/log/myapp',
-      filename:   'app-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
-      maxFiles:   '14d',
+      dirname: "/var/log/myapp",
+      filename: "app-%DATE%.log",
+      datePattern: "YYYY-MM-DD",
+      maxFiles: "14d",
     }),
   ],
 });
@@ -112,8 +109,8 @@ If a file transport encounters a permission error (`EACCES`), the logger throws 
 ```typescript
 // This throws if /root/logs is not writable:
 const logger = new WinstonLogger({
-  dir:   '/root/logs',
-  files: [{ filename: 'app.log' }],
+  dir: "/root/logs",
+  files: [{ filename: "app.log" }],
 });
 ```
 
@@ -124,14 +121,14 @@ Validate write permissions before construction in production (e.g. `accessSync` 
 The logger is accessible via `loggerToken` in any module once the app is booted. The type is the `Logger` interface — your module stays decoupled from the concrete `WinstonLogger` class:
 
 ```typescript
-import { Module, Logger, loggerToken } from '@spinejs/core';
+import { Module, Logger, loggerToken } from "@spinejs/core";
 
 @Module({ inject: [loggerToken] })
 export class MyModule {
   constructor(private readonly logger: Logger) {}
 
   async onInit(): Promise<void> {
-    this.logger.info('MyModule is ready', MyModule.name);
+    this.logger.info("MyModule is ready", MyModule.name);
   }
 }
 ```

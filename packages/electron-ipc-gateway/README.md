@@ -16,27 +16,39 @@ Electron IPC transport binding for `@spinejs/gateway`. Binds each `@Handler({ ad
 Wire the three ports for your application:
 
 ```typescript
-import { Module, InjectionToken, loggerToken, Logger } from '@spinejs/core';
-import { ContextFactory, ErrorMapper, Validator } from '@spinejs/gateway';
-import { ElectronIpcGateway, ElectronIpcRaw } from '@spinejs/electron-ipc-gateway';
+import { Module, InjectionToken, loggerToken, Logger } from "@spinejs/core";
+import { ContextFactory, ErrorMapper, Validator } from "@spinejs/gateway";
+import {
+  ElectronIpcGateway,
+  ElectronIpcRaw,
+} from "@spinejs/electron-ipc-gateway";
 
-const validatorToken      = new InjectionToken<Validator>('validator');
-const errorMapperToken    = new InjectionToken<ErrorMapper<ErrorCode>>('error-mapper');
-const contextFactoryToken = new InjectionToken<ContextFactory<ElectronIpcRaw, AppContext>>('context-factory');
+const validatorToken = new InjectionToken<Validator>("validator");
+const errorMapperToken = new InjectionToken<ErrorMapper<ErrorCode>>(
+  "error-mapper"
+);
+const contextFactoryToken = new InjectionToken<
+  ContextFactory<ElectronIpcRaw, AppContext>
+>("context-factory");
 
 @Module({
   imports: [SessionModule],
   providers: [
-    { provide: validatorToken,      factory: () => new ZodValidator() },
-    { provide: errorMapperToken,    factory: () => new AppErrorMapper() },
+    { provide: validatorToken, factory: () => new ZodValidator() },
+    { provide: errorMapperToken, factory: () => new AppErrorMapper() },
     {
       provide: contextFactoryToken,
-      inject:  [SessionStore],
+      inject: [SessionStore],
       factory: (session: SessionStore) => new SessionContextFactory(session),
     },
     {
       provide: ElectronIpcGateway,
-      inject:  [validatorToken, errorMapperToken, contextFactoryToken, loggerToken],
+      inject: [
+        validatorToken,
+        errorMapperToken,
+        contextFactoryToken,
+        loggerToken,
+      ],
       factory: (v, e, c, l: Logger) => new ElectronIpcGateway(v, e, c, l),
     },
   ],
@@ -48,29 +60,42 @@ export class ElectronIpcGatewayModule {}
 ### 2. Create the IPC helpers
 
 ```typescript
-import { gatewayFeatureFactory, gatewayModuleDecorator } from '@spinejs/gateway';
-import { ElectronIpcGateway } from '@spinejs/electron-ipc-gateway';
-import { ElectronIpcGatewayModule } from './electron-ipc-gateway.module';
+import {
+  gatewayFeatureFactory,
+  gatewayModuleDecorator,
+} from "@spinejs/gateway";
+import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
+import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 
-export const ipcFeature = gatewayFeatureFactory(ElectronIpcGateway, ElectronIpcGatewayModule);
-export const IpcModule  = gatewayModuleDecorator(ElectronIpcGateway, ElectronIpcGatewayModule);
+export const ipcFeature = gatewayFeatureFactory(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);
+export const IpcModule = gatewayModuleDecorator(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);
 ```
 
 ### 3. Write controllers
 
 ```typescript
-import { Controller, Handler, UseGuards } from '@spinejs/gateway';
-import { IpcModule } from './infrastructure/electron-ipc-module';
-import { SessionGuard } from './infrastructure/session.guard';
+import { Controller, Handler, UseGuards } from "@spinejs/gateway";
+import { IpcModule } from "./infrastructure/electron-ipc-module";
+import { SessionGuard } from "./infrastructure/session.guard";
 
 @UseGuards(SessionGuard)
 @Controller()
 export class ProjectsController {
-  @Handler({ address: 'projects:list' })
-  list(ctx: AppContext): Project[] { /* … */ }
+  @Handler({ address: "projects:list" })
+  list(ctx: AppContext): Project[] {
+    /* … */
+  }
 
-  @Handler({ address: 'projects:create', input: CreateProjectSchema })
-  create(ctx: AppContext, input: CreateProject): Project { /* … */ }
+  @Handler({ address: "projects:create", input: CreateProjectSchema })
+  create(ctx: AppContext, input: CreateProject): Project {
+    /* … */
+  }
 }
 
 @IpcModule({ controllers: [ProjectsController] })
@@ -96,16 +121,20 @@ export class SessionContextFactory
 ### `ErrorMapper`
 
 ```typescript
-import { ErrorMapper, UnauthorizedError, ValidationError } from '@spinejs/gateway';
+import {
+  ErrorMapper,
+  UnauthorizedError,
+  ValidationError,
+} from "@spinejs/gateway";
 
-type ErrorCode = 'UNAUTHORIZED' | 'INVALID_INPUT' | 'NOT_FOUND' | 'SERVER';
+type ErrorCode = "UNAUTHORIZED" | "INVALID_INPUT" | "NOT_FOUND" | "SERVER";
 
 export class AppErrorMapper implements ErrorMapper<ErrorCode> {
   toCode(err: unknown): ErrorCode {
-    if (err instanceof UnauthorizedError) return 'UNAUTHORIZED';
-    if (err instanceof ValidationError)  return 'INVALID_INPUT';
-    if (err instanceof NotFoundError)    return 'NOT_FOUND';
-    return 'SERVER';
+    if (err instanceof UnauthorizedError) return "UNAUTHORIZED";
+    if (err instanceof ValidationError) return "INVALID_INPUT";
+    if (err instanceof NotFoundError) return "NOT_FOUND";
+    return "SERVER";
   }
 }
 ```

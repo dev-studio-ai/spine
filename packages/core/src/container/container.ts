@@ -1,6 +1,6 @@
-import { Logger } from '../logger';
-import { InjectionToken } from './injection-token';
-import { getInjectedDeps } from './injectable';
+import { Logger } from "../logger";
+import { InjectionToken } from "./injection-token";
+import { getInjectedDeps } from "./injectable";
 import type {
   ProviderConstructor,
   Provider,
@@ -8,11 +8,11 @@ import type {
   Token,
   FactoryProvider,
   TokenKey,
-} from './container.types';
+} from "./container.types";
 
 /** Bare class → `{ provide: Class }`; explicit provider → unchanged. */
 export function normalizeProvider(entry: ProviderEntry): Provider {
-  return typeof entry === 'function' ? { provide: entry } : entry;
+  return typeof entry === "function" ? { provide: entry } : entry;
 }
 
 /** Comparison/Map key for a token: a class by reference, an InjectionToken by its unique Symbol. */
@@ -40,7 +40,7 @@ export class Container {
   constructor(
     private readonly logger: Logger,
     private readonly logContext?: string,
-    private readonly parent?: Container,
+    private readonly parent?: Container
   ) {}
 
   has(token: Token): boolean {
@@ -62,7 +62,7 @@ export class Container {
     if (this.providers.has(key)) {
       this.logger.verbose(
         `Provider ${stringifyToken(token)} already registered, ignored.`,
-        this.logContext,
+        this.logContext
       );
       return;
     }
@@ -71,8 +71,13 @@ export class Container {
 
     // Cheap guard: a provider injecting itself is a trivial cycle.
     // Transitive cycles are caught lazily at resolve time.
-    if ('inject' in provider && provider.inject?.some((t) => tokenKey(t) === key)) {
-      throw new Error(`Circular dependency: provider ${stringifyToken(token)} injects itself.`);
+    if (
+      "inject" in provider &&
+      provider.inject?.some((t) => tokenKey(t) === key)
+    ) {
+      throw new Error(
+        `Circular dependency: provider ${stringifyToken(token)} injects itself.`
+      );
     }
   }
 
@@ -107,16 +112,22 @@ export class Container {
   /** Rich error: token category of the missing provider plus the resolution chain. */
   private unknownProviderError(token: Token, parents: Token[]): Error {
     const hint =
-      typeof token === 'function'
-        ? `'${stringifyToken(token)}' is a class (e.g. a Module or a service) used as an ` +
+      typeof token === "function"
+        ? `'${stringifyToken(
+            token
+          )}' is a class (e.g. a Module or a service) used as an ` +
           `injection token, but it is not registered as a provider in any container. ` +
           `Declare it in the module's \`providers\`, or export it (\`exports\`) from an imported module.`
-        : `Token '${stringifyToken(token)}' is not registered as a provider in any container.`;
+        : `Token '${stringifyToken(
+            token
+          )}' is not registered as a provider in any container.`;
 
-    const chain = [...parents, token].map(stringifyToken).join(' -> ');
-    const chainLine = parents.length ? `\n  → Resolution chain: ${chain}` : '';
+    const chain = [...parents, token].map(stringifyToken).join(" -> ");
+    const chainLine = parents.length ? `\n  → Resolution chain: ${chain}` : "";
 
-    return new Error(`Unknown provider ${stringifyToken(token)}.\n  → ${hint}${chainLine}`);
+    return new Error(
+      `Unknown provider ${stringifyToken(token)}.\n  → ${hint}${chainLine}`
+    );
   }
 
   private resolve<T = unknown>(token: Token, parents: Token[] = []): T {
@@ -124,24 +135,29 @@ export class Container {
     parents.push(token);
 
     // Value provider: identified by the `value` key, even if falsy or undefined.
-    if ('value' in provider) {
-      this.logger.verbose(`Return value for provider ${stringifyToken(token)}.`, this.logContext);
+    if ("value" in provider) {
+      this.logger.verbose(
+        `Return value for provider ${stringifyToken(token)}.`,
+        this.logContext
+      );
 
       return provider.value as T;
     }
 
     // Delegated provider: defer resolution to another container.
-    if ('delegate' in provider && provider.delegate !== undefined) {
+    if ("delegate" in provider && provider.delegate !== undefined) {
       this.logger.verbose(
         `Delegate provider resolution for provider ${stringifyToken(token)}.`,
-        this.logContext,
+        this.logContext
       );
       return provider.delegate();
     }
 
     // Deps to inject: explicit `inject:` wins, else deps from `@Inject` on the class.
     const explicitInject =
-      'inject' in provider && provider.inject !== undefined ? provider.inject : undefined;
+      "inject" in provider && provider.inject !== undefined
+        ? provider.inject
+        : undefined;
     const deps = explicitInject ?? getInjectedDeps(provider.provide);
 
     let providers: unknown[] = [];
@@ -152,8 +168,11 @@ export class Container {
     const args: unknown[] = [...providers];
 
     // Factory provider.
-    if ('factory' in provider && provider.factory !== undefined) {
-      this.logger.verbose(`Call factory for provider ${stringifyToken(token)}.`, this.logContext);
+    if ("factory" in provider && provider.factory !== undefined) {
+      this.logger.verbose(
+        `Call factory for provider ${stringifyToken(token)}.`,
+        this.logContext
+      );
 
       return (provider as FactoryProvider<T>).factory(...args);
     }
@@ -163,10 +182,10 @@ export class Container {
     // (newable) rather than by source text — robust under transpilation (a class downleveled to a
     // `function` still instantiates) and to pre-ES6 function constructors. A non-function `provide`
     // (e.g. an InjectionToken with no value/factory/delegate) cannot be built → falls through.
-    if (typeof provider.provide === 'function') {
+    if (typeof provider.provide === "function") {
       this.logger.verbose(
         `Instanciate class for provider ${stringifyToken(token)}.`,
-        this.logContext,
+        this.logContext
       );
 
       const Class = provider.provide as ProviderConstructor<T>;
@@ -174,8 +193,10 @@ export class Container {
     }
 
     throw new Error(
-      `Invalid provider for ${stringifyToken(token)}: it has no value/factory/delegate and its ` +
-        `token is not a constructor. Declare one of value/factory/delegate, or use a class token.`,
+      `Invalid provider for ${stringifyToken(
+        token
+      )}: it has no value/factory/delegate and its ` +
+        `token is not a constructor. Declare one of value/factory/delegate, or use a class token.`
     );
   }
 
@@ -186,7 +207,7 @@ export class Container {
         throw new Error(
           `Circular dependency: ${stringifyToken(token)} -> ${parents
             .map(stringifyToken)
-            .join(' -> ')}`,
+            .join(" -> ")}`
         );
       }
       return this.resolveToken(token, parents); // via resolveToken, not resolve: uses cache and parent

@@ -15,17 +15,20 @@ Every handler returns `{ ok: true, data }` or `{ ok: false, code }`. The pipelin
 ### Decorators
 
 ```typescript
-import { Controller, Handler, UseGuards } from '@spinejs/gateway';
+import { Controller, Handler, UseGuards } from "@spinejs/gateway";
 
-@UseGuards(SessionGuard)           // applies to all handlers
+@UseGuards(SessionGuard) // applies to all handlers
 @Controller()
 export class UsersController {
+  @Handler({ address: "users:list" })
+  list(ctx: AppContext): User[] {
+    /* … */
+  }
 
-  @Handler({ address: 'users:list' })
-  list(ctx: AppContext): User[] { /* … */ }
-
-  @Handler({ address: 'users:create', input: CreateUserSchema })
-  create(ctx: AppContext, input: CreateUser): User { /* … */ }
+  @Handler({ address: "users:create", input: CreateUserSchema })
+  create(ctx: AppContext, input: CreateUser): User {
+    /* … */
+  }
 }
 ```
 
@@ -35,17 +38,17 @@ Metadata is stored as own-property symbols — no `reflect-metadata`, safe under
 
 ```typescript
 type Envelope<T, Code extends string = string> =
-  | { ok: true;  data: T    }
+  | { ok: true; data: T }
   | { ok: false; code: Code };
 ```
 
 ### Ports (interfaces to implement per transport)
 
-| Port | Responsibility |
-|---|---|
-| `ContextFactory<Raw, Ctx>` | Builds a typed context from raw transport data. |
-| `Validator` | Validates input against a schema; throws `ValidationError` on failure. |
-| `ErrorMapper<Code>` | Maps any error to a stable `Code` string. |
+| Port                       | Responsibility                                                         |
+| -------------------------- | ---------------------------------------------------------------------- |
+| `ContextFactory<Raw, Ctx>` | Builds a typed context from raw transport data.                        |
+| `Validator`                | Validates input against a schema; throws `ValidationError` on failure. |
+| `ErrorMapper<Code>`        | Maps any error to a stable `Code` string.                              |
 
 ### `Guard<Ctx>`
 
@@ -62,24 +65,27 @@ Guards are DI-resolved. Apply at class or method level with `@UseGuards`.
 ### Module sugar
 
 ```typescript
-import { gatewayFeatureFactory, gatewayModuleDecorator } from '@spinejs/gateway';
+import {
+  gatewayFeatureFactory,
+  gatewayModuleDecorator,
+} from "@spinejs/gateway";
 
 // Bind to a concrete gateway and its module:
 export const ipcFeature = gatewayFeatureFactory(MyGateway, MyGatewayModule);
-export const IpcModule  = gatewayModuleDecorator(MyGateway, MyGatewayModule);
+export const IpcModule = gatewayModuleDecorator(MyGateway, MyGatewayModule);
 
 // Usage:
-ipcFeature({ controllers: [HealthController] })   // factory form
-@IpcModule({ controllers: [UsersController] })     // decorator form
+ipcFeature({ controllers: [HealthController] }); // factory form
+@IpcModule({ controllers: [UsersController] }) // decorator form
 export class UsersIpcModule {}
 ```
 
 ### Error types
 
-| Class | When |
-|---|---|
-| `ValidationError` | Thrown by `Validator` — maps to an `INVALID_INPUT`-style code. |
-| `UnauthorizedError` | Thrown by the pipeline when a guard returns `false`. |
+| Class               | When                                                           |
+| ------------------- | -------------------------------------------------------------- |
+| `ValidationError`   | Thrown by `Validator` — maps to an `INVALID_INPUT`-style code. |
+| `UnauthorizedError` | Thrown by the pipeline when a guard returns `false`.           |
 
 ## Interceptors
 
@@ -88,13 +94,13 @@ Interceptors wrap every `dispatch()` call and are the right place for cross-cutt
 ### `GatewayInterceptor<Ctx, Code>`
 
 ```typescript
-import { GatewayInterceptor } from '@spinejs/gateway';
+import { GatewayInterceptor } from "@spinejs/gateway";
 
 class LoggingInterceptor implements GatewayInterceptor {
   async intercept(route, ctx, rawInput, next) {
-    console.debug('→', route.address, rawInput);
+    console.debug("→", route.address, rawInput);
     const envelope = await next();
-    console.debug('←', route.address, envelope.ok);
+    console.debug("←", route.address, envelope.ok);
     return envelope;
   }
 }
@@ -111,7 +117,7 @@ ElectronIpcGatewayModule.configure({
     inject: [loggerToken],
     factory: (logger) => [new IpcLoggingInterceptor(logger)],
   },
-})
+});
 ```
 
 `@spinejs/electron-ipc-gateway` ships `IpcLoggingInterceptor` ready to use.
@@ -121,12 +127,16 @@ ElectronIpcGatewayModule.configure({
 To add a new transport, extend `Gateway<Ctx, Code>` and implement `bind()`:
 
 ```typescript
-import { Gateway, RouteDescriptor } from '@spinejs/gateway';
+import { Gateway, RouteDescriptor } from "@spinejs/gateway";
 
 export class HttpGateway<Ctx, Code extends string> extends Gateway<Ctx, Code> {
   protected bind(route: RouteDescriptor<Ctx>): void {
     this.fastify.post(route.address, async (req, reply) => {
-      const envelope = await this.dispatch(route, req.body, rawFromRequest(req));
+      const envelope = await this.dispatch(
+        route,
+        req.body,
+        rawFromRequest(req)
+      );
       reply.send(envelope);
     });
   }

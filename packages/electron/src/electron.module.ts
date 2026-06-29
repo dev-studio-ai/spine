@@ -7,14 +7,13 @@ import {
   loggerToken,
   Module,
   OnInit,
-} from '@spinejs/core';
-import { app as electronApp, BrowserWindow } from 'electron';
-import { ElectronModuleOptions } from './electron.types';
-import { WindowService, windowServiceProvider } from './window.service';
+} from "@spinejs/core";
+import { app as electronApp, BrowserWindow } from "electron";
+import { ElectronModuleOptions } from "./electron.types";
+import { WindowService, windowServiceProvider } from "./window.service";
 
-export const electronModuleOptionsToken = new InjectionToken<ElectronModuleOptions>(
-  'electron.module-options',
-);
+export const electronModuleOptionsToken =
+  new InjectionToken<ElectronModuleOptions>("electron.module-options");
 
 @Module({
   inject: [appToken, loggerToken, electronModuleOptionsToken, WindowService],
@@ -28,19 +27,22 @@ export class ElectronModule implements OnInit {
     private readonly appInstance: App,
     private readonly logger: Logger,
     private readonly options: ElectronModuleOptions,
-    private readonly windowService: WindowService,
+    private readonly windowService: WindowService
   ) {}
 
   async onInit(): Promise<void> {
     await electronApp.whenReady();
 
-    electronApp.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') electronApp.quit();
+    electronApp.on("window-all-closed", () => {
+      if (process.platform !== "darwin") electronApp.quit();
     });
 
-    electronApp.on('before-quit', (event) => {
+    electronApp.on("before-quit", (event) => {
       if (this.shuttingDown) return;
-      this.logger.info('Electron triggered quit, shutting down application...', ElectronModule.name);
+      this.logger.info(
+        "Electron triggered quit, shutting down application...",
+        ElectronModule.name
+      );
       event.preventDefault();
       this.shuttingDown = true;
       this.appInstance
@@ -54,9 +56,9 @@ export class ElectronModule implements OnInit {
     this.windowService.createMainWindow(
       this.options.window,
       this.options.devUrl,
-      this.options.packagePath,
+      this.options.packagePath
     );
-    electronApp.on('activate', () => {
+    electronApp.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) this.createMainWindow();
     });
   }

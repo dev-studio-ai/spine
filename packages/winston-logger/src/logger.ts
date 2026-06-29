@@ -1,9 +1,9 @@
-import * as winston from 'winston';
-import { SPLAT } from 'triple-beam';
+import * as winston from "winston";
+import { SPLAT } from "triple-beam";
 
-import { isObject, type Logger } from '@spinejs/core';
-import type { LogFileConfig, WinstonLoggerOptions } from './types';
-import { consoleFormat } from './console.format';
+import { isObject, type Logger } from "@spinejs/core";
+import type { LogFileConfig, WinstonLoggerOptions } from "./types";
+import { consoleFormat } from "./console.format";
 
 const { combine, timestamp } = winston.format;
 
@@ -16,7 +16,7 @@ function logFormat(json?: boolean): winston.Logform.Format | undefined {
     if (log.stack) {
       return `${log.timestamp} [${log.level}] ${log.message}\n${log.stack}`;
     } else if (isObject(log.message) || Array.isArray(log.message)) {
-      log.message = JSON.stringify(log.message, null, '  ');
+      log.message = JSON.stringify(log.message, null, "  ");
       return formatMessage(log);
     }
     return formatMessage(log);
@@ -39,16 +39,21 @@ export class WinstonLogger implements Logger {
   private exiting = false;
 
   constructor(options: WinstonLoggerOptions = {}) {
-    this.options = Object.assign({ stdout: true, files: [] as LogFileConfig[] }, options);
+    this.options = Object.assign(
+      { stdout: true, files: [] as LogFileConfig[] },
+      options
+    );
     this.init();
   }
 
   private init(): void {
     if (this.options.files && this.options.files.length && !this.options.dir)
-      throw new Error('Logger: Missing dir in logger config !');
+      throw new Error("Logger: Missing dir in logger config !");
 
     const transports = (this.options.transports ?? []) as winston.transport[];
-    transports.push(...(this.options.files ?? []).map((file) => this.getFileTransport(file)));
+    transports.push(
+      ...(this.options.files ?? []).map((file) => this.getFileTransport(file))
+    );
 
     this.winston = winston.createLogger({
       level: this.options.level,
@@ -56,11 +61,13 @@ export class WinstonLogger implements Logger {
     });
 
     if (this.options.stdout) {
-      this.winston.add(new winston.transports.Console({ format: consoleFormat() }));
+      this.winston.add(
+        new winston.transports.Console({ format: consoleFormat() })
+      );
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.winston.on('error', (error: any) => {
+    this.winston.on("error", (error: any) => {
       let exit = false;
       if (!this.exiting) {
         this.exiting = true;
@@ -68,8 +75,8 @@ export class WinstonLogger implements Logger {
       }
 
       let message = error;
-      if (error.code === 'EACCES') {
-        message = 'permission denied on log file: ' + error.path;
+      if (error.code === "EACCES") {
+        message = "permission denied on log file: " + error.path;
       }
 
       if (exit) {
@@ -83,55 +90,61 @@ export class WinstonLogger implements Logger {
   private getFileTransport(file: LogFileConfig): winston.transport {
     file.dirname = this.options.dir;
     file.format = file.format ?? logFormat(this.options.json);
-    return new winston.transports.File(file as winston.transports.FileTransportOptions);
+    return new winston.transports.File(
+      file as winston.transports.FileTransportOptions
+    );
   }
 
   verbose(message: unknown, ...optionalParams: unknown[]): void {
-    this.log(message, 'verbose', ...optionalParams);
+    this.log(message, "verbose", ...optionalParams);
   }
 
   debug(message: unknown, ...optionalParams: unknown[]): void {
-    this.log(message, 'debug', ...optionalParams);
+    this.log(message, "debug", ...optionalParams);
   }
 
   info(message: unknown, ...optionalParams: unknown[]): void {
-    this.log(message, 'info', ...optionalParams);
+    this.log(message, "info", ...optionalParams);
   }
 
   warn(message: unknown, ...optionalParams: unknown[]): void {
-    this.log(message, 'warn', ...optionalParams);
+    this.log(message, "warn", ...optionalParams);
   }
 
   fatal(message: unknown, ...optionalParams: unknown[]): void {
-    this.logError(message, 'fatal', ...optionalParams);
+    this.logError(message, "fatal", ...optionalParams);
   }
 
   error(message: unknown, ...optionalParams: unknown[]): void {
-    this.logError(message, 'error', ...optionalParams);
+    this.logError(message, "error", ...optionalParams);
   }
 
-  private logError(message: unknown, level: string, ...optionalParams: unknown[]): void {
+  private logError(
+    message: unknown,
+    level: string,
+    ...optionalParams: unknown[]
+  ): void {
     let metadata: { [name: string]: unknown } = {};
     let lastElement = optionalParams[optionalParams.length - 1];
-    const isContext = typeof lastElement === 'string';
+    const isContext = typeof lastElement === "string";
 
     // if last param is string, it the context
     if (isContext) {
-      metadata['context'] = optionalParams.pop();
+      metadata["context"] = optionalParams.pop();
     }
 
     lastElement = optionalParams[optionalParams.length - 1];
     // If next last element is an object it metadata
-    if (!!lastElement && typeof lastElement === 'object') {
+    if (!!lastElement && typeof lastElement === "object") {
       metadata = { ...metadata, ...lastElement };
       optionalParams.splice(-1);
     }
 
     lastElement = optionalParams[optionalParams.length - 1];
     // if the next last param is string it stack trace
-    const isTrace = typeof lastElement === 'string';
+    const isTrace = typeof lastElement === "string";
     if (isTrace) {
-      metadata['stack'] = [optionalParams.pop()];
+      metadata["stack"] = [optionalParams.pop()];
     }
 
     if (message instanceof Error) {
@@ -148,7 +161,7 @@ export class WinstonLogger implements Logger {
       return;
     }
 
-    if (!!message && 'object' === typeof message) {
+    if (!!message && "object" === typeof message) {
       const { message: msg, ...meta } = message as Record<string, unknown>;
 
       this.winston.log({
@@ -169,27 +182,31 @@ export class WinstonLogger implements Logger {
     });
   }
 
-  private log(message: unknown, logLevel: string, ...optionalParams: unknown[]): void {
+  private log(
+    message: unknown,
+    logLevel: string,
+    ...optionalParams: unknown[]
+  ): void {
     let metadata: { [name: string]: unknown } = {};
     let lastElement = optionalParams[optionalParams.length - 1];
-    const isContext = typeof lastElement === 'string';
+    const isContext = typeof lastElement === "string";
 
     // if last param is string, it the context
     if (isContext) {
-      metadata['context'] = optionalParams.pop();
+      metadata["context"] = optionalParams.pop();
     }
 
     lastElement = optionalParams[optionalParams.length - 1];
     // If next last element is an object it metadata
-    if (!!lastElement && typeof lastElement === 'object') {
+    if (!!lastElement && typeof lastElement === "object") {
       metadata = { ...metadata, ...lastElement };
       optionalParams.splice(-1);
     }
 
-    if (!!message && 'object' === typeof message) {
+    if (!!message && "object" === typeof message) {
       const {
         message: msg,
-        level = logLevel || 'info',
+        level = logLevel || "info",
         ...meta
       } = message as Record<string, unknown>;
 

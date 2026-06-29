@@ -40,14 +40,14 @@ Every handler returns its result wrapped in an `Envelope`:
 
 ```typescript
 type Envelope<T, Code extends string = string> =
-  | { ok: true;  data: T    }
+  | { ok: true; data: T }
   | { ok: false; code: Code };
 ```
 
 On the renderer side (or any consumer of the transport), you discriminate on `ok`:
 
 ```typescript
-const result = await ipcRenderer.invoke('users:list');
+const result = await ipcRenderer.invoke("users:list");
 if (result.ok) {
   console.log(result.data); // User[]
 } else {
@@ -75,11 +75,11 @@ This means the same `@Controller` / `@Handler` code can serve an IPC transport i
 
 Three interfaces define the extension points of the gateway. Your transport module provides concrete implementations:
 
-| Port | Responsibility |
-|---|---|
-| `ContextFactory<Raw, Ctx>` | Builds a typed context from the transport's raw call data. |
-| `Validator` | Validates raw input against a schema; throws `ValidationError` on failure. |
-| `ErrorMapper<Code>` | Maps any thrown error to a stable error code string. |
+| Port                       | Responsibility                                                             |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `ContextFactory<Raw, Ctx>` | Builds a typed context from the transport's raw call data.                 |
+| `Validator`                | Validates raw input against a schema; throws `ValidationError` on failure. |
+| `ErrorMapper<Code>`        | Maps any thrown error to a stable error code string.                       |
 
 The transport module wires these implementations into the gateway via DI factory providers. Controller and feature module code never touches the ports directly.
 
@@ -87,9 +87,9 @@ The transport module wires these implementations into the gateway via DI factory
 
 Two error classes are part of the gateway's public API:
 
-| Class | When to throw |
-|---|---|
-| `ValidationError` | Thrown by the `Validator` when schema parsing fails. |
+| Class               | When to throw                                                          |
+| ------------------- | ---------------------------------------------------------------------- |
+| `ValidationError`   | Thrown by the `Validator` when schema parsing fails.                   |
 | `UnauthorizedError` | Thrown by the pipeline when a guard's `canActivate()` returns `false`. |
 
 Application code may throw its own error types; the `ErrorMapper` catches all of them and maps them to codes.

@@ -11,51 +11,45 @@ sidebar_position: 1
 `App` is the entry point. It accepts a list of `ModuleEntry` values, wires up the DI container, and drives the `init → start → stop` lifecycle.
 
 ```typescript
-import { App } from '@spinejs/core';
-import { ConfigModule } from '@spinejs/config';
-import { AppModule } from './app.module';
+import { App } from "@spinejs/core";
+import { ConfigModule } from "@spinejs/config";
+import { AppModule } from "./app.module";
 
-const app = new App(
-  [
-    ConfigModule.configure({ configs: [] }),
-    AppModule,
-  ],
-  {
-    // Optional: swap the built-in console logger for a Winston instance.
-    // logger: new WinstonLogger({ level: 'debug', dir: '/var/log/myapp' }),
+const app = new App([ConfigModule.configure({ configs: [] }), AppModule], {
+  // Optional: swap the built-in console logger for a Winston instance.
+  // logger: new WinstonLogger({ level: 'debug', dir: '/var/log/myapp' }),
 
-    // Optional: control the minimum log level of the built-in console logger.
-    loggerOptions: { level: process.env.LOG_LEVEL ?? 'info' },
-  },
-);
+  // Optional: control the minimum log level of the built-in console logger.
+  loggerOptions: { level: process.env.LOG_LEVEL ?? "info" },
+});
 
-await app.init();   // Build the module graph, run onInit() on every module.
-await app.start();  // Run onStart() on every module that implements OnStart.
+await app.init(); // Build the module graph, run onInit() on every module.
+await app.start(); // Run onStart() on every module that implements OnStart.
 ```
 
 ### `AppOptions`
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `logger` | `Logger` | `AppLogger` | Custom logger instance (replaces the built-in). |
-| `loggerOptions` | `LoggerOptions` | `{}` | Options forwarded to the built-in `AppLogger`. |
-| `handleProcessExit` | `boolean` | `true` | When `true`, listens for `SIGINT`/`SIGTERM` and calls `app.exit()`. |
+| Option              | Type            | Default     | Description                                                         |
+| ------------------- | --------------- | ----------- | ------------------------------------------------------------------- |
+| `logger`            | `Logger`        | `AppLogger` | Custom logger instance (replaces the built-in).                     |
+| `loggerOptions`     | `LoggerOptions` | `{}`        | Options forwarded to the built-in `AppLogger`.                      |
+| `handleProcessExit` | `boolean`       | `true`      | When `true`, listens for `SIGINT`/`SIGTERM` and calls `app.exit()`. |
 
 ### Methods
 
-| Method | Description |
-|---|---|
-| `init()` | Loads all modules in dependency order, calling `onInit()` on each. Throws (and self-stops) on any error. |
-| `start()` | Calls `onStart()` on each module that implements `OnStart`. Throws (and self-stops) on any error. |
-| `stop()` | Calls `onStop()` in reverse init order. Idempotent — safe to call multiple times. |
-| `exit(code?)` | Stops the app, flushes the logger, then calls `process.exit(code)`. Re-entrant-safe. |
+| Method        | Description                                                                                              |
+| ------------- | -------------------------------------------------------------------------------------------------------- |
+| `init()`      | Loads all modules in dependency order, calling `onInit()` on each. Throws (and self-stops) on any error. |
+| `start()`     | Calls `onStart()` on each module that implements `OnStart`. Throws (and self-stops) on any error.        |
+| `stop()`      | Calls `onStop()` in reverse init order. Idempotent — safe to call multiple times.                        |
+| `exit(code?)` | Stops the app, flushes the logger, then calls `process.exit(code)`. Re-entrant-safe.                     |
 
 ## Global tokens
 
 Two `InjectionToken` values are pre-registered in every app's global container:
 
 ```typescript
-import { appToken, loggerToken } from '@spinejs/core';
+import { appToken, loggerToken } from "@spinejs/core";
 
 @Module({
   inject: [appToken, loggerToken],

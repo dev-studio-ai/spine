@@ -21,7 +21,9 @@
       "@spinejs/config": ["packages/config/src/index.ts"],
       "@spinejs/winston-logger": ["packages/winston-logger/src/index.ts"],
       "@spinejs/electron": ["packages/electron/src/index.ts"],
-      "@spinejs/electron-ipc-gateway": ["packages/electron-ipc-gateway/src/index.ts"]
+      "@spinejs/electron-ipc-gateway": [
+        "packages/electron-ipc-gateway/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

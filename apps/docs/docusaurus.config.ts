@@ -1,55 +1,60 @@
-import type { Config } from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
+import type { Config } from "@docusaurus/types";
+import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: 'SpineJS',
-  tagline: 'Modules, DI, and lifecycle for long-lived Node processes',
-  url: 'https://dev-studio-ai.github.io',
-  baseUrl: '/spine/',
-  onBrokenLinks: 'throw',
-  favicon: 'img/favicon.ico',
+  title: "SpineJS",
+  tagline: "Modules, DI, and lifecycle for long-lived Node processes",
+  url: "https://dev-studio-ai.github.io",
+  baseUrl: "/spine/",
+  onBrokenLinks: "throw",
+  favicon: "img/favicon.ico",
   markdown: {
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: "warn",
     },
   },
 
-  i18n: { defaultLocale: 'en', locales: ['en'] },
+  i18n: { defaultLocale: "en", locales: ["en"] },
 
   presets: [
     [
-      'classic',
+      "classic",
       {
         docs: {
-          sidebarPath: './sidebars.ts',
-          routeBasePath: '/',
+          sidebarPath: "./sidebars.ts",
+          routeBasePath: "/",
         },
         blog: false,
-        theme: { customCss: './src/css/custom.css' },
+        theme: { customCss: "./src/css/custom.css" },
       } satisfies Preset.Options,
     ],
   ],
 
   themeConfig: {
-    colorMode: { defaultMode: 'dark', disableSwitch: false },
+    colorMode: { defaultMode: "dark", disableSwitch: false },
     navbar: {
-      title: 'SpineJS',
+      title: "SpineJS",
       items: [
-        { type: 'docSidebar', sidebarId: 'mainSidebar', position: 'left', label: 'Docs' },
         {
-          href: 'https://github.com/dev-studio',
-          label: 'GitHub',
-          position: 'right',
+          type: "docSidebar",
+          sidebarId: "mainSidebar",
+          position: "left",
+          label: "Docs",
+        },
+        {
+          href: "https://github.com/dev-studio",
+          label: "GitHub",
+          position: "right",
         },
       ],
     },
     footer: {
-      style: 'dark',
+      style: "dark",
       copyright: `Copyright © ${new Date().getFullYear()} Dev Studio`,
     },
     prism: {
-      theme: require('prism-react-renderer').themes.oneDark,
-      additionalLanguages: ['typescript', 'bash'],
+      theme: require("prism-react-renderer").themes.oneDark,
+      additionalLanguages: ["typescript", "bash"],
     },
   } satisfies Preset.ThemeConfig,
 };

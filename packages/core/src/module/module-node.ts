@@ -1,10 +1,18 @@
-import { normalizeProvider, Provider, ProviderEntry, sameToken, Token } from '../container';
-import type { ModuleEntry } from './module-decorator';
+import {
+  normalizeProvider,
+  Provider,
+  ProviderEntry,
+  sameToken,
+  Token,
+} from "../container";
+import type { ModuleEntry } from "./module-decorator";
 
 // `any[]` required to stay assignable from module classes with concrete constructors.
 // No base class: a module is a plain class decorated with `@Module`.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ModuleConstructor<T extends object = object> = new (...args: any[]) => T;
+export type ModuleConstructor<T extends object = object> = new (
+  ...args: any[]
+) => T;
 
 export interface ModuleDef<T extends ModuleConstructor = ModuleConstructor> {
   module: T;
@@ -66,7 +74,9 @@ export class ModuleNode<T extends ModuleConstructor = ModuleConstructor> {
   /** Upsert providers by token. Does not touch inject/imports. */
   private provide(...providers: Provider[]): this {
     // Normalize existing bare classes to compare by token.
-    const merged: Provider[] = (this.def.providers ?? []).map(normalizeProvider);
+    const merged: Provider[] = (this.def.providers ?? []).map(
+      normalizeProvider
+    );
     for (const p of providers) {
       const i = merged.findIndex((x) => sameToken(x.provide, p.provide));
       if (i >= 0) merged[i] = p;

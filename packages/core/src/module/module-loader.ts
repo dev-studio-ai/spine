@@ -1,14 +1,20 @@
-import { Container, normalizeProvider } from '../container';
-import { Logger } from '../logger';
-import { Timer } from '../utils';
-import { ModuleRef } from './module-ref';
-import { ModuleNode, ModuleConstructor } from './module-node';
-import { DynamicModule, ModuleEntry, getModuleMetadata } from './module-decorator';
-import { hasOnInit } from './module';
+import { Container, normalizeProvider } from "../container";
+import { Logger } from "../logger";
+import { Timer } from "../utils";
+import { ModuleRef } from "./module-ref";
+import { ModuleNode, ModuleConstructor } from "./module-node";
+import {
+  DynamicModule,
+  ModuleEntry,
+  getModuleMetadata,
+} from "./module-decorator";
+import { hasOnInit } from "./module";
 
 /** Human-readable name of a module identity (class or DynamicModule object), for error messages. */
 function identityName(identity: object): string {
-  return typeof identity === 'function' ? identity.name : (identity as DynamicModule).module.name;
+  return typeof identity === "function"
+    ? identity.name
+    : (identity as DynamicModule).module.name;
 }
 
 /**
@@ -33,7 +39,7 @@ export class ModuleLoader {
   constructor(
     private readonly logger: Logger,
     private readonly globalContainer: Container,
-    private readonly rootEntries: ModuleEntry[],
+    private readonly rootEntries: ModuleEntry[]
   ) {}
 
   /** Loaded modules in init order. Live (and possibly partial if load() failed mid-way). */
@@ -106,7 +112,9 @@ export class ModuleLoader {
         const id = this.identityOf(imported);
         const c = color.get(id) ?? WHITE;
         if (c === GRAY) {
-          const path = [...stack.slice(stack.indexOf(id)), id].map(identityName).join(' -> ');
+          const path = [...stack.slice(stack.indexOf(id)), id]
+            .map(identityName)
+            .join(" -> ");
           throw new Error(`Circular dependency between modules: ${path}`);
         }
         if (c === WHITE) dfs(id);
@@ -122,10 +130,11 @@ export class ModuleLoader {
   }
 
   private async resolveModules(): Promise<void> {
-    this.logger.debug('Resolve modules', ModuleLoader.name);
+    this.logger.debug("Resolve modules", ModuleLoader.name);
     // Kick off every root; deeper modules register their own memoized promise as resolution
     // cascades down imports.
-    for (const entry of this.rootEntries) void this.resolveModule(this.getNode(entry));
+    for (const entry of this.rootEntries)
+      void this.resolveModule(this.getNode(entry));
 
     // Drain: keep awaiting until no new in-flight resolution appears (deep modules are created
     // while awaiting their parents). Unlike Promise.all — which rejects on the FIRST failure and
@@ -141,12 +150,17 @@ export class ModuleLoader {
     // Dedup by reference: one failure propagates through every awaiter (e.g. a cycle rejects both
     // ends with the same Error object), so the same reason can appear several times.
     const errors = [
-      ...new Set(results.flatMap((r) => (r.status === 'rejected' ? [r.reason] : []))),
+      ...new Set(
+        results.flatMap((r) => (r.status === "rejected" ? [r.reason] : []))
+      ),
     ];
     if (errors.length) {
       throw errors.length === 1
         ? errors[0]
-        : new AggregateError(errors, `${errors.length} modules failed to initialize`);
+        : new AggregateError(
+            errors,
+            `${errors.length} modules failed to initialize`
+          );
     }
   }
 
@@ -156,7 +170,7 @@ export class ModuleLoader {
    */
   private identityOf(entry: ModuleEntry): object {
     if (entry instanceof ModuleNode) return entry.identity;
-    if (typeof entry === 'function') return entry;
+    if (typeof entry === "function") return entry;
     return entry.fresh ? entry : entry.module;
   }
 
@@ -168,9 +182,10 @@ export class ModuleLoader {
     const key = this.identityOf(entry);
     const node = this.nodes.get(key);
     if (!node) {
-      const name = key instanceof Function ? key.name : this.moduleKeyOf(entry).name;
+      const name =
+        key instanceof Function ? key.name : this.moduleKeyOf(entry).name;
       throw new Error(
-        `Module ${name} missing from cache: buildNodes() must run before resolveModules().`,
+        `Module ${name} missing from cache: buildNodes() must run before resolveModules().`
       );
     }
     return node;
@@ -179,7 +194,9 @@ export class ModuleLoader {
   /** Original class behind an entry (for error messages / class-token lookups). */
   private moduleKeyOf(entry: ModuleEntry): ModuleConstructor {
     if (entry instanceof ModuleNode) return entry.moduleKey;
-    return (typeof entry === 'function' ? entry : entry.module) as ModuleConstructor;
+    return (
+      typeof entry === "function" ? entry : entry.module
+    ) as ModuleConstructor;
   }
 
   /**
@@ -195,8 +212,10 @@ export class ModuleLoader {
       return entry;
     }
 
-    const dynamic = typeof entry !== 'function';
-    const cls = (dynamic ? (entry as DynamicModule).module : entry) as ModuleConstructor;
+    const dynamic = typeof entry !== "function";
+    const cls = (
+      dynamic ? (entry as DynamicModule).module : entry
+    ) as ModuleConstructor;
     // `fresh` → identity is the DynamicModule object itself (one instance per configure() call),
     // so it is never merged with the bare class or with another config of the same class.
     const fresh = dynamic && (entry as DynamicModule).fresh === true;
@@ -214,7 +233,7 @@ export class ModuleLoader {
           exports: meta.exports ? [...meta.exports] : undefined,
         },
         identity,
-        fresh,
+        fresh
       );
       this.nodes.set(identity, node);
     }
@@ -250,18 +269,23 @@ export class ModuleLoader {
    */
   private async buildAndInitModule(node: ModuleNode): Promise<ModuleRef> {
     const ModuleConstructor = node.module;
-    this.logger.debug(`Resolve module ${ModuleConstructor.name}.`, ModuleLoader.name);
+    this.logger.debug(
+      `Resolve module ${ModuleConstructor.name}.`,
+      ModuleLoader.name
+    );
 
     const ref = new ModuleRef(this.logger, node, this.globalContainer);
 
     // Phase 2: imports are already built ModuleNodes (pure get). The graph is a DAG —
     // detectCycles() ran in phase 1 — so resolution never deadlocks on a memoized promise.
-    const importedNodes = (node.imports ?? []).map((entry) => this.getNode(entry));
+    const importedNodes = (node.imports ?? []).map((entry) =>
+      this.getNode(entry)
+    );
 
     // Imports resolved (built + initialized) in parallel: a slow sibling does not serialize
     // the others, but all are ready before we build this importer.
     const importedRefs = await Promise.all(
-      importedNodes.map((importedNode) => this.resolveModule(importedNode)),
+      importedNodes.map((importedNode) => this.resolveModule(importedNode))
     );
 
     for (const importedRef of importedRefs) {
@@ -271,18 +295,25 @@ export class ModuleLoader {
       // has multiple instances, so binding the class token would be ambiguous — it is reached only
       // through its exported tokens (delegation below).
       if (!importedRef.node.fresh) {
-        ref.container.add({ provide: importedRef.node.moduleKey, value: importedRef.instance });
+        ref.container.add({
+          provide: importedRef.node.moduleKey,
+          value: importedRef.instance,
+        });
       }
 
       // Expose the import's exported providers to the importer's container (delegation).
       for (const token of importedRef.node.exports ?? []) {
         if (!ref.container.has(token)) {
-          ref.container.add({ provide: token, delegate: () => importedRef.resolve(token) });
+          ref.container.add({
+            provide: token,
+            delegate: () => importedRef.resolve(token),
+          });
         }
       }
     }
 
-    for (const provider of node.providers ?? []) ref.container.add(normalizeProvider(provider));
+    for (const provider of node.providers ?? [])
+      ref.container.add(normalizeProvider(provider));
     for (const exportToken of node.exports ?? []) ref.exports.add(exportToken);
 
     const args = (node.inject ?? []).map((token) => ref.resolve(token));
@@ -292,7 +323,10 @@ export class ModuleLoader {
       this.timer.start(node.identity);
       await ref.instance.onInit();
       const ms = this.timer.getTime(node.identity);
-      this.logger.debug(`Module ${ModuleConstructor.name} init in ${ms} ms`, ModuleLoader.name);
+      this.logger.debug(
+        `Module ${ModuleConstructor.name} init in ${ms} ms`,
+        ModuleLoader.name
+      );
     }
 
     // Final registry: fully resolved ref.

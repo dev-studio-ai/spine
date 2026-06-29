@@ -14,7 +14,7 @@ export class Timer<K = string> {
   /** Elapsed time (ms) since start, as a number. Source of truth. */
   elapsed(id: K, clean = true): number {
     const started = this.times.get(id);
-    if (started === undefined) throw new Error('invalid timer id');
+    if (started === undefined) throw new Error("invalid timer id");
 
     if (clean) this.times.delete(id);
     return performance.now() - started;
@@ -79,7 +79,7 @@ export function merge<T>(object: T, ...sources: unknown[]): T {
 
 function mergeInto(
   object: Record<string | number, unknown>,
-  source: object,
+  source: object
 ): Record<string | number, unknown> {
   for (const key of Object.keys(source)) {
     const srcValue = (source as Record<string, unknown>)[key];
@@ -88,7 +88,10 @@ function mergeInto(
     const objValue = object[key];
     if (Array.isArray(srcValue)) {
       const target = Array.isArray(objValue) ? objValue : [];
-      object[key] = mergeInto(target as unknown as Record<number, unknown>, srcValue);
+      object[key] = mergeInto(
+        target as unknown as Record<number, unknown>,
+        srcValue
+      );
     } else if (isObject(srcValue)) {
       const target = isObject(objValue) ? objValue : {};
       object[key] = mergeInto(target as Record<string, unknown>, srcValue);

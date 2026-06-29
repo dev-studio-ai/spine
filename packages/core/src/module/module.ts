@@ -18,13 +18,13 @@ export interface OnStop {
 }
 
 export function hasOnInit(x: unknown): x is OnInit {
-  return typeof (x as Partial<OnInit> | null)?.onInit === 'function';
+  return typeof (x as Partial<OnInit> | null)?.onInit === "function";
 }
 
 export function hasOnStart(x: unknown): x is OnStart {
-  return typeof (x as Partial<OnStart> | null)?.onStart === 'function';
+  return typeof (x as Partial<OnStart> | null)?.onStart === "function";
 }
 
 export function hasOnStop(x: unknown): x is OnStop {
-  return typeof (x as Partial<OnStop> | null)?.onStop === 'function';
+  return typeof (x as Partial<OnStop> | null)?.onStop === "function";
 }

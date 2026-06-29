@@ -1,6 +1,6 @@
-import { InjectionToken } from './injection-token';
-import { ProviderConstructor, Token } from './container.types';
-import { defineOwnMeta, readOwnMeta } from '../utils';
+import { InjectionToken } from "./injection-token";
+import { ProviderConstructor, Token } from "./container.types";
+import { defineOwnMeta, readOwnMeta } from "../utils";
 
 /**
  * Key (Symbol.for, stable across module copies) where the tokens to inject into
@@ -9,7 +9,7 @@ import { defineOwnMeta, readOwnMeta } from '../utils';
  * **typed** (ResolvedTuple): a token of the wrong type/order = compile error.
  * Modules declare their deps via `@Module({ inject: [...] })` instead.
  */
-const INJECT_DEPS = Symbol.for('app-core:inject-deps');
+const INJECT_DEPS = Symbol.for("app-core:inject-deps");
 
 // Type of a resolved token: InjectionToken<T> or class Ctor<T> yields T.
 type Resolved<X> = X extends InjectionToken<infer U>
@@ -19,7 +19,9 @@ type Resolved<X> = X extends InjectionToken<infer U>
   : never;
 
 /** Tuple of tokens → tuple of the types they resolve, in order. */
-export type ResolvedTuple<D extends readonly Token[]> = { [K in keyof D]: Resolved<D[K]> };
+export type ResolvedTuple<D extends readonly Token[]> = {
+  [K in keyof D]: Resolved<D[K]>;
+};
 
 /**
  * Asserts the constructor params are assignable **to** the resolved tokens, i.e.
@@ -30,8 +32,10 @@ export type ResolvedTuple<D extends readonly Token[]> = { [K in keyof D]: Resolv
  * constructor declaring a precise `T<Concrete>` must be accepted — hence we check
  * `params ⊆ resolved`, not the reverse.
  */
-type CtorDepsMatch<C extends new (...args: never[]) => unknown, D extends readonly Token[]> =
-  ConstructorParameters<C> extends ResolvedTuple<D> ? unknown : never;
+type CtorDepsMatch<
+  C extends new (...args: never[]) => unknown,
+  D extends readonly Token[]
+> = ConstructorParameters<C> extends ResolvedTuple<D> ? unknown : never;
 
 // **own-property only** read: otherwise a subclass would inherit the parent's deps.
 function ownDeps(cls: object): Token[] | undefined {
@@ -51,7 +55,7 @@ function ownDeps(cls: object): Token[] | undefined {
 export function Inject<const D extends readonly Token[]>(deps: D) {
   return <C extends new (...args: never[]) => unknown>(
     cls: C & CtorDepsMatch<C, D>,
-    _ctx?: unknown,
+    _ctx?: unknown
   ): C => {
     defineOwnMeta(cls, INJECT_DEPS, [...deps]);
     return cls;
@@ -60,5 +64,5 @@ export function Inject<const D extends readonly Token[]>(deps: D) {
 
 /** Reads the deps set by `@Inject` on a class; `undefined` otherwise. */
 export function getInjectedDeps(token: unknown): readonly Token[] | undefined {
-  return typeof token === 'function' ? ownDeps(token) : undefined;
+  return typeof token === "function" ? ownDeps(token) : undefined;
 }

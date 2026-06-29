@@ -1,4 +1,4 @@
-import type { ConsoleFormatOptions, LogLevel } from '@spinejs/core';
+import type { ConsoleFormatOptions, LogLevel } from "@spinejs/core";
 
 export interface LogFileConfig {
   filename?: string;

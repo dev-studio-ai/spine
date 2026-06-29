@@ -1,5 +1,5 @@
-import { Provider } from '@spinejs/core';
-import type { ConfigKey, ConfigProvider } from './types';
+import { Provider } from "@spinejs/core";
+import type { ConfigKey, ConfigProvider } from "./types";
 
 export class ConfigService {
   private readonly configs: Map<symbol, unknown> = new Map();

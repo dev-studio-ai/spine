@@ -8,10 +8,10 @@ Feature modules are the glue between your controllers and a gateway transport. T
 
 `@spinejs/gateway` provides two sugar functions that produce this wiring from a transport-specific binding:
 
-| Function | Style | When to use |
-|---|---|---|
-| `gatewayFeatureFactory(token, transport)` | Factory — returns a `DynamicModule` | Inline feature registration, no named class needed. |
-| `gatewayModuleDecorator(token, transport)` | Decorator — replaces a class with a subclass | NestJS-style, keeps a named `export class`. |
+| Function                                   | Style                                        | When to use                                         |
+| ------------------------------------------ | -------------------------------------------- | --------------------------------------------------- |
+| `gatewayFeatureFactory(token, transport)`  | Factory — returns a `DynamicModule`          | Inline feature registration, no named class needed. |
+| `gatewayModuleDecorator(token, transport)` | Decorator — replaces a class with a subclass | NestJS-style, keeps a named `export class`.         |
 
 Both are bound once per transport to produce the app-specific helpers (`ipcFeature` / `@IpcModule` in the reference app).
 
@@ -21,22 +21,31 @@ Bind the generic functions to your transport's gateway class and module:
 
 ```typescript
 // electron-ipc-module.ts
-import { gatewayFeatureFactory, gatewayModuleDecorator } from '@spinejs/gateway';
-import { ElectronIpcGateway } from '@spinejs/electron-ipc-gateway';
-import { ElectronIpcGatewayModule } from './electron-ipc-gateway.module';
+import {
+  gatewayFeatureFactory,
+  gatewayModuleDecorator,
+} from "@spinejs/gateway";
+import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
+import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 
 /**
  * Factory form — no named module class:
  *   imports: [ ipcFeature({ controllers: [PingController] }) ]
  */
-export const ipcFeature = gatewayFeatureFactory(ElectronIpcGateway, ElectronIpcGatewayModule);
+export const ipcFeature = gatewayFeatureFactory(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);
 
 /**
  * Decorator form — keeps a named module class:
  *   @IpcModule({ controllers: [PingController] })
  *   export class PingModule {}
  */
-export const IpcModule = gatewayModuleDecorator(ElectronIpcGateway, ElectronIpcGatewayModule);
+export const IpcModule = gatewayModuleDecorator(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);
 ```
 
 ## `ipcFeature` — factory form
@@ -44,17 +53,17 @@ export const IpcModule = gatewayModuleDecorator(ElectronIpcGateway, ElectronIpcG
 The factory form is the primitive. It produces a `DynamicModule` that can be passed directly to `imports`:
 
 ```typescript
-import { Module } from '@spinejs/core';
-import { ipcFeature } from './electron-ipc-module';
-import { HealthController } from './health.controller';
-import { UserController } from './user.controller';
+import { Module } from "@spinejs/core";
+import { ipcFeature } from "./electron-ipc-module";
+import { HealthController } from "./health.controller";
+import { UserController } from "./user.controller";
 
 @Module({
   imports: [
     ipcFeature({ controllers: [HealthController] }),
     ipcFeature({
       controllers: [UserController],
-      imports:   [UserModule],          // additional imports needed by UserController
+      imports: [UserModule], // additional imports needed by UserController
     }),
   ],
 })
@@ -66,14 +75,14 @@ export class AppModule {}
 The decorator form replaces the decorated class with a subclass that has the synthesized `onInit`. You keep a named, exportable module class:
 
 ```typescript
-import { IpcModule } from './electron-ipc-module';
-import { ProjectsController } from './projects.controller';
-import { ProjectsModule } from './projects.module';
-import { SessionGuard } from '../session.guard';
+import { IpcModule } from "./electron-ipc-module";
+import { ProjectsController } from "./projects.controller";
+import { ProjectsModule } from "./projects.module";
+import { SessionGuard } from "../session.guard";
 
 @IpcModule({
   controllers: [ProjectsController],
-  imports:     [ProjectsModule],
+  imports: [ProjectsModule],
 })
 export class ProjectsIpcModule {}
 ```
@@ -88,13 +97,13 @@ interface FeatureModuleConfig extends ModuleMetadata {
 }
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `controllers` | `ProviderConstructor[]` | Controller classes to register. Required. |
-| `imports` | `ModuleEntry[]` | Additional modules to import into this feature module. |
-| `providers` | `ProviderEntry[]` | Additional providers beyond the controllers. |
-| `exports` | `Token[]` | Tokens to export from this feature module. |
-| `inject` | `Token[]` | Additional constructor deps for the module class (decorator form only, for the user's own constructor). |
+| Field         | Type                    | Description                                                                                             |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| `controllers` | `ProviderConstructor[]` | Controller classes to register. Required.                                                               |
+| `imports`     | `ModuleEntry[]`         | Additional modules to import into this feature module.                                                  |
+| `providers`   | `ProviderEntry[]`       | Additional providers beyond the controllers.                                                            |
+| `exports`     | `Token[]`               | Tokens to export from this feature module.                                                              |
+| `inject`      | `Token[]`               | Additional constructor deps for the module class (decorator form only, for the user's own constructor). |
 
 ## How the synthesized `onInit()` works
 
@@ -114,11 +123,11 @@ Here is a complete IPC feature module with guards, an authenticated context, and
 
 ```typescript
 // projects.ipc.module.ts
-import { IpcModule } from '../infrastructure/electron-ipc-module';
-import { SessionGuard } from '../infrastructure/session.guard';
-import { ProjectsController } from './projects.controller';
-import { IssuesController } from './issues.controller';
-import { ProjectsModule } from './projects.module';
+import { IpcModule } from "../infrastructure/electron-ipc-module";
+import { SessionGuard } from "../infrastructure/session.guard";
+import { ProjectsController } from "./projects.controller";
+import { IssuesController } from "./issues.controller";
+import { ProjectsModule } from "./projects.module";
 
 @IpcModule({
   controllers: [ProjectsController, IssuesController],
@@ -129,10 +138,10 @@ export class ProjectsIpcModule {}
 
 ```typescript
 // projects.controller.ts
-import { Controller, Handler, UseGuards } from '@spinejs/gateway';
-import { SessionGuard } from '../infrastructure/session.guard';
-import { ElectronIpcContext } from '../infrastructure/electron-ipc.types';
-import { z } from 'zod';
+import { Controller, Handler, UseGuards } from "@spinejs/gateway";
+import { SessionGuard } from "../infrastructure/session.guard";
+import { ElectronIpcContext } from "../infrastructure/electron-ipc.types";
+import { z } from "zod";
 
 const createProjectSchema = z.object({ name: z.string().min(1) });
 
@@ -141,12 +150,12 @@ const createProjectSchema = z.object({ name: z.string().min(1) });
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Handler({ address: 'projects:list' })
+  @Handler({ address: "projects:list" })
   list(ctx: ElectronIpcContext): Promise<Project[]> {
     return this.projectsService.findAll(ctx.session.userId);
   }
 
-  @Handler({ address: 'projects:create', input: createProjectSchema })
+  @Handler({ address: "projects:create", input: createProjectSchema })
   create(ctx: ElectronIpcContext, input: { name: string }): Promise<Project> {
     return this.projectsService.create(ctx.session.userId, input.name);
   }
@@ -155,8 +164,8 @@ export class ProjectsController {
 
 ```typescript
 // main.module.ts
-import { Module } from '@spinejs/core';
-import { ProjectsIpcModule } from './projects.ipc.module';
+import { Module } from "@spinejs/core";
+import { ProjectsIpcModule } from "./projects.ipc.module";
 
 @Module({
   imports: [ProjectsIpcModule],

@@ -1,5 +1,9 @@
-import type { Envelope, GatewayContext, RouteDescriptor } from './gateway.types';
-import type { ParseableSchema } from './gateway.types';
+import type {
+  Envelope,
+  GatewayContext,
+  RouteDescriptor,
+} from "./gateway.types";
+import type { ParseableSchema } from "./gateway.types";
 
 /**
  * Validation port (DIP). A concrete adapter (e.g. a zod-backed one) parses the raw
@@ -40,28 +44,28 @@ export interface ErrorMapper<Code extends string = string> {
  */
 export interface GatewayInterceptor<
   Ctx extends GatewayContext = GatewayContext,
-  Code extends string = string,
+  Code extends string = string
 > {
   intercept(
     route: RouteDescriptor<Ctx>,
     ctx: Ctx,
     rawInput: unknown,
-    next: () => Promise<Envelope<unknown, Code>>,
+    next: () => Promise<Envelope<unknown, Code>>
   ): Promise<Envelope<unknown, Code>>;
 }
 
 /** Thrown by a `Validator` adapter when the input fails its schema. */
 export class ValidationError extends Error {
-  constructor(message = 'Input validation failed') {
+  constructor(message = "Input validation failed") {
     super(message);
-    this.name = 'ValidationError';
+    this.name = "ValidationError";
   }
 }
 
 /** Thrown by the pipeline when a guard rejects the call. */
 export class UnauthorizedError extends Error {
-  constructor(message = 'Unauthorized') {
+  constructor(message = "Unauthorized") {
     super(message);
-    this.name = 'UnauthorizedError';
+    this.name = "UnauthorizedError";
   }
 }

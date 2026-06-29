@@ -1,1 +1,253 @@
-{"version":{"pluginId":"default","version":"current","label":"Next","banner":null,"badge":false,"noIndex":false,"className":"docs-version-current","isLast":true,"docsSidebars":{"mainSidebar":[{"type":"link","href":"/","label":"Introduction","docId":"intro","unlisted":false},{"type":"category","label":"SpineJS Core","items":[{"type":"link","href":"/app-core/overview","label":"Overview","docId":"app-core/overview","unlisted":false},{"type":"link","href":"/app-core/modules","label":"Modules","docId":"app-core/modules","unlisted":false},{"type":"link","href":"/app-core/dependency-injection","label":"Dependency Injection","docId":"app-core/dependency-injection","unlisted":false},{"type":"link","href":"/app-core/lifecycle","label":"Lifecycle","docId":"app-core/lifecycle","unlisted":false},{"type":"link","href":"/app-core/logging","label":"Logging","docId":"app-core/logging","unlisted":false}],"collapsed":true,"collapsible":true},{"type":"category","label":"Gateway","items":[{"type":"link","href":"/gateway/overview","label":"Gateway Overview","docId":"gateway/overview","unlisted":false},{"type":"link","href":"/gateway/controllers-handlers","label":"Controllers and Handlers","docId":"gateway/controllers-handlers","unlisted":false},{"type":"link","href":"/gateway/guards","label":"Guards","docId":"gateway/guards","unlisted":false},{"type":"link","href":"/gateway/validation","label":"Validation","docId":"gateway/validation","unlisted":false},{"type":"link","href":"/gateway/feature-modules","label":"Feature Modules","docId":"gateway/feature-modules","unlisted":false}],"collapsed":true,"collapsible":true},{"type":"category","label":"Transports","items":[{"type":"link","href":"/transports/electron-ipc","label":"Electron IPC Transport","docId":"transports/electron-ipc","unlisted":false}],"collapsed":true,"collapsible":true},{"type":"category","label":"Electron","items":[{"type":"link","href":"/electron/electron-module","label":"Electron Module","docId":"electron/electron-module","unlisted":false}],"collapsed":true,"collapsible":true},{"type":"category","label":"Extensions","items":[{"type":"link","href":"/extensions/config","label":"Config","docId":"extensions/config","unlisted":false},{"type":"link","href":"/extensions/winston-logger","label":"Winston Logger","docId":"extensions/winston-logger","unlisted":false}],"collapsed":true,"collapsible":true}]},"docs":{"app-core/dependency-injection":{"id":"app-core/dependency-injection","title":"Dependency Injection","description":"SpineJS includes a synchronous, cycle-detecting DI container. It resolves providers lazily on first request and caches the result — every token resolves to a singleton within a container scope.","sidebar":"mainSidebar"},"app-core/lifecycle":{"id":"app-core/lifecycle","title":"Lifecycle","description":"SpineJS orchestrates module initialization and teardown through three optional interfaces: OnInit, OnStart, and OnStop. Implementing them is entirely opt-in — a module that does not need lifecycle hooks simply does not implement them.","sidebar":"mainSidebar"},"app-core/logging":{"id":"app-core/logging","title":"Logging","description":"SpineJS ships a zero-dependency console logger (AppLogger) that covers the common development and production use cases. For richer output — file transports, JSON, log rotation — the opt-in @spinejs/winston-logger package provides a drop-in replacement.","sidebar":"mainSidebar"},"app-core/modules":{"id":"app-core/modules","title":"Modules","description":"A module is the structural unit of an SpineJS application. It groups providers (services, factories, values) into a cohesive boundary and exposes a subset of them to other modules via exports. The @Module decorator is the only way to register a class as a module.","sidebar":"mainSidebar"},"app-core/overview":{"id":"app-core/overview","title":"Overview","description":"@spinejs/core is the foundational layer of the ecosystem. It provides three primitives that every SpineJS application is built from: the module system (structural unit of code), the DI container (dependency wiring), and the App orchestrator (lifecycle management and process signal handling).","sidebar":"mainSidebar"},"electron/electron-module":{"id":"electron/electron-module","title":"Electron Module","description":"@spinejs/electron integrates Electron's application lifecycle into SpineJS's module and lifecycle system. It manages BrowserWindow creation, Electron app events, and graceful shutdown — ensuring that Electron's quit sequence triggers SpineJS's stop() chain before the process exits.","sidebar":"mainSidebar"},"extensions/config":{"id":"extensions/config","title":"Config","description":"@spinejs/config provides typed, async-capable configuration loading on top of SpineJS's module system. It uses phantom types to bind a configuration key to its value type at compile time, so ConfigService.get(key) returns the precise type without any casting.","sidebar":"mainSidebar"},"extensions/winston-logger":{"id":"extensions/winston-logger","title":"Winston Logger","description":"@spinejs/winston-logger provides a production-grade logger for SpineJS applications. It implements the Logger interface from @spinejs/core, making it a drop-in replacement for the built-in AppLogger. The Winston dependency and its transitive deps (winston, logform, triple-beam) live in this package — the SpineJS core stays zero-dependency.","sidebar":"mainSidebar"},"gateway/controllers-handlers":{"id":"gateway/controllers-handlers","title":"Controllers and Handlers","description":"Controllers are the classes that hold your request handling logic. They are declared with @Controller and expose individual routes via @Handler on their methods.","sidebar":"mainSidebar"},"gateway/feature-modules":{"id":"gateway/feature-modules","title":"Feature Modules","description":"Feature modules are the glue between your controllers and a gateway transport. They encapsulate the wiring: instantiate controllers via DI, resolve guard instances, build the guard map, and register the resulting routes on the gateway — all in a synthesized onInit().","sidebar":"mainSidebar"},"gateway/guards":{"id":"gateway/guards","title":"Guards","description":"Guards decide whether a request may proceed to the handler. They implement the Guard interface and are resolved by DI — they can have constructor dependencies like any other service.","sidebar":"mainSidebar"},"gateway/overview":{"id":"gateway/overview","title":"Gateway Overview","description":"@spinejs/gateway is the transport-agnostic request pipeline that sits between your application logic and the communication layer (IPC, HTTP, WebSocket, or any custom transport). It defines a consistent request/response contract without binding to any particular runtime.","sidebar":"mainSidebar"},"gateway/validation":{"id":"gateway/validation","title":"Validation","description":"The gateway validates handler input through the Validator port. This keeps the gateway core free of any runtime dependency on a validation library — you wire in your chosen adapter (zod, joi, class-validator, etc.) at the transport layer.","sidebar":"mainSidebar"},"intro":{"id":"intro","title":"Introduction","description":"SpineJS is a lightweight, NestJS-flavored micro-framework for structuring long-lived Node processes. It brings the patterns you know from NestJS — modules, dependency injection, lifecycle hooks — without the weight of the full NestJS runtime or its HTTP-first assumptions.","sidebar":"mainSidebar"},"transports/electron-ipc":{"id":"transports/electron-ipc","title":"Electron IPC Transport","description":"@spinejs/electron-ipc-gateway provides the Electron IPC binding for @spinejs/gateway. It binds Gateway.bind() to ipcMain.handle(address, ...) so that every @Handler({ address }) becomes a live IPC channel.","sidebar":"mainSidebar"}}}}
+{
+  "version": {
+    "pluginId": "default",
+    "version": "current",
+    "label": "Next",
+    "banner": null,
+    "badge": false,
+    "noIndex": false,
+    "className": "docs-version-current",
+    "isLast": true,
+    "docsSidebars": {
+      "mainSidebar": [
+        {
+          "type": "link",
+          "href": "/",
+          "label": "Introduction",
+          "docId": "intro",
+          "unlisted": false
+        },
+        {
+          "type": "category",
+          "label": "SpineJS Core",
+          "items": [
+            {
+              "type": "link",
+              "href": "/app-core/overview",
+              "label": "Overview",
+              "docId": "app-core/overview",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/app-core/modules",
+              "label": "Modules",
+              "docId": "app-core/modules",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/app-core/dependency-injection",
+              "label": "Dependency Injection",
+              "docId": "app-core/dependency-injection",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/app-core/lifecycle",
+              "label": "Lifecycle",
+              "docId": "app-core/lifecycle",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/app-core/logging",
+              "label": "Logging",
+              "docId": "app-core/logging",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        },
+        {
+          "type": "category",
+          "label": "Gateway",
+          "items": [
+            {
+              "type": "link",
+              "href": "/gateway/overview",
+              "label": "Gateway Overview",
+              "docId": "gateway/overview",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/gateway/controllers-handlers",
+              "label": "Controllers and Handlers",
+              "docId": "gateway/controllers-handlers",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/gateway/guards",
+              "label": "Guards",
+              "docId": "gateway/guards",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/gateway/validation",
+              "label": "Validation",
+              "docId": "gateway/validation",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/gateway/feature-modules",
+              "label": "Feature Modules",
+              "docId": "gateway/feature-modules",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        },
+        {
+          "type": "category",
+          "label": "Transports",
+          "items": [
+            {
+              "type": "link",
+              "href": "/transports/electron-ipc",
+              "label": "Electron IPC Transport",
+              "docId": "transports/electron-ipc",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        },
+        {
+          "type": "category",
+          "label": "Electron",
+          "items": [
+            {
+              "type": "link",
+              "href": "/electron/electron-module",
+              "label": "Electron Module",
+              "docId": "electron/electron-module",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        },
+        {
+          "type": "category",
+          "label": "Extensions",
+          "items": [
+            {
+              "type": "link",
+              "href": "/extensions/config",
+              "label": "Config",
+              "docId": "extensions/config",
+              "unlisted": false
+            },
+            {
+              "type": "link",
+              "href": "/extensions/winston-logger",
+              "label": "Winston Logger",
+              "docId": "extensions/winston-logger",
+              "unlisted": false
+            }
+          ],
+          "collapsed": true,
+          "collapsible": true
+        }
+      ]
+    },
+    "docs": {
+      "app-core/dependency-injection": {
+        "id": "app-core/dependency-injection",
+        "title": "Dependency Injection",
+        "description": "SpineJS includes a synchronous, cycle-detecting DI container. It resolves providers lazily on first request and caches the result — every token resolves to a singleton within a container scope.",
+        "sidebar": "mainSidebar"
+      },
+      "app-core/lifecycle": {
+        "id": "app-core/lifecycle",
+        "title": "Lifecycle",
+        "description": "SpineJS orchestrates module initialization and teardown through three optional interfaces: OnInit, OnStart, and OnStop. Implementing them is entirely opt-in — a module that does not need lifecycle hooks simply does not implement them.",
+        "sidebar": "mainSidebar"
+      },
+      "app-core/logging": {
+        "id": "app-core/logging",
+        "title": "Logging",
+        "description": "SpineJS ships a zero-dependency console logger (AppLogger) that covers the common development and production use cases. For richer output — file transports, JSON, log rotation — the opt-in @spinejs/winston-logger package provides a drop-in replacement.",
+        "sidebar": "mainSidebar"
+      },
+      "app-core/modules": {
+        "id": "app-core/modules",
+        "title": "Modules",
+        "description": "A module is the structural unit of an SpineJS application. It groups providers (services, factories, values) into a cohesive boundary and exposes a subset of them to other modules via exports. The @Module decorator is the only way to register a class as a module.",
+        "sidebar": "mainSidebar"
+      },
+      "app-core/overview": {
+        "id": "app-core/overview",
+        "title": "Overview",
+        "description": "@spinejs/core is the foundational layer of the ecosystem. It provides three primitives that every SpineJS application is built from: the module system (structural unit of code), the DI container (dependency wiring), and the App orchestrator (lifecycle management and process signal handling).",
+        "sidebar": "mainSidebar"
+      },
+      "electron/electron-module": {
+        "id": "electron/electron-module",
+        "title": "Electron Module",
+        "description": "@spinejs/electron integrates Electron's application lifecycle into SpineJS's module and lifecycle system. It manages BrowserWindow creation, Electron app events, and graceful shutdown — ensuring that Electron's quit sequence triggers SpineJS's stop() chain before the process exits.",
+        "sidebar": "mainSidebar"
+      },
+      "extensions/config": {
+        "id": "extensions/config",
+        "title": "Config",
+        "description": "@spinejs/config provides typed, async-capable configuration loading on top of SpineJS's module system. It uses phantom types to bind a configuration key to its value type at compile time, so ConfigService.get(key) returns the precise type without any casting.",
+        "sidebar": "mainSidebar"
+      },
+      "extensions/winston-logger": {
+        "id": "extensions/winston-logger",
+        "title": "Winston Logger",
+        "description": "@spinejs/winston-logger provides a production-grade logger for SpineJS applications. It implements the Logger interface from @spinejs/core, making it a drop-in replacement for the built-in AppLogger. The Winston dependency and its transitive deps (winston, logform, triple-beam) live in this package — the SpineJS core stays zero-dependency.",
+        "sidebar": "mainSidebar"
+      },
+      "gateway/controllers-handlers": {
+        "id": "gateway/controllers-handlers",
+        "title": "Controllers and Handlers",
+        "description": "Controllers are the classes that hold your request handling logic. They are declared with @Controller and expose individual routes via @Handler on their methods.",
+        "sidebar": "mainSidebar"
+      },
+      "gateway/feature-modules": {
+        "id": "gateway/feature-modules",
+        "title": "Feature Modules",
+        "description": "Feature modules are the glue between your controllers and a gateway transport. They encapsulate the wiring: instantiate controllers via DI, resolve guard instances, build the guard map, and register the resulting routes on the gateway — all in a synthesized onInit().",
+        "sidebar": "mainSidebar"
+      },
+      "gateway/guards": {
+        "id": "gateway/guards",
+        "title": "Guards",
+        "description": "Guards decide whether a request may proceed to the handler. They implement the Guard interface and are resolved by DI — they can have constructor dependencies like any other service.",
+        "sidebar": "mainSidebar"
+      },
+      "gateway/overview": {
+        "id": "gateway/overview",
+        "title": "Gateway Overview",
+        "description": "@spinejs/gateway is the transport-agnostic request pipeline that sits between your application logic and the communication layer (IPC, HTTP, WebSocket, or any custom transport). It defines a consistent request/response contract without binding to any particular runtime.",
+        "sidebar": "mainSidebar"
+      },
+      "gateway/validation": {
+        "id": "gateway/validation",
+        "title": "Validation",
+        "description": "The gateway validates handler input through the Validator port. This keeps the gateway core free of any runtime dependency on a validation library — you wire in your chosen adapter (zod, joi, class-validator, etc.) at the transport layer.",
+        "sidebar": "mainSidebar"
+      },
+      "intro": {
+        "id": "intro",
+        "title": "Introduction",
+        "description": "SpineJS is a lightweight, NestJS-flavored micro-framework for structuring long-lived Node processes. It brings the patterns you know from NestJS — modules, dependency injection, lifecycle hooks — without the weight of the full NestJS runtime or its HTTP-first assumptions.",
+        "sidebar": "mainSidebar"
+      },
+      "transports/electron-ipc": {
+        "id": "transports/electron-ipc",
+        "title": "Electron IPC Transport",
+        "description": "@spinejs/electron-ipc-gateway provides the Electron IPC binding for @spinejs/gateway. It binds Gateway.bind() to ipcMain.handle(address, ...) so that every @Handler({ address }) becomes a live IPC channel.",
+        "sidebar": "mainSidebar"
+      }
+    }
+  }
+}

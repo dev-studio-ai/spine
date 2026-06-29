@@ -5,7 +5,13 @@ export interface ConsoleFormatOptions {
   appName?: boolean;
 }
 
-export type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly';
+export type LogLevel =
+  | "error"
+  | "warn"
+  | "info"
+  | "verbose"
+  | "debug"
+  | "silly";
 
 export interface Logger {
   info(message: unknown, ...optionalParams: unknown[]): void;

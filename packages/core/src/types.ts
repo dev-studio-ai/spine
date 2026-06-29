@@ -1,4 +1,8 @@
-import { ConsoleFormatOptions, Logger, LogLevel } from './logger/logger.interface';
+import {
+  ConsoleFormatOptions,
+  Logger,
+  LogLevel,
+} from "./logger/logger.interface";
 
 export interface LoggerOptions {
   /** Minimum level emitted (default `'info'`). */

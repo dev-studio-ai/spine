@@ -1,9 +1,9 @@
-import { vi } from 'vitest';
-import type { Logger } from './logger';
-import { App, appToken, loggerToken } from './app';
-import { ModuleNode } from './module';
-import type { DynamicModule, ModuleEntry } from './module';
-import { InjectionToken } from './container';
+import { vi } from "vitest";
+import type { Logger } from "./logger";
+import { App, appToken, loggerToken } from "./app";
+import { ModuleNode } from "./module";
+import type { DynamicModule, ModuleEntry } from "./module";
+import { InjectionToken } from "./container";
 
 const silentLogger = {
   info() {},
@@ -24,10 +24,10 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 // that call process.exit — which would kill the Jest worker. We snapshot the process
 // listeners before each test and remove any the App added afterwards.
 const SIGNALS = [
-  'uncaughtException',
-  'unhandledRejection',
-  'SIGINT',
-  'SIGTERM',
+  "uncaughtException",
+  "unhandledRejection",
+  "SIGINT",
+  "SIGTERM",
 ] as const;
 
 let listenerSnapshot: Record<string, ((...args: unknown[]) => void)[]>;
@@ -35,7 +35,9 @@ let listenerSnapshot: Record<string, ((...args: unknown[]) => void)[]>;
 beforeEach(() => {
   listenerSnapshot = {};
   for (const signal of SIGNALS) {
-    listenerSnapshot[signal] = process.listeners(signal as NodeJS.Signals).slice() as never;
+    listenerSnapshot[signal] = process
+      .listeners(signal as NodeJS.Signals)
+      .slice() as never;
   }
 });
 
@@ -49,12 +51,15 @@ afterEach(() => {
   }
 });
 
-describe('App / module system', () => {
-  it('injects the appToken and loggerToken into a module constructor', async () => {
+describe("App / module system", () => {
+  it("injects the appToken and loggerToken into a module constructor", async () => {
     let captured: { app: unknown; logger: unknown } | undefined;
 
     class RootModule {
-      constructor(public readonly app: unknown, public readonly logger: unknown) {}
+      constructor(
+        public readonly app: unknown,
+        public readonly logger: unknown
+      ) {}
       onInit() {
         captured = { app: this.app, logger: this.logger };
       }
@@ -69,29 +74,29 @@ describe('App / module system', () => {
     expect(captured?.logger).toBe(silentLogger);
   });
 
-  it('runs onInit() for every module in the graph', async () => {
+  it("runs onInit() for every module in the graph", async () => {
     const inited = new Set<string>();
 
     class Leaf {
       onInit() {
-        inited.add('leaf');
+        inited.add("leaf");
       }
     }
     const leaf = new ModuleNode({ module: Leaf });
 
     class Root {
       onInit() {
-        inited.add('root');
+        inited.add("root");
       }
     }
     const root = new ModuleNode({ module: Root, imports: [leaf] });
 
     await makeApp([root]).init();
 
-    expect(inited).toEqual(new Set(['leaf', 'root']));
+    expect(inited).toEqual(new Set(["leaf", "root"]));
   });
 
-  it('inits an imported module before constructing the importer (injected deps are ready)', async () => {
+  it("inits an imported module before constructing the importer (injected deps are ready)", async () => {
     const order: string[] = [];
 
     // Simule un module qui fait de l'IO (config, BDD) dans son onInit().
@@ -100,7 +105,7 @@ describe('App / module system', () => {
       async onInit() {
         await delay(5);
         this.ready = true;
-        order.push('db:init');
+        order.push("db:init");
       }
     }
     const dbProvider = new ModuleNode({ module: Db });
@@ -108,36 +113,40 @@ describe('App / module system', () => {
     let dbReadyAtConstruction: boolean | undefined;
     class Api {
       constructor(db: Db) {
-        order.push('api:construct');
+        order.push("api:construct");
         // The injected dependency has already run its onInit(): it is ready, not just constructed.
         dbReadyAtConstruction = db.ready;
       }
     }
-    const apiProvider = new ModuleNode({ module: Api, imports: [dbProvider], inject: [Db] });
+    const apiProvider = new ModuleNode({
+      module: Api,
+      imports: [dbProvider],
+      inject: [Db],
+    });
 
     await makeApp([apiProvider]).init();
 
-    expect(order).toEqual(['db:init', 'api:construct']);
+    expect(order).toEqual(["db:init", "api:construct"]);
     expect(dbReadyAtConstruction).toBe(true);
   });
 
-  it('resolves sibling imports concurrently, not serially', async () => {
+  it("resolves sibling imports concurrently, not serially", async () => {
     const events: string[] = [];
 
     class Slow {
       async onInit() {
-        events.push('slow:start');
+        events.push("slow:start");
         await delay(20);
-        events.push('slow:end');
+        events.push("slow:end");
       }
     }
     const slow = new ModuleNode({ module: Slow });
 
     class Fast {
       async onInit() {
-        events.push('fast:start');
+        events.push("fast:start");
         await delay(1);
-        events.push('fast:end');
+        events.push("fast:end");
       }
     }
     const fast = new ModuleNode({ module: Fast });
@@ -148,10 +157,12 @@ describe('App / module system', () => {
     await makeApp([root]).init();
 
     // Fast starts before Slow finishes → siblings do not serialize.
-    expect(events.indexOf('fast:start')).toBeLessThan(events.indexOf('slow:end'));
+    expect(events.indexOf("fast:start")).toBeLessThan(
+      events.indexOf("slow:end")
+    );
   });
 
-  it('awaits asynchronous module onInit()', async () => {
+  it("awaits asynchronous module onInit()", async () => {
     let done = false;
 
     class AsyncModule {
@@ -166,12 +177,12 @@ describe('App / module system', () => {
   });
 
   it("exposes a module's exported providers to importing modules", async () => {
-    const greetingToken = new InjectionToken<string>('greeting');
+    const greetingToken = new InjectionToken<string>("greeting");
 
     class GreetingModule {}
     const greetingModule = new ModuleNode({
       module: GreetingModule,
-      providers: [{ provide: greetingToken, value: 'hello' }],
+      providers: [{ provide: greetingToken, value: "hello" }],
       exports: [greetingToken],
     });
 
@@ -188,10 +199,10 @@ describe('App / module system', () => {
     });
 
     await makeApp([consumer]).init();
-    expect(received).toBe('hello');
+    expect(received).toBe("hello");
   });
 
-  it('injects an imported module instance by its class (same shared instance)', async () => {
+  it("injects an imported module instance by its class (same shared instance)", async () => {
     class Source {
       value = 0;
     }
@@ -227,22 +238,22 @@ describe('App / module system', () => {
     expect(listener?.src).toBe(source);
   });
 
-  it('runs onStart() hooks after init, in init order', async () => {
+  it("runs onStart() hooks after init, in init order", async () => {
     const order: string[] = [];
 
     class Leaf {
       onInit() {
-        order.push('leaf:init');
+        order.push("leaf:init");
       }
       onStart() {
-        order.push('leaf:start');
+        order.push("leaf:start");
       }
     }
     const leaf = new ModuleNode({ module: Leaf });
 
     class Root {
       onStart() {
-        order.push('root:start');
+        order.push("root:start");
       }
     }
     const root = new ModuleNode({ module: Root, imports: [leaf] });
@@ -252,10 +263,10 @@ describe('App / module system', () => {
     await app.start();
 
     // onStart runs after everything is initialized, dependency before importer.
-    expect(order).toEqual(['leaf:init', 'leaf:start', 'root:start']);
+    expect(order).toEqual(["leaf:init", "leaf:start", "root:start"]);
   });
 
-  it('builds a shared module only once, even across concurrent branches', async () => {
+  it("builds a shared module only once, even across concurrent branches", async () => {
     let constructed = 0;
     let initialized = 0;
     let fromLeft!: Shared;
@@ -277,14 +288,22 @@ describe('App / module system', () => {
         fromLeft = shared;
       }
     }
-    const left = new ModuleNode({ module: Left, imports: [shared], inject: [Shared] });
+    const left = new ModuleNode({
+      module: Left,
+      imports: [shared],
+      inject: [Shared],
+    });
 
     class Right {
       constructor(public readonly shared: Shared) {
         fromRight = shared;
       }
     }
-    const right = new ModuleNode({ module: Right, imports: [shared], inject: [Shared] });
+    const right = new ModuleNode({
+      module: Right,
+      imports: [shared],
+      inject: [Shared],
+    });
 
     // `Left` and `Right` both import `Shared` → it must be built and inited exactly once.
     await makeApp([left, right]).init();
@@ -294,7 +313,7 @@ describe('App / module system', () => {
     expect(fromLeft).toBe(fromRight);
   });
 
-  it('throws on circular module imports', async () => {
+  it("throws on circular module imports", async () => {
     class A {}
     class B {}
 
@@ -302,10 +321,12 @@ describe('App / module system', () => {
     const b = new ModuleNode({ module: B, imports: [a] });
     a.imports!.push(b); // A imports B, B imports A
 
-    await expect(makeApp([a]).init()).rejects.toThrow(/Circular dependency between modules/);
+    await expect(makeApp([a]).init()).rejects.toThrow(
+      /Circular dependency between modules/
+    );
   });
 
-  it('detects a cycle even when both ends are imported by a common ancestor (no deadlock)', async () => {
+  it("detects a cycle even when both ends are imported by a common ancestor (no deadlock)", async () => {
     // root → [A, B], A ↔ B. Order-dependent detection used to miss this and deadlock.
     class A {}
     class B {}
@@ -316,10 +337,12 @@ describe('App / module system', () => {
     class Root {}
     const root = new ModuleNode({ module: Root, imports: [a, b] });
 
-    await expect(makeApp([root]).init()).rejects.toThrow(/Circular dependency between modules/);
+    await expect(makeApp([root]).init()).rejects.toThrow(
+      /Circular dependency between modules/
+    );
   });
 
-  it('resolves a diamond (shared dependency, no cycle) without a false positive', async () => {
+  it("resolves a diamond (shared dependency, no cycle) without a false positive", async () => {
     let cBuilt = 0;
     class C {
       constructor() {
@@ -329,15 +352,18 @@ describe('App / module system', () => {
     const c = new ModuleNode({ module: C });
     const left = new ModuleNode({ module: class Left {}, imports: [c] });
     const right = new ModuleNode({ module: class Right {}, imports: [c] });
-    const root = new ModuleNode({ module: class Root {}, imports: [left, right] });
+    const root = new ModuleNode({
+      module: class Root {},
+      imports: [left, right],
+    });
 
     await makeApp([root]).init();
 
     expect(cBuilt).toBe(1);
   });
 
-  it('addProviders: the overriding value is the one injected into the module', async () => {
-    const cfgToken = new InjectionToken<string>('test:cfg');
+  it("addProviders: the overriding value is the one injected into the module", async () => {
+    const cfgToken = new InjectionToken<string>("test:cfg");
 
     let seen: string | undefined;
     class Configured {
@@ -349,29 +375,29 @@ describe('App / module system', () => {
     const p = new ModuleNode({
       module: Configured,
       inject: [cfgToken],
-      providers: [{ provide: cfgToken, value: 'default' }],
+      providers: [{ provide: cfgToken, value: "default" }],
     });
     // Upsert: must override the default, not be ignored by the Container's "first wins".
-    p.addProviders([{ provide: cfgToken, value: 'overridden' }]);
+    p.addProviders([{ provide: cfgToken, value: "overridden" }]);
 
     await makeApp([p]).init();
 
-    expect(seen).toBe('overridden');
+    expect(seen).toBe("overridden");
   });
 
-  it('runs onStop() hooks in reverse order on stop', async () => {
+  it("runs onStop() hooks in reverse order on stop", async () => {
     const order: string[] = [];
 
     class Leaf {
       onStop() {
-        order.push('leaf');
+        order.push("leaf");
       }
     }
     const leaf = new ModuleNode({ module: Leaf });
 
     class Root {
       onStop() {
-        order.push('root');
+        order.push("root");
       }
     }
     const root = new ModuleNode({ module: Root, imports: [leaf] });
@@ -381,10 +407,10 @@ describe('App / module system', () => {
     await app.stop();
 
     // Root (importer) resolved after Leaf → stops before it (reverse order).
-    expect(order).toEqual(['root', 'leaf']);
+    expect(order).toEqual(["root", "leaf"]);
   });
 
-  it('runs the shutdown only once even if exit() is triggered twice', async () => {
+  it("runs the shutdown only once even if exit() is triggered twice", async () => {
     let stopped = 0;
     class Mod {
       onStop() {
@@ -399,7 +425,7 @@ describe('App / module system', () => {
     // External counter: mockRestore() clears the spy history, we can't assert it afterwards.
     let exitCalls = 0;
     const exitSpy = vi
-      .spyOn(process, 'exit')
+      .spyOn(process, "exit")
       .mockImplementation((() => void exitCalls++) as never);
     try {
       await app.exit();
@@ -412,7 +438,7 @@ describe('App / module system', () => {
     expect(exitCalls).toBe(1);
   });
 
-  it('fresh: a configured module yields a distinct instance per configure() call', async () => {
+  it("fresh: a configured module yields a distinct instance per configure() call", async () => {
     let instances = 0;
     class Db {
       constructor() {
@@ -424,7 +450,9 @@ describe('App / module system', () => {
     const dbTokens = new Map<string, InjectionToken<string>>();
     const dbConn = (name: string) =>
       dbTokens.get(name) ??
-      dbTokens.set(name, new InjectionToken<string>(`db.conn.${name}`)).get(name)!;
+      dbTokens
+        .set(name, new InjectionToken<string>(`db.conn.${name}`))
+        .get(name)!;
     const configure = (name: string): DynamicModule => ({
       module: Db,
       fresh: true,
@@ -447,36 +475,36 @@ describe('App / module system', () => {
 
     const usesMain = new ModuleNode({
       module: UsesMain,
-      imports: [configure('main')],
-      inject: [dbConn('main')],
+      imports: [configure("main")],
+      inject: [dbConn("main")],
     });
     const usesReplica = new ModuleNode({
       module: UsesReplica,
-      imports: [configure('replica')],
-      inject: [dbConn('replica')],
+      imports: [configure("replica")],
+      inject: [dbConn("replica")],
     });
 
     await makeApp([usesMain, usesReplica]).init();
 
     // Two distinct configure() → two Db instances, each with its scoped connection.
     expect(instances).toBe(2);
-    expect(main).toBe('conn:main');
-    expect(replica).toBe('conn:replica');
+    expect(main).toBe("conn:main");
+    expect(replica).toBe("conn:replica");
   });
 
-  it('fresh: the same DynamicModule object imported twice is shared (diamond)', async () => {
+  it("fresh: the same DynamicModule object imported twice is shared (diamond)", async () => {
     let instances = 0;
     class Db {
       constructor() {
         instances++;
       }
     }
-    const token = new InjectionToken<string>('db.shared');
+    const token = new InjectionToken<string>("db.shared");
     // A single DynamicModule object → shared identity even when imported by two consumers.
     const shared: DynamicModule = {
       module: Db,
       fresh: true,
-      providers: [{ provide: token, value: 'shared-conn' }],
+      providers: [{ provide: token, value: "shared-conn" }],
       exports: [token],
     };
 
@@ -486,19 +514,27 @@ describe('App / module system', () => {
     class Right {
       constructor(public readonly conn: string) {}
     }
-    const left = new ModuleNode({ module: Left, imports: [shared], inject: [token] });
-    const right = new ModuleNode({ module: Right, imports: [shared], inject: [token] });
+    const left = new ModuleNode({
+      module: Left,
+      imports: [shared],
+      inject: [token],
+    });
+    const right = new ModuleNode({
+      module: Right,
+      imports: [shared],
+      inject: [token],
+    });
 
     await makeApp([left, right]).init();
 
     expect(instances).toBe(1);
   });
 
-  it('builds imports added by a later dynamic occurrence of an already-seen module (#3)', async () => {
+  it("builds imports added by a later dynamic occurrence of an already-seen module (#3)", async () => {
     const initialized = new Set<string>();
     class Extra {
       onInit() {
-        initialized.add('extra');
+        initialized.add("extra");
       }
     }
     const extra = new ModuleNode({ module: Extra });
@@ -516,10 +552,10 @@ describe('App / module system', () => {
     // Before the fix: "Extra missing from cache" because the 2nd occurrence was not re-walked.
     await makeApp([rootA, rootB]).init();
 
-    expect(initialized.has('extra')).toBe(true);
+    expect(initialized.has("extra")).toBe(true);
   });
 
-  it('throws when injecting a fresh module by its class (use its exported token instead)', async () => {
+  it("throws when injecting a fresh module by its class (use its exported token instead)", async () => {
     class Db {}
     const dbProvider: DynamicModule = { module: Db, fresh: true };
 
@@ -532,24 +568,26 @@ describe('App / module system', () => {
       inject: [Db],
     });
 
-    await expect(makeApp([consumer]).init()).rejects.toThrow(/Unknown provider/);
+    await expect(makeApp([consumer]).init()).rejects.toThrow(
+      /Unknown provider/
+    );
   });
 
-  it('on init() failure, stops the modules that did initialize, then rejects (atomic)', async () => {
+  it("on init() failure, stops the modules that did initialize, then rejects (atomic)", async () => {
     const events: string[] = [];
     class Leaf {
       onInit() {
-        events.push('leaf:init');
+        events.push("leaf:init");
       }
       onStop() {
-        events.push('leaf:stop');
+        events.push("leaf:stop");
       }
     }
     const leaf = new ModuleNode({ module: Leaf });
 
     class Boom {
       onInit() {
-        throw new Error('boom');
+        throw new Error("boom");
       }
     }
     const boom = new ModuleNode({ module: Boom, imports: [leaf] });
@@ -557,14 +595,14 @@ describe('App / module system', () => {
     const app = makeApp([boom]);
     await expect(app.init()).rejects.toThrow(/boom/);
     // Leaf was initialized then stopped by the atomic cleanup of init().
-    expect(events).toEqual(['leaf:init', 'leaf:stop']);
+    expect(events).toEqual(["leaf:init", "leaf:stop"]);
 
     // stop() est idempotent : un 2e appel ne re-stoppe pas.
     await app.stop();
-    expect(events).toEqual(['leaf:init', 'leaf:stop']);
+    expect(events).toEqual(["leaf:init", "leaf:stop"]);
   });
 
-  it('start() is idempotent and refuses to start after stop()', async () => {
+  it("start() is idempotent and refuses to start after stop()", async () => {
     let starts = 0;
     class Mod {
       onStart() {
@@ -584,44 +622,52 @@ describe('App / module system', () => {
     expect(starts).toBe(1);
   });
 
-  it('detaches its process-level listeners on stop (no leak across instances)', async () => {
+  it("detaches its process-level listeners on stop (no leak across instances)", async () => {
     const baseline = {
-      uncaughtException: process.listenerCount('uncaughtException'),
-      unhandledRejection: process.listenerCount('unhandledRejection'),
+      uncaughtException: process.listenerCount("uncaughtException"),
+      unhandledRejection: process.listenerCount("unhandledRejection"),
     };
 
     const app = makeApp([new ModuleNode({ module: class Mod {} })]);
     await app.init();
 
     // Constructor attached one handler each.
-    expect(process.listenerCount('uncaughtException')).toBe(baseline.uncaughtException + 1);
-    expect(process.listenerCount('unhandledRejection')).toBe(baseline.unhandledRejection + 1);
+    expect(process.listenerCount("uncaughtException")).toBe(
+      baseline.uncaughtException + 1
+    );
+    expect(process.listenerCount("unhandledRejection")).toBe(
+      baseline.unhandledRejection + 1
+    );
 
     await app.stop();
 
     // stop() released them → back to baseline, nothing left firing on a dead App.
-    expect(process.listenerCount('uncaughtException')).toBe(baseline.uncaughtException);
-    expect(process.listenerCount('unhandledRejection')).toBe(baseline.unhandledRejection);
+    expect(process.listenerCount("uncaughtException")).toBe(
+      baseline.uncaughtException
+    );
+    expect(process.listenerCount("unhandledRejection")).toBe(
+      baseline.unhandledRejection
+    );
   });
 
-  it('on start() failure, stops every initialized module, then rejects (atomic)', async () => {
+  it("on start() failure, stops every initialized module, then rejects (atomic)", async () => {
     const events: string[] = [];
     class Leaf {
       onStart() {
-        events.push('leaf:start');
+        events.push("leaf:start");
       }
       onStop() {
-        events.push('leaf:stop');
+        events.push("leaf:stop");
       }
     }
     const leaf = new ModuleNode({ module: Leaf });
 
     class Boom {
       onStart() {
-        throw new Error('start-boom');
+        throw new Error("start-boom");
       }
       onStop() {
-        events.push('boom:stop');
+        events.push("boom:stop");
       }
     }
     // Boom imports Leaf → Leaf starts first (init order), then Boom's onStart throws.
@@ -633,10 +679,10 @@ describe('App / module system', () => {
 
     // Leaf started; Boom's failure triggers stop() → onStop in reverse order for every
     // initialized module (onStop pairs with onInit, regardless of whether onStart ran).
-    expect(events).toEqual(['leaf:start', 'boom:stop', 'leaf:stop']);
+    expect(events).toEqual(["leaf:start", "boom:stop", "leaf:stop"]);
 
     // stop() is idempotent: the atomic cleanup already called it.
     await app.stop();
-    expect(events).toEqual(['leaf:start', 'boom:stop', 'leaf:stop']);
+    expect(events).toEqual(["leaf:start", "boom:stop", "leaf:stop"]);
   });
 });
