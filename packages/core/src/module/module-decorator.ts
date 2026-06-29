@@ -38,10 +38,7 @@ export type ModuleEntry = ModuleConstructor | DynamicModule | ModuleNode;
 export function Module<const D extends readonly Token[] = []>(
   meta: ModuleMetadata & { inject?: D } = {}
 ) {
-  return <C extends new (...args: ResolvedTuple<D>) => object>(
-    cls: C,
-    _ctx?: unknown
-  ): C => {
+  return <C extends new (...args: ResolvedTuple<D>) => object>(cls: C): C => {
     defineOwnMeta(cls, MODULE_META, meta);
     return cls;
   };
