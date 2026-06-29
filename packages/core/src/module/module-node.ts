@@ -9,10 +9,11 @@ import type { ModuleEntry } from "./module-decorator";
 
 // `any[]` required to stay assignable from module classes with concrete constructors.
 // No base class: a module is a plain class decorated with `@Module`.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type ModuleConstructor<T extends object = object> = new (
   ...args: any[]
 ) => T;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export interface ModuleDef<T extends ModuleConstructor = ModuleConstructor> {
   module: T;
