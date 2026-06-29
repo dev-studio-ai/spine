@@ -1,0 +1,26 @@
+{
+  "id": "app-core/logging",
+  "title": "Logging",
+  "description": "SpineJS ships a zero-dependency console logger (AppLogger) that covers the common development and production use cases. For richer output — file transports, JSON, log rotation — the opt-in @spinejs/winston-logger package provides a drop-in replacement.",
+  "source": "@site/docs/app-core/logging.md",
+  "sourceDirName": "app-core",
+  "slug": "/app-core/logging",
+  "permalink": "/app-core/logging",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5
+  },
+  "sidebar": "mainSidebar",
+  "previous": {
+    "title": "Lifecycle",
+    "permalink": "/app-core/lifecycle"
+  },
+  "next": {
+    "title": "Gateway Overview",
+    "permalink": "/gateway/overview"
+  }
+}

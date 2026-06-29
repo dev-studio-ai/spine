@@ -1,0 +1,26 @@
+{
+  "id": "app-core/lifecycle",
+  "title": "Lifecycle",
+  "description": "SpineJS orchestrates module initialization and teardown through three optional interfaces: OnInit, OnStart, and OnStop. Implementing them is entirely opt-in — a module that does not need lifecycle hooks simply does not implement them.",
+  "source": "@site/docs/app-core/lifecycle.md",
+  "sourceDirName": "app-core",
+  "slug": "/app-core/lifecycle",
+  "permalink": "/app-core/lifecycle",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  },
+  "sidebar": "mainSidebar",
+  "previous": {
+    "title": "Dependency Injection",
+    "permalink": "/app-core/dependency-injection"
+  },
+  "next": {
+    "title": "Logging",
+    "permalink": "/app-core/logging"
+  }
+}

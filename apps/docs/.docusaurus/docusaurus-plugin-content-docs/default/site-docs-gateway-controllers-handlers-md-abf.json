@@ -1,0 +1,26 @@
+{
+  "id": "gateway/controllers-handlers",
+  "title": "Controllers and Handlers",
+  "description": "Controllers are the classes that hold your request handling logic. They are declared with @Controller and expose individual routes via @Handler on their methods.",
+  "source": "@site/docs/gateway/controllers-handlers.md",
+  "sourceDirName": "gateway",
+  "slug": "/gateway/controllers-handlers",
+  "permalink": "/gateway/controllers-handlers",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "mainSidebar",
+  "previous": {
+    "title": "Gateway Overview",
+    "permalink": "/gateway/overview"
+  },
+  "next": {
+    "title": "Guards",
+    "permalink": "/gateway/guards"
+  }
+}
