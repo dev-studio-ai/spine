@@ -22,6 +22,7 @@ const sidebars: SidebarsConfig = {
         'gateway/controllers-handlers',
         'gateway/guards',
         'gateway/validation',
+        'gateway/interceptors',
         'gateway/feature-modules',
       ],
     },

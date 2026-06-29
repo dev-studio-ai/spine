@@ -1,3 +1,4 @@
+import type { Envelope, GatewayContext, RouteDescriptor } from './gateway.types';
 import type { ParseableSchema } from './gateway.types';
 
 /**
@@ -21,6 +22,32 @@ export interface ContextFactory<Raw, Ctx> {
 /** Maps any thrown error to a transport-specific stable code (no raw message leaks). */
 export interface ErrorMapper<Code extends string = string> {
   toCode(err: unknown): Code;
+}
+
+/**
+ * Cross-cutting concern injected around every `dispatch()` call. Interceptors wrap the
+ * pipeline in registration order — the first registered interceptor is the outermost wrapper.
+ *
+ * @example
+ * class LoggingInterceptor implements GatewayInterceptor {
+ *   async intercept(route, ctx, rawInput, next) {
+ *     console.log('→', route.address);
+ *     const envelope = await next();
+ *     console.log('←', route.address, envelope.ok);
+ *     return envelope;
+ *   }
+ * }
+ */
+export interface GatewayInterceptor<
+  Ctx extends GatewayContext = GatewayContext,
+  Code extends string = string,
+> {
+  intercept(
+    route: RouteDescriptor<Ctx>,
+    ctx: Ctx,
+    rawInput: unknown,
+    next: () => Promise<Envelope<unknown, Code>>,
+  ): Promise<Envelope<unknown, Code>>;
 }
 
 /** Thrown by a `Validator` adapter when the input fails its schema. */
