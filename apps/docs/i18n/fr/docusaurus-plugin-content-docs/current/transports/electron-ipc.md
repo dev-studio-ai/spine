@@ -28,7 +28,7 @@ new ElectronIpcGateway(
 )
 ```
 
-Le constructeur est appelé via un factory provider — la classe elle-même n'a pas de décorateur `@Inject`, ce qui la garde générique vis-à-vis du transport.
+Le constructeur est appelé via un factory provider — la classe elle-même n'a pas de décorateur `@Injectable`, ce qui la garde générique vis-à-vis du transport.
 
 ### Types
 

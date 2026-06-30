@@ -177,4 +177,4 @@ export class MainModule {}
 
 Vous n'avez pas besoin de lister manuellement les classes de guard dans le tableau `providers`. La factory du module de fonctionnalité scanne les métadonnées `@UseGuards` de tous les contrôleurs au moment de la définition et ajoute automatiquement toutes les classes de guard uniques à `providers` et `inject`.
 
-Les guards référencés dans `@UseGuards` doivent tout de même avoir leurs propres dépendances déclarées via `@Inject` sur la classe du guard — le conteneur DI les résout à travers la chaîne normale de providers.
+Les guards référencés dans `@UseGuards` doivent tout de même avoir leurs propres dépendances déclarées via `@Injectable` sur la classe du guard — le conteneur DI les résout à travers la chaîne normale de providers.

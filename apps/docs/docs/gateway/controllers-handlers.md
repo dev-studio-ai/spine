@@ -97,15 +97,15 @@ TypeScript infers `input` as `CreateUserInput` in the handler body when the sche
 
 ## Controller constructor injection
 
-Controllers are regular class providers in the DI container. Declare their dependencies with `@Inject`:
+Controllers are regular class providers in the DI container. Declare their dependencies with `@Injectable`:
 
 ```typescript
-import { Inject, InjectionToken } from "@spinejs/core";
+import { Injectable, InjectionToken } from "@spinejs/core";
 import { Controller, Handler } from "@spinejs/gateway";
 
 const userServiceToken = new InjectionToken<UserService>("user-service");
 
-@Inject([userServiceToken])
+@Injectable({ inject: [userServiceToken] })
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -117,7 +117,7 @@ export class UserController {
 }
 ```
 
-Or, when listed explicitly in the feature module's `inject` override — but the `@Inject` + class-as-token pattern is usually simpler.
+Or, when listed explicitly in the feature module's `inject` override — but the `@Injectable` + class-as-token pattern is usually simpler.
 
 ## Handler return values
 

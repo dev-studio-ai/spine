@@ -95,7 +95,7 @@ Récupère une valeur chargée par clé. Le type de retour est inféré du type 
 import { ConfigService } from "@spinejs/config";
 import { jwtSecretKey, apiBaseUrlKey } from "./config";
 
-@Inject([ConfigService])
+@Injectable({ inject: [ConfigService] })
 export class AuthService {
   constructor(private readonly config: ConfigService) {}
 
@@ -163,11 +163,11 @@ export class MainModule {}
 
 ```typescript
 // modules/api.service.ts
-import { Inject } from "@spinejs/core";
+import { Injectable } from "@spinejs/core";
 import { ConfigService } from "@spinejs/config";
 import { apiBaseUrlKey } from "../../config/main.config";
 
-@Inject([ConfigService])
+@Injectable({ inject: [ConfigService] })
 export class ApiService {
   private readonly baseUrl: string;
 

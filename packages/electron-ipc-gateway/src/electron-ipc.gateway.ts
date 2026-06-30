@@ -17,7 +17,7 @@ import {
  * Generic electron IPC transport binding of the `Gateway`. App-agnostic: it knows only `ipcMain`
  * and the electron event — the context (session, user…) is built by an injected `ContextFactory`,
  * so nothing app-specific (SessionStore, UserProfile) leaks in. Constructed via a factory provider
- * (no `@Inject`) so the class stays free of DI-token identity — ready to lift into its own lib.
+ * (no `@Injectable`) so the class stays free of DI-token identity — ready to lift into its own lib.
  */
 export class ElectronIpcGateway<
   Ctx extends ElectronIpcBaseContext = ElectronIpcBaseContext,

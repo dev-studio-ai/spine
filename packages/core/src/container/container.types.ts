@@ -2,9 +2,17 @@ import { InjectionToken } from "./injection-token";
 
 export type Token<T = unknown> = ProviderConstructor<T> | InjectionToken<T>;
 
+/**
+ * Lifecycle of a provider's instances.
+ * - `singleton` (default): one cached instance per container.
+ * - `transient`: a fresh instance on every resolution, never cached.
+ */
+export type ProviderScope = "singleton" | "transient";
+
 export interface BaseProvider<T = unknown> {
   provide: Token<T>;
   inject?: Token[];
+  scope?: ProviderScope;
 }
 
 // `any[]` is needed here: with `unknown[]`, a class/factory with concrete parameters
@@ -17,6 +25,7 @@ export type ProviderFactory<T = unknown> = (...args: any[]) => T;
 export interface FactoryProvider<T = unknown> {
   provide: Token<T>;
   inject?: Token[];
+  scope?: ProviderScope;
   factory: ProviderFactory<NoInfer<T>>;
 }
 export interface ValueProvider<T = unknown> {
@@ -37,7 +46,7 @@ export type Provider<T = unknown> =
 
 /**
  * Entry accepted in `providers: [...]`: either an explicit Provider, or a
- * **bare class** (`@Inject` then carries its deps). `normalizeProvider`
+ * **bare class** (`@Injectable` then carries its deps). `normalizeProvider`
  * converts it to `{ provide: Class }`.
  */
 export type ProviderEntry<T = unknown> = Provider<T> | ProviderConstructor<T>;

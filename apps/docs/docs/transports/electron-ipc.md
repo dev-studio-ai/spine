@@ -28,7 +28,7 @@ new ElectronIpcGateway(
 )
 ```
 
-The constructor is called via a factory provider — the class itself has no `@Inject` decorator, keeping it transport-generic.
+The constructor is called via a factory provider — the class itself has no `@Injectable` decorator, keeping it transport-generic.
 
 ### Types
 
