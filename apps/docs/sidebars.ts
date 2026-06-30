@@ -39,7 +39,11 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Extensions",
-      items: ["extensions/config", "extensions/winston-logger"],
+      items: [
+        "extensions/config",
+        "extensions/winston-logger",
+        "extensions/cls",
+      ],
     },
   ],
 };

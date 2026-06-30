@@ -176,6 +176,9 @@ When both are set, the provider object wins (it is local to the registering modu
 
 > **Transient into a singleton:** a transient injected into a singleton is resolved **once**, when the singleton is constructed — the singleton captures that instance for its lifetime. "Transient" means a fresh instance per _resolution of the token_, not per access from the holder (the standard NestJS/Angular behavior).
 
+For per-request state (current user, correlation id), SpineJS does not add a DI "request" scope —
+use [CLS](../extensions/cls.md) instead, which keeps services as singletons.
+
 ## `ResolvedTuple<D>`
 
 `ResolvedTuple<D>` is the utility type that maps a tuple of tokens to the tuple of their resolved types. It powers the type-level enforcement in `@Module` and `@Injectable`:

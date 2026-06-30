@@ -4391,6 +4391,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@spinejs/cls@workspace:packages/cls":
+  version: 0.0.0-use.local
+  resolution: "@spinejs/cls@workspace:packages/cls"
+  dependencies:
+    "@spinejs/core": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@spinejs/config@workspace:packages/config":
   version: 0.0.0-use.local
   resolution: "@spinejs/config@workspace:packages/config"
