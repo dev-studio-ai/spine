@@ -33,13 +33,14 @@ export class App {
   public readonly logger: Logger;
 
   constructor(modules: ModuleEntry[], options?: AppOptions) {
+    this.timer.start("boot");
+
     if (options?.logger) {
       this.logger = options.logger;
     } else {
       this.logger = new AppLogger(options?.loggerOptions ?? {});
     }
 
-    this.timer.start("boot");
     this.logger.info("🚀 Application initialization...", App.name);
 
     this.handleProcessErrors();
