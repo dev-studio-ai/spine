@@ -90,10 +90,10 @@ function Hero(): ReactNode {
               Get started
             </Link>
             <Link
-              className={clsx('button button--secondary button--lg', styles.ghostButton)}
-              to="/docs/gateway/overview"
+              className={clsx('button button--lg', styles.ghostButton)}
+              to="https://github.com/dev-studio-ai/spine"
             >
-              Gateway design
+              View on GitHub
             </Link>
           </div>
         </div>

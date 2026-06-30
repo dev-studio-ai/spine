@@ -38,7 +38,13 @@
 
 .ghostButton {
   background: transparent;
-  border: 1px solid var(--ifm-color-primary);
+  border: 1px solid var(--ifm-color-emphasis-400);
+  color: var(--ifm-font-color-base);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.ghostButton:hover {
+  border-color: var(--ifm-color-primary);
   color: var(--ifm-color-primary);
 }
 

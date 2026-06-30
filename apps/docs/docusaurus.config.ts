@@ -52,7 +52,6 @@ const config: Config = {
       logo: { alt: "SpineJS logo", src: "img/logo.svg" },
       items: [
         { type: "docSidebar", sidebarId: "mainSidebar", position: "left", label: "Docs" },
-        { to: "/docs/gateway/overview", label: "Gateway", position: "left" },
         {
           href: "https://github.com/dev-studio-ai/spine",
           label: "GitHub",
