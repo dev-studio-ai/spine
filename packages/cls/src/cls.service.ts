@@ -10,15 +10,17 @@ export type ClsStore = Record<string, unknown>;
  * signatures. Two concurrent `run()`s get isolated stores — the binding is to the async execution
  * context, not to an instance — so the singleton stays shared while the data stays per-scope.
  *
- * Centralise the `AsyncLocalStorage` here: never instantiate one elsewhere. Consumers depend on this
- * service (or a typed wrapper over it), keeping the ambient access in one place.
+ * Generic over the store shape `T`: untyped by default (`ClsService` = `ClsService<ClsStore>`), or an
+ * app narrows it — `class DispatchContext extends ClsService<AppStore> {}` — for key-checked
+ * `get`/`set`, aliased to the same singleton via an `existing` provider (no instantiation, no
+ * wrapper object: same instance, just re-typed).
  */
-export class ClsService {
+export class ClsService<T extends object = ClsStore> {
   private readonly als = new AsyncLocalStorage<ClsStore>();
 
   /** Opens a fresh scope seeded with a copy of `seed`, runs `fn` inside it, returns its result. */
-  run<R>(seed: ClsStore, fn: () => R): R {
-    return this.als.run({ ...seed }, fn);
+  run<R>(seed: T, fn: () => R): R {
+    return this.als.run({ ...seed } as ClsStore, fn);
   }
 
   /** True when called inside an active `run()` scope. */
@@ -26,13 +28,13 @@ export class ClsService {
     return this.als.getStore() !== undefined;
   }
 
-  /** Reads a key from the active scope; `undefined` if absent or called outside any scope. */
-  get<T>(key: string): T | undefined {
-    return this.als.getStore()?.[key] as T | undefined;
+  /** Reads `key` from the active scope; `undefined` if absent or called outside any scope. */
+  get<K extends keyof T & string>(key: K): T[K] | undefined {
+    return this.als.getStore()?.[key] as T[K] | undefined;
   }
 
-  /** Writes a key into the active scope. Throws outside a scope — there is nothing to write to. */
-  set<T>(key: string, value: T): void {
+  /** Writes `key` into the active scope. Throws outside a scope — there is nothing to write to. */
+  set<K extends keyof T & string>(key: K, value: T[K]): void {
     const store = this.als.getStore();
     if (!store) {
       throw new Error(
@@ -43,7 +45,7 @@ export class ClsService {
   }
 
   /** True when `key` exists in the active scope. */
-  has(key: string): boolean {
+  has(key: keyof T & string): boolean {
     const store = this.als.getStore();
     return store !== undefined && key in store;
   }

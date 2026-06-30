@@ -27,47 +27,72 @@ one `AsyncLocalStorage`.
 
 ## API
 
-`ClsService`:
+`ClsService<T extends object = ClsStore>` — generic over the store shape. Bare `ClsService` (no
+subclass) is untyped: `get`/`set` accept any string key and return `unknown`. Narrow it once per app
+by subclassing:
+
+```typescript
+import { ClsService } from "@spinejs/cls";
+
+interface AppStore {
+  user: string;
+  reqId: string;
+}
+
+// Empty body: purely a typed DI token + injection type, never instantiated directly.
+export class DispatchContext extends ClsService<AppStore> {}
+```
 
 - `run<R>(seed, fn): R` — opens a scope seeded with a copy of `seed`, runs `fn` inside it.
 - `get active(): boolean` — whether a scope is currently active.
-- `get<T>(key): T | undefined` — read the active scope (`undefined` outside any scope).
-- `set<T>(key, value): void` — write the active scope (throws outside a scope).
+- `get<K extends keyof T>(key): T[K] | undefined` — read the active scope, key-checked against `T`
+  (`undefined` outside any scope).
+- `set<K extends keyof T>(key, value): void` — write the active scope, key-checked (throws outside a
+  scope).
 - `has(key): boolean` — whether the key exists in the active scope.
 
 ## Opening a scope per request
 
 `ClsService.run()` is the per-request boundary. With the gateway, open it from an interceptor — the
-gateway core is not touched:
+gateway core is not touched. `@spinejs/cls` exports a generic `ClsInterceptor`, so apps don't hand-write
+one: by default it seeds the store by spreading the whole dispatch context; pass a `seed` function for
+anything derived (here a generated `reqId`):
 
 ```typescript
 import { randomUUID } from "node:crypto";
-import { ClsService } from "@spinejs/cls";
-import type { GatewayInterceptor } from "@spinejs/gateway";
+import { ClsInterceptor, ClsService } from "@spinejs/cls";
 
-export class ClsInterceptor implements GatewayInterceptor<AppContext> {
-  constructor(private readonly cls: ClsService) {}
-  intercept(_route, ctx, _input, next) {
-    return this.cls.run({ user: ctx.user, reqId: randomUUID() }, next);
-  }
+// in your transport's configure({ interceptors }):
+{
+  inject: [ClsService],
+  factory: (cls: ClsService) => [
+    new ClsInterceptor<AppContext>(cls, (ctx) => ({ user: ctx.user, reqId: randomUUID() })),
+  ],
 }
 ```
 
-Register it via your transport's `configure({ interceptors })`.
-
 ## Reading the context
 
-Inject `ClsService` (or a typed wrapper) into any singleton service — no `ctx` parameter:
+Inject your typed `DispatchContext` subclass into any singleton service — no `ctx` parameter, no
+factory: it's aliased to the same `ClsService` singleton via an `existing` provider (same instance,
+just re-typed against `AppStore`, no extra object):
+
+```typescript
+@Module({
+  providers: [AuditService, { provide: DispatchContext, existing: ClsService }],
+})
+export class FeatureModule {}
+```
 
 ```typescript
 import { Injectable } from "@spinejs/core";
-import { ClsService } from "@spinejs/cls";
+import { DispatchContext } from "./dispatch-context";
 
-@Injectable({ inject: [ClsService] })
+@Injectable({ inject: [DispatchContext] })
 export class AuditService {
-  constructor(private readonly cls: ClsService) {}
+  constructor(private readonly dispatchContext: DispatchContext) {}
   log(action: string) {
-    const user = this.cls.get<string>("user");
+    const user = this.dispatchContext.get("user"); // typed: string | undefined
     // ...
   }
 }

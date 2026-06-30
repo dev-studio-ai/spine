@@ -16,6 +16,7 @@ import type {
 } from "@spinejs/gateway";
 import { ElectronIpcGateway } from "./electron-ipc.gateway";
 import { ZodValidator } from "./zod.validator";
+import { DefaultErrorMapper } from "./default-error.mapper";
 import type {
   ElectronIpcBaseContext,
   ElectronIpcRaw,
@@ -102,7 +103,7 @@ export class ElectronIpcGatewayModule {
     contextFactory: Adapter<
       ContextFactory<ElectronIpcRaw, ElectronIpcBaseContext>
     >;
-    errorMapper: Adapter<ErrorMapper<string>>;
+    errorMapper?: Adapter<ErrorMapper<string>>;
     validator?: Adapter<Validator>;
     interceptors?: Adapter<GatewayInterceptor[]>;
   }): DynamicModule {
@@ -111,7 +112,10 @@ export class ElectronIpcGatewayModule {
       imports: options.imports,
       providers: [
         toProvider(contextFactoryToken, options.contextFactory),
-        toProvider(errorMapperToken, options.errorMapper),
+        toProvider(
+          errorMapperToken,
+          options.errorMapper ?? { factory: () => new DefaultErrorMapper() }
+        ),
         toProvider(
           validatorToken,
           options.validator ?? { factory: () => new ZodValidator() }

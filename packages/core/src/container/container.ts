@@ -169,6 +169,20 @@ export class Container {
       return provider.delegate();
     }
 
+    // Existing-alias provider: pure forward to another token's resolution. Goes through
+    // resolveDeps (not a direct resolveToken call) so it gets the same cycle detection as a
+    // regular `inject` dependency. The returned value is cached under both tokens' keys, but
+    // it's the very same resolved instance (identity holds) — a real alias, not a copy.
+    if ("existing" in provider && provider.existing !== undefined) {
+      this.logger.verbose(
+        `Resolve provider ${stringifyToken(
+          token
+        )} via alias to ${stringifyToken(provider.existing)}.`,
+        this.logContext
+      );
+      return this.resolveDeps([provider.existing], parents)[0] as T;
+    }
+
     // Deps to inject: explicit `inject:` wins, else deps from `@Injectable` on the class.
     const explicitInject =
       "inject" in provider && provider.inject !== undefined

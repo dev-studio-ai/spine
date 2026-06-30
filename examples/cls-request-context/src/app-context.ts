@@ -2,7 +2,7 @@ import type {
   ElectronIpcBaseContext,
   ElectronIpcRaw,
 } from "@spinejs/electron-ipc-gateway";
-import type { ContextFactory, ErrorMapper } from "@spinejs/gateway";
+import type { ContextFactory } from "@spinejs/gateway";
 
 /**
  * The app's dispatch context: the transport's base context (the electron event) plus the caller's
@@ -19,12 +19,5 @@ export class AppContextFactory
   create(raw: ElectronIpcRaw): AppContext {
     const [payload] = raw.args as [{ user?: string } | undefined];
     return { event: raw.event, user: payload?.user ?? "anonymous" };
-  }
-}
-
-/** Minimal error mapper: turns any thrown error into its class name as a stable code. */
-export class AppErrorMapper implements ErrorMapper<string> {
-  toCode(err: unknown): string {
-    return err instanceof Error ? err.name : "UNKNOWN";
   }
 }

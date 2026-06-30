@@ -127,6 +127,42 @@ describe("Container", () => {
     });
   });
 
+  describe("existing providers", () => {
+    it("aliases to the same instance as the target token", () => {
+      class Service {}
+      const alias = new InjectionToken<Service>("alias");
+      const container = makeContainer();
+      container.add({ provide: Service });
+      container.add({ provide: alias, existing: Service });
+      expect(container.get(alias)).toBe(container.get(Service));
+    });
+
+    it("resolves the target only once (shared singleton)", () => {
+      const token = new InjectionToken<object>("obj");
+      const alias = new InjectionToken<object>("alias");
+      let calls = 0;
+      const container = makeContainer();
+      container.add({
+        provide: token,
+        factory: () => {
+          calls++;
+          return {};
+        },
+      });
+      container.add({ provide: alias, existing: token });
+      container.get(alias);
+      container.get(token);
+      expect(calls).toBe(1);
+    });
+
+    it("rejects a provider that aliases itself", () => {
+      const token = new InjectionToken<unknown>("self");
+      const container = makeContainer();
+      container.add({ provide: token, existing: token });
+      expect(() => container.get(token)).toThrow(/Circular dependency/);
+    });
+  });
+
   describe("provider scope", () => {
     it("transient factory: a fresh result on every resolution", () => {
       const token = new InjectionToken<object>("obj");
