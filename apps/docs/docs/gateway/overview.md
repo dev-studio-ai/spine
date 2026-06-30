@@ -34,6 +34,10 @@ Transport sends the envelope back
 
 The gateway `dispatch()` method implements this pipeline. It **never throws**: any error — guard rejection, validation failure, handler exception — is caught and mapped to a stable error code via `ErrorMapper`. The caller always receives an `Envelope`.
 
+:::info Why an envelope, not a thrown error?
+Transport boundaries (IPC, HTTP) serialize poorly across thrown exceptions and leak stack traces. Returning a discriminated `Envelope` keeps the contract explicit and the error surface stable for every consumer.
+:::
+
 ## `Envelope<T, Code>`
 
 Every handler returns its result wrapped in an `Envelope`:

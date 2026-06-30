@@ -5,10 +5,19 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+  {
     ignores: [
       "**/node_modules/**",
       "**/dist/**",
       "**/.nx/**",
+      "**/build/**",
       "**/.docusaurus/**",
     ],
   }
