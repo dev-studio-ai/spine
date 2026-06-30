@@ -1,65 +1,80 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
+import Translate, { translate } from '@docusaurus/Translate';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import CodeBlock from '@theme/CodeBlock';
 
 import styles from './index.module.css';
 
-const FEATURES: { title: string; body: ReactNode }[] = [
+type Feature = { title: ReactNode; body: ReactNode };
+
+const FEATURES: Feature[] = [
   {
-    title: 'No reflect-metadata',
+    title: (
+      <Translate id="home.feature.noReflect.title">No reflect-metadata</Translate>
+    ),
     body: (
-      <>
+      <Translate id="home.feature.noReflect.body">
         Decorators store metadata as plain own-property symbols. Safe under
         esbuild/swc with no global polyfill and no surprise runtime weight.
-      </>
+      </Translate>
     ),
   },
   {
-    title: 'Transport-agnostic',
+    title: (
+      <Translate id="home.feature.transport.title">Transport-agnostic</Translate>
+    ),
     body: (
-      <>
-        The <code>Gateway</code> pipeline decouples controllers from whatever
-        carries the bytes — IPC, HTTP, WebSocket, or nothing at all.
-      </>
+      <Translate id="home.feature.transport.body">
+        The Gateway pipeline decouples controllers from whatever carries the
+        bytes — IPC, HTTP, WebSocket, or nothing at all.
+      </Translate>
     ),
   },
   {
-    title: 'Structured lifecycle',
+    title: (
+      <Translate id="home.feature.lifecycle.title">Structured lifecycle</Translate>
+    ),
     body: (
-      <>
-        Every module flows through <code>init → start → stop</code>. Graceful
-        shutdown, signal handling, and ordered teardown come for free.
-      </>
+      <Translate id="home.feature.lifecycle.body">
+        Every module flows through init → start → stop. Graceful shutdown,
+        signal handling, and ordered teardown come for free.
+      </Translate>
     ),
   },
   {
-    title: 'Familiar patterns',
+    title: (
+      <Translate id="home.feature.familiar.title">Familiar patterns</Translate>
+    ),
     body: (
-      <>
+      <Translate id="home.feature.familiar.body">
         Modules, dependency injection, guards, and validation — the patterns you
         already know, at a fraction of the runtime weight.
-      </>
+      </Translate>
     ),
   },
   {
-    title: 'Composable à la carte',
+    title: (
+      <Translate id="home.feature.composable.title">Composable à la carte</Translate>
+    ),
     body: (
-      <>
-        Layered packages: take the core, add a gateway, bind a transport. Pull in
-        only the pieces your process actually needs.
-      </>
+      <Translate id="home.feature.composable.body">
+        Layered packages: take the core, add a gateway, bind a transport. Pull
+        in only the pieces your process actually needs.
+      </Translate>
     ),
   },
   {
-    title: 'Built for long-lived Node',
+    title: (
+      <Translate id="home.feature.longlived.title">Built for long-lived Node</Translate>
+    ),
     body: (
-      <>
+      <Translate id="home.feature.longlived.body">
         Background workers, CLI daemons, Electron mains, services — anything that
-        outgrows a flat <code>index.ts</code>.
-      </>
+        outgrows a flat index.ts.
+      </Translate>
     ),
   },
 ];
@@ -84,16 +99,20 @@ function Hero(): ReactNode {
       <div className={clsx('container', styles.heroInner)}>
         <div className={styles.heroText}>
           <h1 className={styles.heroTitle}>{siteConfig.title}</h1>
-          <p className={styles.heroTagline}>{siteConfig.tagline}</p>
+          <p className={styles.heroTagline}>
+            <Translate id="home.hero.tagline">
+              Modules, DI, and lifecycle for long-lived Node processes.
+            </Translate>
+          </p>
           <div className={styles.heroButtons}>
             <Link className="button button--primary button--lg" to="/docs/intro">
-              Get started
+              <Translate id="home.hero.getStarted">Get started</Translate>
             </Link>
             <Link
               className={clsx('button button--lg', styles.ghostButton)}
               to="https://github.com/dev-studio-ai/spine"
             >
-              View on GitHub
+              <Translate id="home.hero.github">View on GitHub</Translate>
             </Link>
           </div>
         </div>
@@ -110,8 +129,8 @@ function Features(): ReactNode {
     <section className={styles.features}>
       <div className="container">
         <div className={styles.featureGrid}>
-          {FEATURES.map((f) => (
-            <div key={f.title} className={styles.featureCard}>
+          {FEATURES.map((f, i) => (
+            <div key={i} className={styles.featureCard}>
               <h3 className={styles.featureTitle}>{f.title}</h3>
               <p className={styles.featureBody}>{f.body}</p>
             </div>
@@ -123,11 +142,17 @@ function Features(): ReactNode {
 }
 
 export default function Home(): ReactNode {
-  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`${siteConfig.title} — ${siteConfig.tagline}`}
-      description="Modules, dependency injection, and lifecycle for long-lived Node processes."
+      title={translate({
+        id: 'home.meta.title',
+        message: 'SpineJS — Modules, DI, and lifecycle for long-lived Node',
+      })}
+      description={translate({
+        id: 'home.meta.description',
+        message:
+          'Modules, dependency injection, and lifecycle for long-lived Node processes.',
+      })}
     >
       <Hero />
       <main>
