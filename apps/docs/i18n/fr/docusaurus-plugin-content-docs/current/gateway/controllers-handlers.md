@@ -97,15 +97,15 @@ TypeScript infère `input` comme `CreateUserInput` dans le corps du handler quan
 
 ## Injection de constructeur des contrôleurs
 
-Les contrôleurs sont des providers de classe ordinaires dans le conteneur DI. Déclarez leurs dépendances avec `@Inject` :
+Les contrôleurs sont des providers de classe ordinaires dans le conteneur DI. Déclarez leurs dépendances avec `@Injectable` :
 
 ```typescript
-import { Inject, InjectionToken } from "@spinejs/core";
+import { Injectable, InjectionToken } from "@spinejs/core";
 import { Controller, Handler } from "@spinejs/gateway";
 
 const userServiceToken = new InjectionToken<UserService>("user-service");
 
-@Inject([userServiceToken])
+@Injectable({ inject: [userServiceToken] })
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -117,7 +117,7 @@ export class UserController {
 }
 ```
 
-Ou bien, en les listant explicitement dans la surcharge `inject` du module de fonctionnalité — mais le pattern `@Inject` + classe-comme-token est généralement plus simple.
+Ou bien, en les listant explicitement dans la surcharge `inject` du module de fonctionnalité — mais le pattern `@Injectable` + classe-comme-token est généralement plus simple.
 
 ## Valeurs de retour des handlers
 

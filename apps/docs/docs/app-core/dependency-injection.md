@@ -38,14 +38,14 @@ import { UserService } from "./user.service";
 export class UserModule {}
 ```
 
-When the class has constructor dependencies, declare them with `@Inject` or with `inject` on the module:
+When the class has constructor dependencies, declare them with `@Injectable` or with `inject` on the module:
 
 ```typescript
-import { Inject, InjectionToken } from "@spinejs/core";
+import { Injectable, InjectionToken } from "@spinejs/core";
 
 const dbToken = new InjectionToken<Database>("database");
 
-@Inject([dbToken])
+@Injectable({ inject: [dbToken] })
 export class UserService {
   constructor(private readonly db: Database) {}
 }
@@ -116,17 +116,17 @@ const dbToken = new InjectionToken<Database>("database");
 export class ChildModule {}
 ```
 
-## `@Inject` decorator
+## `@Injectable` decorator
 
-`@Inject` is the class-level decorator for declaring constructor dependencies without `reflect-metadata`. It is type-safe: TypeScript ties each token's resolved type to the corresponding constructor parameter position.
+`@Injectable` is the class-level decorator for declaring constructor dependencies without `reflect-metadata`. It takes an options object `{ inject, scope }` rather than a bare array: `inject` lists the dependency tokens, and the optional `scope` sets the provider's lifecycle (see [Provider scopes](#provider-scopes)). It is type-safe: TypeScript ties each token's resolved type to the corresponding constructor parameter position.
 
 ```typescript
-import { Inject, InjectionToken } from "@spinejs/core";
+import { Injectable, InjectionToken } from "@spinejs/core";
 
 const cacheToken = new InjectionToken<CacheService>("cache");
 const dbToken = new InjectionToken<Database>("database");
 
-@Inject([dbToken, cacheToken])
+@Injectable({ inject: [dbToken, cacheToken] })
 export class UserRepository {
   // TypeScript enforces (Database, CacheService) — swapping them is a compile error.
   constructor(
@@ -136,7 +136,7 @@ export class UserRepository {
 }
 ```
 
-Modules typically use the `inject` field on `@Module` instead of `@Inject` directly:
+Modules typically use the `inject` field on `@Module` instead of `@Injectable` directly:
 
 ```typescript
 @Module({
@@ -151,11 +151,34 @@ export class UserModule {
 }
 ```
 
-Both work the same at runtime — `@Module({ inject })` takes precedence over `@Inject` when both are present.
+Both work the same at runtime — `@Module({ inject })` takes precedence over `@Injectable` when both are present.
+
+## Provider scopes
+
+A provider has a lifecycle **scope** that controls how its instances are cached:
+
+- `singleton` (default): one instance per container, created on first resolution and reused.
+- `transient`: a fresh instance on every resolution, never cached.
+
+Declare it on the provider object, or via `@Injectable({ scope })` on a class:
+
+```ts
+// On the provider object (also the only form for factory providers):
+{ provide: ReportBuilder, scope: "transient" }
+{ provide: idToken, factory: makeId, scope: "transient" }
+
+// On the class:
+@Injectable({ scope: "transient" })
+class ReportBuilder {}
+```
+
+When both are set, the provider object wins (it is local to the registering module). A missing scope means `singleton`.
+
+> **Transient into a singleton:** a transient injected into a singleton is resolved **once**, when the singleton is constructed — the singleton captures that instance for its lifetime. "Transient" means a fresh instance per _resolution of the token_, not per access from the holder (the standard NestJS/Angular behavior).
 
 ## `ResolvedTuple<D>`
 
-`ResolvedTuple<D>` is the utility type that maps a tuple of tokens to the tuple of their resolved types. It powers the type-level enforcement in `@Module` and `@Inject`:
+`ResolvedTuple<D>` is the utility type that maps a tuple of tokens to the tuple of their resolved types. It powers the type-level enforcement in `@Module` and `@Injectable`:
 
 ```typescript
 type D = [InjectionToken<Database>, InjectionToken<Logger>];

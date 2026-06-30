@@ -103,7 +103,7 @@ Persists the window bounds to `userData/window-state.json` on `resize` and `move
 Returns the active `BrowserWindow`, or `null` if the window has been closed.
 
 ```typescript
-@Inject([WindowService])
+@Injectable({ inject: [WindowService] })
 export class TrayService {
   constructor(private readonly windowService: WindowService) {}
 

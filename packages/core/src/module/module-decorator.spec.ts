@@ -1,6 +1,6 @@
 import type { Logger } from "../logger";
 import { App } from "../app";
-import { Inject, InjectionToken } from "../container";
+import { Injectable, InjectionToken } from "../container";
 import { Module, DynamicModule } from "./index";
 
 const silentLogger = {
@@ -37,11 +37,11 @@ afterEach(() => {
         process.removeListener(s as NodeJS.Signals, l as never);
 });
 
-describe("@Module / @Inject / configure", () => {
+describe("@Module / @Injectable / configure", () => {
   it("wires the full decorator path end-to-end", async () => {
     const optToken = new InjectionToken<{ name: string }>("deco:opt");
 
-    @Inject([optToken])
+    @Injectable({ inject: [optToken] })
     class Greeter {
       constructor(private readonly opt: { name: string }) {}
       hello() {

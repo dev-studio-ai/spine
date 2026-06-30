@@ -34,7 +34,7 @@ export function isObject(o: unknown): o is Record<string, unknown> {
 /**
  * Stores decorator metadata on a class under a Symbol key: hidden (`enumerable: false`) and
  * re-definable (`configurable`/`writable`). Single source of truth for the descriptor flags used by
- * `@Module`/`@Inject`.
+ * `@Module`/`@Injectable`.
  */
 export function defineOwnMeta<T>(cls: object, key: symbol, value: T): void {
   Object.defineProperty(cls, key, {

@@ -103,7 +103,7 @@ Persiste les bornes de la fenêtre dans `userData/window-state.json` sur les év
 Retourne la `BrowserWindow` active, ou `null` si la fenêtre a été fermée.
 
 ```typescript
-@Inject([WindowService])
+@Injectable({ inject: [WindowService] })
 export class TrayService {
   constructor(private readonly windowService: WindowService) {}
 

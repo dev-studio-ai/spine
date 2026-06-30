@@ -24,11 +24,11 @@ Un guard est une simple classe qui implémente l'interface. Il peut injecter n'i
 
 ```typescript
 import { Guard } from "@spinejs/gateway";
-import { Inject } from "@spinejs/core";
+import { Injectable } from "@spinejs/core";
 import { SessionStore } from "../session";
 import { ElectronIpcContext } from "./electron-ipc.types";
 
-@Inject([SessionStore])
+@Injectable({ inject: [SessionStore] })
 export class SessionGuard implements Guard<ElectronIpcContext> {
   constructor(private readonly sessionStore: SessionStore) {}
 
@@ -102,7 +102,7 @@ export class AdminController {
 Cela signifie que les guards sont des singletons au sein de la portée du module — la même instance `SessionGuard` est réutilisée par tous les handlers qui la référencent.
 
 :::warning Les guards doivent être dans les providers
-La machinerie du module de fonctionnalité auto-enregistre toutes les classes de guard des contrôleurs dans `providers` et `inject`. Si vous référencez une classe de guard dans `@UseGuards` mais oubliez d'inclure ses dépendances (via `@Inject` sur la classe du guard), la résolution DI échouera au moment du `onInit()` avec une erreur claire.
+La machinerie du module de fonctionnalité auto-enregistre toutes les classes de guard des contrôleurs dans `providers` et `inject`. Si vous référencez une classe de guard dans `@UseGuards` mais oubliez d'inclure ses dépendances (via `@Injectable` sur la classe du guard), la résolution DI échouera au moment du `onInit()` avec une erreur claire.
 :::
 
 ## Les guards comme consommateurs de DI
@@ -110,10 +110,10 @@ La machinerie du module de fonctionnalité auto-enregistre toutes les classes de
 Parce que les guards sont résolus par DI, ils s'intègrent naturellement avec n'importe quel service du graphe de modules :
 
 ```typescript
-import { Inject } from "@spinejs/core";
+import { Injectable } from "@spinejs/core";
 import { Guard } from "@spinejs/gateway";
 
-@Inject([AuthService])
+@Injectable({ inject: [AuthService] })
 export class JwtGuard implements Guard<HttpContext> {
   constructor(private readonly auth: AuthService) {}
 

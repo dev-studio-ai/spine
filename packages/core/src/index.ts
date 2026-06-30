@@ -5,12 +5,15 @@ export type { LogLevel, Logger, ConsoleFormatOptions } from "./logger";
 export {
   Container,
   InjectionToken,
-  Inject,
+  Injectable,
+  InjectableOptions,
   getInjectedDeps,
+  getProviderScope,
   ResolvedTuple,
   Provider,
   ProviderConstructor,
   ProviderFactory,
+  ProviderScope,
 } from "./container";
 export {
   Module,

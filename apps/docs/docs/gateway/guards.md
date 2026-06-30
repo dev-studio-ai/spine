@@ -24,11 +24,11 @@ A guard is a plain class that implements the interface. It can inject any provid
 
 ```typescript
 import { Guard } from "@spinejs/gateway";
-import { Inject } from "@spinejs/core";
+import { Injectable } from "@spinejs/core";
 import { SessionStore } from "../session";
 import { ElectronIpcContext } from "./electron-ipc.types";
 
-@Inject([SessionStore])
+@Injectable({ inject: [SessionStore] })
 export class SessionGuard implements Guard<ElectronIpcContext> {
   constructor(private readonly sessionStore: SessionStore) {}
 
@@ -102,7 +102,7 @@ At feature module initialization (inside `onInit()`), the framework:
 This means guards are singletons within the module scope — the same `SessionGuard` instance is reused across all handlers that reference it.
 
 :::warning Guards must be in providers
-The feature module machinery auto-registers all guard classes from the controllers into `providers` and `inject`. If you reference a guard class in `@UseGuards` but forget to include its dependencies (via `@Inject` on the guard class), the DI resolution will fail at `onInit()` time with a clear error.
+The feature module machinery auto-registers all guard classes from the controllers into `providers` and `inject`. If you reference a guard class in `@UseGuards` but forget to include its dependencies (via `@Injectable` on the guard class), the DI resolution will fail at `onInit()` time with a clear error.
 :::
 
 ## Guards as DI consumers
@@ -110,10 +110,10 @@ The feature module machinery auto-registers all guard classes from the controlle
 Because guards are DI-resolved, they integrate naturally with any service in the module graph:
 
 ```typescript
-import { Inject } from "@spinejs/core";
+import { Injectable } from "@spinejs/core";
 import { Guard } from "@spinejs/gateway";
 
-@Inject([AuthService])
+@Injectable({ inject: [AuthService] })
 export class JwtGuard implements Guard<HttpContext> {
   constructor(private readonly auth: AuthService) {}
 

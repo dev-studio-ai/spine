@@ -38,14 +38,14 @@ import { UserService } from "./user.service";
 export class UserModule {}
 ```
 
-Quand la classe a des dépendances de constructeur, déclarez-les avec `@Inject` ou avec `inject` sur le module :
+Quand la classe a des dépendances de constructeur, déclarez-les avec `@Injectable` ou avec `inject` sur le module :
 
 ```typescript
-import { Inject, InjectionToken } from "@spinejs/core";
+import { Injectable, InjectionToken } from "@spinejs/core";
 
 const dbToken = new InjectionToken<Database>("database");
 
-@Inject([dbToken])
+@Injectable({ inject: [dbToken] })
 export class UserService {
   constructor(private readonly db: Database) {}
 }
@@ -116,17 +116,17 @@ const dbToken = new InjectionToken<Database>("database");
 export class ChildModule {}
 ```
 
-## Décorateur `@Inject`
+## Décorateur `@Injectable`
 
-`@Inject` est le décorateur de niveau classe pour déclarer les dépendances de constructeur sans `reflect-metadata`. Il est type-safe : TypeScript lie le type résolu de chaque token à la position correspondante du paramètre de constructeur.
+`@Injectable` est le décorateur de niveau classe pour déclarer les dépendances de constructeur sans `reflect-metadata`. Il prend un objet d'options `{ inject, scope }` plutôt qu'un simple tableau : `inject` liste les tokens de dépendances, et le `scope` optionnel définit le cycle de vie du provider (voir [Portées de provider](#portées-de-provider)). Il est type-safe : TypeScript lie le type résolu de chaque token à la position correspondante du paramètre de constructeur.
 
 ```typescript
-import { Inject, InjectionToken } from "@spinejs/core";
+import { Injectable, InjectionToken } from "@spinejs/core";
 
 const cacheToken = new InjectionToken<CacheService>("cache");
 const dbToken = new InjectionToken<Database>("database");
 
-@Inject([dbToken, cacheToken])
+@Injectable({ inject: [dbToken, cacheToken] })
 export class UserRepository {
   // TypeScript enforces (Database, CacheService) — swapping them is a compile error.
   constructor(
@@ -136,7 +136,7 @@ export class UserRepository {
 }
 ```
 
-Les modules utilisent typiquement le champ `inject` de `@Module` plutôt que `@Inject` directement :
+Les modules utilisent typiquement le champ `inject` de `@Module` plutôt que `@Injectable` directement :
 
 ```typescript
 @Module({
@@ -151,11 +151,34 @@ export class UserModule {
 }
 ```
 
-Les deux fonctionnent de la même façon à l'exécution — `@Module({ inject })` prend le pas sur `@Inject` quand les deux sont présents.
+Les deux fonctionnent de la même façon à l'exécution — `@Module({ inject })` prend le pas sur `@Injectable` quand les deux sont présents.
+
+## Portées de provider
+
+Un provider a une **portée** (scope) de cycle de vie qui contrôle la mise en cache de ses instances :
+
+- `singleton` (défaut) : une instance par conteneur, créée à la première résolution puis réutilisée.
+- `transient` : une instance neuve à chaque résolution, jamais mise en cache.
+
+Déclarez-la sur l'objet provider, ou via `@Injectable({ scope })` sur une classe :
+
+```ts
+// Sur l'objet provider (seule forme pour les factory providers) :
+{ provide: ReportBuilder, scope: "transient" }
+{ provide: idToken, factory: makeId, scope: "transient" }
+
+// Sur la classe :
+@Injectable({ scope: "transient" })
+class ReportBuilder {}
+```
+
+Quand les deux sont présents, l'objet provider l'emporte (il est local au module qui l'enregistre). Une portée absente vaut `singleton`.
+
+> **Transient dans un singleton :** un transient injecté dans un singleton est résolu **une seule fois**, à la construction du singleton — celui-ci capture cette instance pour sa durée de vie. « Transient » signifie une instance neuve par _résolution du token_, pas par accès depuis le porteur (comportement standard NestJS/Angular).
 
 ## `ResolvedTuple<D>`
 
-`ResolvedTuple<D>` est le type utilitaire qui mappe un tuple de tokens vers le tuple de leurs types résolus. Il alimente l'application au niveau des types dans `@Module` et `@Inject` :
+`ResolvedTuple<D>` est le type utilitaire qui mappe un tuple de tokens vers le tuple de leurs types résolus. Il alimente l'application au niveau des types dans `@Module` et `@Injectable` :
 
 ```typescript
 type D = [InjectionToken<Database>, InjectionToken<Logger>];

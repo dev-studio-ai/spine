@@ -1,5 +1,5 @@
 import type { Logger } from "../logger";
-import { Container, InjectionToken } from ".";
+import { Container, Injectable, InjectionToken } from ".";
 import { stringifyToken } from "./container";
 
 const silentLogger = {
@@ -124,6 +124,70 @@ describe("Container", () => {
       const container = makeContainer();
       container.add({ provide: token, delegate: () => 42 });
       expect(container.get(token)).toBe(42);
+    });
+  });
+
+  describe("provider scope", () => {
+    it("transient factory: a fresh result on every resolution", () => {
+      const token = new InjectionToken<object>("obj");
+      let calls = 0;
+      const container = makeContainer();
+      container.add({
+        provide: token,
+        scope: "transient",
+        factory: () => {
+          calls++;
+          return {};
+        },
+      });
+      const first = container.get(token);
+      const second = container.get(token);
+      expect(first).not.toBe(second);
+      expect(calls).toBe(2);
+    });
+
+    it("transient class (via provider scope): a new instance each time", () => {
+      class Service {}
+      const container = makeContainer();
+      container.add({ provide: Service, scope: "transient" });
+      expect(container.get(Service)).not.toBe(container.get(Service));
+    });
+
+    it("transient class (via @Injectable scope): a new instance each time", () => {
+      @Injectable({ scope: "transient" })
+      class Service {}
+      const container = makeContainer();
+      container.add({ provide: Service });
+      expect(container.get(Service)).not.toBe(container.get(Service));
+    });
+
+    it("provider scope wins over the @Injectable scope", () => {
+      @Injectable({ scope: "transient" })
+      class Service {}
+      const container = makeContainer();
+      container.add({ provide: Service, scope: "singleton" });
+      expect(container.get(Service)).toBe(container.get(Service));
+    });
+
+    it("a transient injected into a singleton is resolved once (captured)", () => {
+      class Dep {}
+      class Service {
+        constructor(public dep: Dep) {}
+      }
+      const container = makeContainer();
+      container.add({ provide: Dep, scope: "transient" });
+      container.add({ provide: Service, inject: [Dep] });
+      const a = container.get<Service>(Service);
+      const b = container.get<Service>(Service);
+      expect(a).toBe(b); // Service is a singleton
+      expect(a.dep).toBe(b.dep); // its transient dep captured once
+    });
+
+    it("defaults to singleton when no scope is set", () => {
+      class Service {}
+      const container = makeContainer();
+      container.add({ provide: Service });
+      expect(container.get(Service)).toBe(container.get(Service));
     });
   });
 

@@ -1,10 +1,11 @@
 import { Logger } from "../logger";
 import { InjectionToken } from "./injection-token";
-import { getInjectedDeps } from "./injectable";
+import { getInjectedDeps, getProviderScope } from "./injectable";
 import type {
   ProviderConstructor,
   Provider,
   ProviderEntry,
+  ProviderScope,
   Token,
   FactoryProvider,
   TokenKey,
@@ -99,7 +100,10 @@ export class Container {
       // Thread a copy of `parents` down to `resolve` to keep the transitive
       // resolution chain — used for both cycle detection and error context.
       const resolved = this.resolve<T>(token, [...parents]);
-      this.resolved.set(key, resolved);
+      // Singleton (default): cache the instance. Transient: never cache, so a
+      // fresh instance is produced on every resolution.
+      if (this.effectiveScope(token) !== "transient")
+        this.resolved.set(key, resolved);
 
       return resolved;
     }
@@ -107,6 +111,18 @@ export class Container {
     if (this.parent) return this.parent.resolveToken<T>(token, parents);
 
     throw this.unknownProviderError(token, parents);
+  }
+
+  /**
+   * Effective scope of a registered token: the provider's `scope` wins (most specific,
+   * local to the module that registered it), else the class's `@Injectable({ scope })`,
+   * else `singleton`.
+   */
+  private effectiveScope(token: Token): ProviderScope {
+    const provider = this.providers.get(tokenKey(token));
+    const onProvider =
+      provider && "scope" in provider ? provider.scope : undefined;
+    return onProvider ?? getProviderScope(provider?.provide) ?? "singleton";
   }
 
   /** Rich error: token category of the missing provider plus the resolution chain. */
@@ -153,7 +169,7 @@ export class Container {
       return provider.delegate();
     }
 
-    // Deps to inject: explicit `inject:` wins, else deps from `@Inject` on the class.
+    // Deps to inject: explicit `inject:` wins, else deps from `@Injectable` on the class.
     const explicitInject =
       "inject" in provider && provider.inject !== undefined
         ? provider.inject

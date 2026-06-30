@@ -177,4 +177,4 @@ export class MainModule {}
 
 You do not need to list guard classes in the `providers` array manually. The feature module factory scans all controllers' `@UseGuards` metadata at definition time and adds all unique guard classes to `providers` and `inject` automatically.
 
-Guards referenced in `@UseGuards` must still have their own dependencies declared via `@Inject` on the guard class — the DI container resolves them through the normal provider chain.
+Guards referenced in `@UseGuards` must still have their own dependencies declared via `@Injectable` on the guard class — the DI container resolves them through the normal provider chain.
