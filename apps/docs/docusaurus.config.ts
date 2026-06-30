@@ -15,7 +15,14 @@ const config: Config = {
     },
   },
 
-  i18n: { defaultLocale: "en", locales: ["en"] },
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    localeConfigs: {
+      en: { label: "English" },
+      fr: { label: "Français" },
+    },
+  },
 
   themes: [
     [
@@ -57,6 +64,7 @@ const config: Config = {
           label: "GitHub",
           position: "right",
         },
+        { type: "localeDropdown", position: "right" },
       ],
     },
     footer: {
