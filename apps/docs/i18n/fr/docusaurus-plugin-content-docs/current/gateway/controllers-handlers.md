@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Contrôleurs et handlers
 
-Les contrôleurs sont les classes qui portent votre logique de traitement des requêtes. Ils sont déclarés avec `@Controller` et exposent des routes individuelles via `@Handler` sur leurs méthodes.
+Les contrôleurs sont les classes qui regroupent votre logique de traitement des messages entrants. Ils sont déclarés avec `@Controller` et exposent des handlers individuels via `@Handler` sur leurs méthodes.
 
 ## `@Controller()`
 
@@ -23,7 +23,7 @@ Une classe de contrôleur doit figurer dans le tableau `controllers` d'un module
 
 ## `@Handler({ address, input? })`
 
-`@Handler` déclare une route de gateway sur une méthode. L'`address` est une chaîne opaque au transport : pour l'IPC elle devient le canal `ipcMain.handle` ; pour le HTTP ce pourrait être un chemin ; pour un transport personnalisé elle signifie ce que l'implémentation `bind()` du transport attend.
+`@Handler` déclare un handler de gateway sur une méthode. L'`address` est une chaîne opaque au transport : pour l'IPC elle devient le canal `ipcMain.handle` ; pour le HTTP ce pourrait être un chemin ; pour un transport personnalisé elle signifie ce que l'implémentation `bind()` du transport attend.
 
 ```typescript
 import { Controller, Handler } from "@spinejs/gateway";
@@ -42,15 +42,35 @@ La méthode handler reçoit deux arguments :
 - **`ctx`** — le contexte de transport (typé par le transport ; porte l'événement IPC, les données de session, etc.).
 - **`input`** — l'entrée validée, ou l'entrée brute si aucun schéma n'a été fourni.
 
+Sans schéma, `input` est `unknown` et doit être casté manuellement :
+
 ```typescript
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Handler({ address: "users:get-by-id" })
-  getById(ctx: ElectronIpcContext, input: unknown): Promise<User> {
-    const id = input as string; // raw — no schema provided
+  getById(ctx: GatewayContext, input: unknown): Promise<User> {
+    const id = input as string; // brut — pas de schéma, pas de type safety
     return this.userService.findById(id);
+  }
+}
+```
+
+Avec un schéma, `input` est validé et pleinement typé :
+
+```typescript
+import { z } from "zod";
+
+const getByIdSchema = z.string();
+
+@Controller()
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Handler({ address: "users:get-by-id", input: getByIdSchema })
+  getById(ctx: GatewayContext, input: string): Promise<User> {
+    return this.userService.findById(input);
   }
 }
 ```
@@ -59,7 +79,7 @@ export class UserController {
 
 | Option    | Type                 | Requis | Description                                                                                                                |
 | --------- | -------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `address` | `string`             | Oui    | L'adresse de la route. Opaque au transport — interprétée par le `bind()` du transport.                                     |
+| `address` | `string`             | Oui    | L'adresse du handler. Opaque au transport — interprétée par le `bind()` du transport.                                      |
 | `input`   | `ParseableSchema<T>` | Non    | Un schéma avec une méthode `parse(input: unknown): T`. Quand présent, l'entrée brute est validée avant l'appel du handler. |
 
 ## Validation d'entrée avec `ParseableSchema<T>`

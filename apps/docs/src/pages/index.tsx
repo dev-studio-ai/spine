@@ -77,13 +77,13 @@ const FEATURES: Feature[] = [
   {
     title: (
       <Translate id="home.feature.longlived.title">
-        Built for long-lived Node
+        Built for any Node process
       </Translate>
     ),
     body: (
       <Translate id="home.feature.longlived.body">
-        Background workers, CLI daemons, Electron mains, warm serverless —
-        anything that outgrows a flat index.ts.
+        Background workers, CLI tools, desktop app processes, serverless
+        functions — anything that outgrows a flat index.ts.
       </Translate>
     ),
   },

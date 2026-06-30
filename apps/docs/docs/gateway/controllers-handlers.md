@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Controllers and Handlers
 
-Controllers are the classes that hold your request handling logic. They are declared with `@Controller` and expose individual routes via `@Handler` on their methods.
+Controllers are the classes that group your incoming-message handling logic. They are declared with `@Controller` and expose individual handlers via `@Handler` on their methods.
 
 ## `@Controller()`
 
@@ -23,7 +23,7 @@ A controller class must be listed in the `controllers` array of a feature module
 
 ## `@Handler({ address, input? })`
 
-`@Handler` declares a gateway route on a method. The `address` is a transport-opaque string: for IPC it becomes the `ipcMain.handle` channel; for HTTP it could be a path; for a custom transport it means whatever the transport's `bind()` implementation expects.
+`@Handler` declares a gateway handler on a method. The `address` is a transport-opaque string: for IPC it becomes the `ipcMain.handle` channel; for HTTP it could be a path; for a custom transport it means whatever the transport's `bind()` implementation expects.
 
 ```typescript
 import { Controller, Handler } from "@spinejs/gateway";
@@ -42,15 +42,35 @@ The handler method receives two arguments:
 - **`ctx`** — the transport context (typed by the transport; carries the IPC event, session data, etc.).
 - **`input`** — the validated input, or the raw input if no schema was provided.
 
+Without a schema, `input` is `unknown` and must be cast manually:
+
 ```typescript
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Handler({ address: "users:get-by-id" })
-  getById(ctx: ElectronIpcContext, input: unknown): Promise<User> {
-    const id = input as string; // raw — no schema provided
+  getById(ctx: GatewayContext, input: unknown): Promise<User> {
+    const id = input as string; // raw — no schema, no type safety
     return this.userService.findById(id);
+  }
+}
+```
+
+With a schema, `input` is validated and fully typed:
+
+```typescript
+import { z } from "zod";
+
+const getByIdSchema = z.string();
+
+@Controller()
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Handler({ address: "users:get-by-id", input: getByIdSchema })
+  getById(ctx: GatewayContext, input: string): Promise<User> {
+    return this.userService.findById(input);
   }
 }
 ```
@@ -59,7 +79,7 @@ export class UserController {
 
 | Option    | Type                 | Required | Description                                                                                                           |
 | --------- | -------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `address` | `string`             | Yes      | The route address. Transport-opaque — interpreted by the transport's `bind()`.                                        |
+| `address` | `string`             | Yes      | The handler address. Transport-opaque — interpreted by the transport's `bind()`.                                      |
 | `input`   | `ParseableSchema<T>` | No       | A schema with a `parse(input: unknown): T` method. When present, raw input is validated before the handler is called. |
 
 ## Input validation with `ParseableSchema<T>`
