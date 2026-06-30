@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Guards
 
-Guards decide whether a request may proceed to the handler. They implement the `Guard<Ctx>` interface and are resolved by DI — they can have constructor dependencies like any other service.
+Guards decide whether an incoming message may proceed to the handler. They implement the `Guard<Ctx>` interface and are resolved by DI — they can have constructor dependencies like any other service.
 
 ## `Guard<Ctx>` interface
 
@@ -14,7 +14,7 @@ interface Guard<Ctx extends GatewayContext> {
 }
 ```
 
-A guard receives the transport context and returns `true` to allow the request or `false` to reject it. Returning `false` causes the pipeline to throw `UnauthorizedError`, which the `ErrorMapper` maps to your configured unauthorized error code (typically `'UNAUTHORIZED'`).
+A guard receives the transport context and returns `true` to allow the incoming message or `false` to reject it. Returning `false` causes the pipeline to throw `UnauthorizedError`, which the `ErrorMapper` maps to your configured unauthorized error code (typically `'UNAUTHORIZED'`).
 
 Guards may also throw directly (e.g. to distinguish between different unauthorized conditions), and the `ErrorMapper` handles those throws the same way.
 

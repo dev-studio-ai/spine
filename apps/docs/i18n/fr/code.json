@@ -30,10 +30,10 @@
     "message": "Des packages en couches : prenez le cœur, ajoutez une gateway, branchez un transport. N'importez que ce dont votre process a réellement besoin."
   },
   "home.feature.longlived.title": {
-    "message": "Pensé pour Node au long cours"
+    "message": "Pensé pour tout process Node"
   },
   "home.feature.longlived.body": {
-    "message": "Workers d'arrière-plan, démons CLI, process principaux Electron, serverless à chaud — tout ce qui dépasse un index.ts plat."
+    "message": "Workers d'arrière-plan, outils CLI, process d'applications desktop, fonctions serverless — tout ce qui dépasse un index.ts plat."
   },
   "home.hero.tagline": {
     "message": "Modules, DI et cycle de vie pour les process Node au long cours."

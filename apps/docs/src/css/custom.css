@@ -30,6 +30,15 @@
   backdrop-filter: saturate(180%) blur(8px);
 }
 
+/* backdrop-filter turns .navbar into a containing block for its
+   position:fixed mobile sidebar, breaking its full-viewport offset.
+   Drop it below the sidebar breakpoint. */
+@media (max-width: 996px) {
+  .navbar {
+    backdrop-filter: none;
+  }
+}
+
 .navbar__title {
   font-weight: 700;
   letter-spacing: -0.01em;

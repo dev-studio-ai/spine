@@ -4,11 +4,11 @@ sidebar_position: 1
 
 # Gateway Overview
 
-`@spinejs/gateway` is the transport-agnostic request pipeline that sits between your application logic and the communication layer (IPC, HTTP, WebSocket, or any custom transport). It defines a consistent request/response contract without binding to any particular runtime.
+`@spinejs/gateway` is the transport-agnostic message pipeline that sits between your application logic and the communication layer (IPC, HTTP, WebSocket, or any custom transport). It defines a consistent message/response contract without binding to any particular runtime.
 
 ## Design philosophy
 
-A common mistake in Electron apps is to write IPC handlers that directly call application services, scatter guard logic, and pass raw `IpcMainInvokeEvent` objects to business code. The gateway eliminates this coupling by establishing a clear pipeline with explicit responsibilities.
+A common mistake is to write transport handlers that directly call application services, scatter guard logic across each handler, and pass raw transport-specific objects (an IPC event, an HTTP request, a socket message) to business code. The gateway eliminates this coupling by establishing a clear pipeline with explicit responsibilities.
 
 ```
 Raw transport call

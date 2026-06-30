@@ -1,10 +1,10 @@
 # SpineJS
 
-Lightweight, NestJS-flavored micro-framework for structuring long-lived Node processes.
+Lightweight, NestJS-flavored micro-framework for structuring Node processes.
 
 Brings the patterns you know from NestJS — modules, dependency injection, lifecycle hooks — without the weight of the full NestJS runtime or its HTTP-first assumptions.
 
-Works equally well in Electron main processes, background workers, CLI daemons, or any Node program that outgrows a flat `index.ts`.
+Works equally well in background workers, CLI tools, desktop app main processes, serverless functions, or any Node program that outgrows a flat `index.ts`.
 
 ## Packages
 
@@ -24,7 +24,7 @@ Node processes grow quickly. What starts as a flat script soon needs a config lo
 SpineJS answers the same architectural questions at a fraction of the weight:
 
 - **No `reflect-metadata`.** Decorators store metadata as plain own-property symbols — safe under esbuild/swc without a global polyfill.
-- **No transport lock-in.** The `Gateway` abstraction decouples your controllers from whatever carries the bytes — Electron IPC, HTTP, WebSocket, or nothing at all.
+- **No transport lock-in.** The `Gateway` abstraction decouples your controllers from whatever carries the bytes — IPC, HTTP, WebSocket, or nothing at all.
 - **Structured lifecycle.** Every module participates in `init → start → stop`. Graceful shutdown, signal handling, and error propagation are handled for you.
 
 ## Quick start
@@ -65,7 +65,9 @@ export class PingModule {}
 
 ## Documentation
 
-Full docs live in [`apps/docs/`](apps/docs/) (Docusaurus). Architecture Decision Records are in [`docs/adr/`](docs/adr/).
+Full docs are published at **[dev-studio-ai.github.io/spine](https://dev-studio-ai.github.io/spine/)**.
+
+Source lives in [`apps/docs/`](apps/docs/) (Docusaurus). Architecture Decision Records are in [`docs/adr/`](docs/adr/).
 
 ```bash
 yarn docs:dev

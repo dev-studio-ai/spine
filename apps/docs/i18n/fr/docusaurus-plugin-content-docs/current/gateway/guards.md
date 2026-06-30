@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Guards
 
-Les guards décident si une requête peut poursuivre vers le handler. Ils implémentent l'interface `Guard<Ctx>` et sont résolus par DI — ils peuvent avoir des dépendances de constructeur comme n'importe quel autre service.
+Les guards décident si un message entrant peut poursuivre vers le handler. Ils implémentent l'interface `Guard<Ctx>` et sont résolus par DI — ils peuvent avoir des dépendances de constructeur comme n'importe quel autre service.
 
 ## Interface `Guard<Ctx>`
 
@@ -14,7 +14,7 @@ interface Guard<Ctx extends GatewayContext> {
 }
 ```
 
-Un guard reçoit le contexte de transport et retourne `true` pour autoriser la requête ou `false` pour la rejeter. Retourner `false` fait lever au pipeline une `UnauthorizedError`, que l'`ErrorMapper` mappe vers le code d'erreur d'autorisation configuré (typiquement `'UNAUTHORIZED'`).
+Un guard reçoit le contexte de transport et retourne `true` pour autoriser le message entrant ou `false` pour le rejeter. Retourner `false` fait lever au pipeline une `UnauthorizedError`, que l'`ErrorMapper` mappe vers le code d'erreur d'autorisation configuré (typiquement `'UNAUTHORIZED'`).
 
 Les guards peuvent aussi lever directement (par ex. pour distinguer différentes conditions d'autorisation), et l'`ErrorMapper` traite ces levées de la même manière.
 
