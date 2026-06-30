@@ -52,37 +52,47 @@ interface ElectronIpcRaw {
 Voici l'implémentation de référence :
 
 ```typescript
-import { Logger, loggerToken, Module, InjectionToken } from '@spinejs/core';
-import { ContextFactory, ErrorMapper, Validator } from '@spinejs/gateway';
-import { ElectronIpcGateway } from '@spinejs/electron-ipc-gateway';
-import { ZodValidator } from './zod.validator';
-import { ElectronIpcErrorMapper } from './electron-ipc-error.mapper';
-import { SessionContextFactory } from './session.context-factory';
-import { SessionStore } from '../session';
+import { Logger, loggerToken, Module, InjectionToken } from "@spinejs/core";
+import { ContextFactory, ErrorMapper, Validator } from "@spinejs/gateway";
+import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
+import { ZodValidator } from "./zod.validator";
+import { ElectronIpcErrorMapper } from "./electron-ipc-error.mapper";
+import { SessionContextFactory } from "./session.context-factory";
+import { SessionStore } from "../session";
 
-const validatorToken      = new InjectionToken<Validator>('validator');
-const errorMapperToken    = new InjectionToken<ErrorMapper<ErrorCode>>('error-mapper');
-const contextFactoryToken = new InjectionToken<ContextFactory<ElectronIpcRaw, ElectronIpcContext>>('context-factory');
+const validatorToken = new InjectionToken<Validator>("validator");
+const errorMapperToken = new InjectionToken<ErrorMapper<ErrorCode>>(
+  "error-mapper"
+);
+const contextFactoryToken = new InjectionToken<
+  ContextFactory<ElectronIpcRaw, ElectronIpcContext>
+>("context-factory");
 
 @Module({
   imports: [SessionModule],
   providers: [
-    { provide: validatorToken,      factory: () => new ZodValidator() },
-    { provide: errorMapperToken,    factory: () => new ElectronIpcErrorMapper() },
+    { provide: validatorToken, factory: () => new ZodValidator() },
+    { provide: errorMapperToken, factory: () => new ElectronIpcErrorMapper() },
     {
       provide: contextFactoryToken,
-      inject:  [SessionStore],
+      inject: [SessionStore],
       factory: (session: SessionStore) => new SessionContextFactory(session),
     },
     {
       provide: ElectronIpcGateway,
-      inject:  [validatorToken, errorMapperToken, contextFactoryToken, loggerToken],
+      inject: [
+        validatorToken,
+        errorMapperToken,
+        contextFactoryToken,
+        loggerToken,
+      ],
       factory: (
-        validator:       ZodValidator,
-        errorMapper:     ElectronIpcErrorMapper,
-        contextFactory:  SessionContextFactory,
-        logger:          Logger,
-      ) => new ElectronIpcGateway(validator, errorMapper, contextFactory, logger),
+        validator: ZodValidator,
+        errorMapper: ElectronIpcErrorMapper,
+        contextFactory: SessionContextFactory,
+        logger: Logger
+      ) =>
+        new ElectronIpcGateway(validator, errorMapper, contextFactory, logger),
     },
   ],
   exports: [ElectronIpcGateway],
@@ -97,8 +107,8 @@ export class ElectronIpcGatewayModule {}
 La `ContextFactory` transforme l'événement Electron brut en un contexte typé que reçoivent vos contrôleurs :
 
 ```typescript
-import { ContextFactory } from '@spinejs/gateway';
-import { ElectronIpcRaw } from '@spinejs/electron-ipc-gateway';
+import { ContextFactory } from "@spinejs/gateway";
+import { ElectronIpcRaw } from "@spinejs/electron-ipc-gateway";
 
 export interface ElectronIpcContext extends ElectronIpcBaseContext {
   session: Session | null;
@@ -111,7 +121,7 @@ export class SessionContextFactory
 
   create(raw: ElectronIpcRaw): ElectronIpcContext {
     return {
-      event:   raw.event,
+      event: raw.event,
       session: this.sessionStore.current(),
     };
   }
@@ -123,17 +133,26 @@ export class SessionContextFactory
 L'`ErrorMapper` convertit toute erreur levée en une chaîne de code stable. Aucun message d'erreur brut n'atteint jamais le renderer :
 
 ```typescript
-import { ErrorMapper, UnauthorizedError, ValidationError } from '@spinejs/gateway';
+import {
+  ErrorMapper,
+  UnauthorizedError,
+  ValidationError,
+} from "@spinejs/gateway";
 
-type ErrorCode = 'UNAUTHORIZED' | 'INVALID_INPUT' | 'NOT_FOUND' | 'SERVER' | 'NETWORK';
+type ErrorCode =
+  | "UNAUTHORIZED"
+  | "INVALID_INPUT"
+  | "NOT_FOUND"
+  | "SERVER"
+  | "NETWORK";
 
 export class ElectronIpcErrorMapper implements ErrorMapper<ErrorCode> {
   toCode(err: unknown): ErrorCode {
-    if (err instanceof ValidationError)  return 'INVALID_INPUT';
-    if (err instanceof UnauthorizedError) return 'UNAUTHORIZED';
-    if (err instanceof NotFoundError)    return 'NOT_FOUND';
-    if (err instanceof TypeError)        return 'NETWORK';
-    return 'SERVER';
+    if (err instanceof ValidationError) return "INVALID_INPUT";
+    if (err instanceof UnauthorizedError) return "UNAUTHORIZED";
+    if (err instanceof NotFoundError) return "NOT_FOUND";
+    if (err instanceof TypeError) return "NETWORK";
+    return "SERVER";
   }
 }
 ```
@@ -144,12 +163,21 @@ Liez les fonctions génériques de gateway à votre `ElectronIpcGateway` et `Ele
 
 ```typescript
 // electron-ipc-module.ts
-import { gatewayFeatureFactory, gatewayModuleDecorator } from '@spinejs/gateway';
-import { ElectronIpcGateway } from '@spinejs/electron-ipc-gateway';
-import { ElectronIpcGatewayModule } from './electron-ipc-gateway.module';
+import {
+  gatewayFeatureFactory,
+  gatewayModuleDecorator,
+} from "@spinejs/gateway";
+import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
+import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 
-export const ipcFeature = gatewayFeatureFactory(ElectronIpcGateway, ElectronIpcGatewayModule);
-export const IpcModule  = gatewayModuleDecorator(ElectronIpcGateway, ElectronIpcGatewayModule);
+export const ipcFeature = gatewayFeatureFactory(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);
+export const IpcModule = gatewayModuleDecorator(
+  ElectronIpcGateway,
+  ElectronIpcGatewayModule
+);
 ```
 
 ## Le `SessionGuard`
@@ -157,8 +185,8 @@ export const IpcModule  = gatewayModuleDecorator(ElectronIpcGateway, ElectronIpc
 Un guard est la façon dont vous imposez l'authentification sur les canaux IPC. Puisque la `ContextFactory` enrichit déjà le contexte avec la session, le guard n'a qu'à vérifier :
 
 ```typescript
-import { Guard } from '@spinejs/gateway';
-import { ElectronIpcContext } from './electron-ipc.types';
+import { Guard } from "@spinejs/gateway";
+import { ElectronIpcContext } from "./electron-ipc.types";
 
 export class SessionGuard implements Guard<ElectronIpcContext> {
   canActivate(ctx: ElectronIpcContext): boolean {
@@ -170,13 +198,13 @@ export class SessionGuard implements Guard<ElectronIpcContext> {
 Appliquez-le à tous les handlers qui requièrent une authentification :
 
 ```typescript
-import { UseGuards } from '@spinejs/gateway';
-import { SessionGuard } from '../infrastructure/session.guard';
+import { UseGuards } from "@spinejs/gateway";
+import { SessionGuard } from "../infrastructure/session.guard";
 
 @UseGuards(SessionGuard)
 @Controller()
 export class SecureController {
-  @Handler({ address: 'secure:data' })
+  @Handler({ address: "secure:data" })
   getData(ctx: ElectronIpcContext): Data {
     // Guaranteed: ctx.session is not null.
     return this.dataService.getForUser(ctx.session.userId);
@@ -188,10 +216,10 @@ export class SecureController {
 
 ```typescript
 // main.ts
-import { App } from '@spinejs/core';
-import { ElectronModule } from '@spinejs/electron';
-import { ConfigModule } from '@spinejs/config';
-import { MainModule } from './modules/main.module';
+import { App } from "@spinejs/core";
+import { ElectronModule } from "@spinejs/electron";
+import { ConfigModule } from "@spinejs/config";
+import { MainModule } from "./modules/main.module";
 
 const app = new App(
   [
@@ -201,16 +229,16 @@ const app = new App(
         width: 1280,
         height: 800,
         webPreferences: {
-          preload: join(__dirname, 'preload.js'),
+          preload: join(__dirname, "preload.js"),
           contextIsolation: true,
         },
       },
-      devUrl: 'http://localhost:5173',
-      packagePath: join(__dirname, '../renderer/index.html'),
+      devUrl: "http://localhost:5173",
+      packagePath: join(__dirname, "../renderer/index.html"),
     }),
     MainModule,
   ],
-  { handleProcessExit: false },
+  { handleProcessExit: false }
 );
 
 await app.init();
@@ -219,14 +247,14 @@ await app.start();
 
 ```typescript
 // main.module.ts
-import { Module, OnInit } from '@spinejs/core';
-import { ElectronModule } from '@spinejs/electron';
-import { ipcFeature, IpcModule } from './infrastructure/electron-ipc-module';
-import { AuthController } from './interface/auth.controller';
-import { ProjectsController } from './interface/projects.controller';
-import { HealthController } from './interface/health.controller';
-import { ProjectsModule } from './domain/projects.module';
-import { AuthModule } from './domain/auth.module';
+import { Module, OnInit } from "@spinejs/core";
+import { ElectronModule } from "@spinejs/electron";
+import { ipcFeature, IpcModule } from "./infrastructure/electron-ipc-module";
+import { AuthController } from "./interface/auth.controller";
+import { ProjectsController } from "./interface/projects.controller";
+import { HealthController } from "./interface/health.controller";
+import { ProjectsModule } from "./domain/projects.module";
+import { AuthModule } from "./domain/auth.module";
 
 @Module({
   imports: [

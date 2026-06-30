@@ -1,8 +1,15 @@
 .hero {
   padding: 5rem 0 4rem;
-  background:
-    radial-gradient(60% 120% at 15% 0%, rgba(224, 35, 78, 0.18) 0%, transparent 60%),
-    radial-gradient(50% 100% at 100% 100%, rgba(224, 35, 78, 0.1) 0%, transparent 55%);
+  background: radial-gradient(
+      60% 120% at 15% 0%,
+      rgba(224, 35, 78, 0.18) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      50% 100% at 100% 100%,
+      rgba(224, 35, 78, 0.1) 0%,
+      transparent 55%
+    );
   border-bottom: 1px solid var(--ifm-toc-border-color);
 }
 

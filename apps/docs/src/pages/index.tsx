@@ -1,19 +1,21 @@
-import type { ReactNode } from 'react';
-import clsx from 'clsx';
-import Link from '@docusaurus/Link';
-import Translate, { translate } from '@docusaurus/Translate';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
-import CodeBlock from '@theme/CodeBlock';
+import type { ReactNode } from "react";
+import clsx from "clsx";
+import Link from "@docusaurus/Link";
+import Translate, { translate } from "@docusaurus/Translate";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import Layout from "@theme/Layout";
+import CodeBlock from "@theme/CodeBlock";
 
-import styles from './index.module.css';
+import styles from "./index.module.css";
 
 type Feature = { title: ReactNode; body: ReactNode };
 
 const FEATURES: Feature[] = [
   {
     title: (
-      <Translate id="home.feature.noReflect.title">No reflect-metadata</Translate>
+      <Translate id="home.feature.noReflect.title">
+        No reflect-metadata
+      </Translate>
     ),
     body: (
       <Translate id="home.feature.noReflect.body">
@@ -24,7 +26,9 @@ const FEATURES: Feature[] = [
   },
   {
     title: (
-      <Translate id="home.feature.transport.title">Transport-agnostic</Translate>
+      <Translate id="home.feature.transport.title">
+        Transport-agnostic
+      </Translate>
     ),
     body: (
       <Translate id="home.feature.transport.body">
@@ -35,7 +39,9 @@ const FEATURES: Feature[] = [
   },
   {
     title: (
-      <Translate id="home.feature.lifecycle.title">Structured lifecycle</Translate>
+      <Translate id="home.feature.lifecycle.title">
+        Structured lifecycle
+      </Translate>
     ),
     body: (
       <Translate id="home.feature.lifecycle.body">
@@ -57,7 +63,9 @@ const FEATURES: Feature[] = [
   },
   {
     title: (
-      <Translate id="home.feature.composable.title">Composable à la carte</Translate>
+      <Translate id="home.feature.composable.title">
+        Composable à la carte
+      </Translate>
     ),
     body: (
       <Translate id="home.feature.composable.body">
@@ -68,7 +76,9 @@ const FEATURES: Feature[] = [
   },
   {
     title: (
-      <Translate id="home.feature.longlived.title">Built for long-lived Node</Translate>
+      <Translate id="home.feature.longlived.title">
+        Built for long-lived Node
+      </Translate>
     ),
     body: (
       <Translate id="home.feature.longlived.body">
@@ -96,7 +106,7 @@ function Hero(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
   return (
     <header className={styles.hero}>
-      <div className={clsx('container', styles.heroInner)}>
+      <div className={clsx("container", styles.heroInner)}>
         <div className={styles.heroText}>
           <h1 className={styles.heroTitle}>{siteConfig.title}</h1>
           <p className={styles.heroTagline}>
@@ -105,11 +115,14 @@ function Hero(): ReactNode {
             </Translate>
           </p>
           <div className={styles.heroButtons}>
-            <Link className="button button--primary button--lg" to="/docs/intro">
+            <Link
+              className="button button--primary button--lg"
+              to="/docs/intro"
+            >
               <Translate id="home.hero.getStarted">Get started</Translate>
             </Link>
             <Link
-              className={clsx('button button--lg', styles.ghostButton)}
+              className={clsx("button button--lg", styles.ghostButton)}
               to="https://github.com/dev-studio-ai/spine"
             >
               <Translate id="home.hero.github">View on GitHub</Translate>
@@ -145,13 +158,13 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={translate({
-        id: 'home.meta.title',
-        message: 'SpineJS — Modules, DI, and lifecycle for long-lived Node',
+        id: "home.meta.title",
+        message: "SpineJS — Modules, DI, and lifecycle for long-lived Node",
       })}
       description={translate({
-        id: 'home.meta.description',
+        id: "home.meta.description",
         message:
-          'Modules, dependency injection, and lifecycle for long-lived Node processes.',
+          "Modules, dependency injection, and lifecycle for long-lived Node processes.",
       })}
     >
       <Hero />

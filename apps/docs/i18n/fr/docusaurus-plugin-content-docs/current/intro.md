@@ -27,12 +27,12 @@ Une application minimale avec un service et un arrêt propre :
 ### 1. Définir un module
 
 ```typescript
-import { Module, OnInit } from '@spinejs/core';
+import { Module, OnInit } from "@spinejs/core";
 
 @Module({ inject: [] })
 export class GreeterModule implements OnInit {
   async onInit() {
-    console.log('Hello from GreeterModule');
+    console.log("Hello from GreeterModule");
   }
 }
 ```
@@ -40,8 +40,8 @@ export class GreeterModule implements OnInit {
 ### 2. Démarrer l'application
 
 ```typescript
-import { App } from '@spinejs/core';
-import { GreeterModule } from './greeter.module';
+import { App } from "@spinejs/core";
+import { GreeterModule } from "./greeter.module";
 
 const app = new App([GreeterModule]);
 
@@ -62,9 +62,9 @@ Si votre process doit exposer des handlers de requête — via IPC, HTTP ou tout
 ```typescript
 @Controller()
 export class PingController {
-  @Handler({ address: 'ping' })
+  @Handler({ address: "ping" })
   ping(_ctx: GatewayContext): string {
-    return 'pong';
+    return "pong";
   }
 }
 ```
@@ -73,29 +73,29 @@ Le même `PingController` peut être servi par n'importe quel binding de transpo
 
 ## Concepts clés
 
-| Concept | Rôle |
-|---|---|
-| **Module** | Unité structurelle déclarée avec `@Module({ inject: [...] })` ; participe au cycle de vie `init → start → stop`. |
-| **Conteneur DI** | Résout les dépendances de constructeur entre modules via des `InjectionToken` — pas de décorateurs partout, pas de reflect-metadata. |
-| **`App`** | Orchestre le graphe de modules : le construit, exécute les hooks de cycle de vie dans l'ordre, et gère les signaux du process. |
-| **Gateway** | Pipeline de requête optionnel et indépendant du transport (guards → validation → handler → enveloppe) pour les process qui doivent exposer une surface d'API. |
+| Concept          | Rôle                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Module**       | Unité structurelle déclarée avec `@Module({ inject: [...] })` ; participe au cycle de vie `init → start → stop`.                                              |
+| **Conteneur DI** | Résout les dépendances de constructeur entre modules via des `InjectionToken` — pas de décorateurs partout, pas de reflect-metadata.                          |
+| **`App`**        | Orchestre le graphe de modules : le construit, exécute les hooks de cycle de vie dans l'ordre, et gère les signaux du process.                                |
+| **Gateway**      | Pipeline de requête optionnel et indépendant du transport (guards → validation → handler → enveloppe) pour les process qui doivent exposer une surface d'API. |
 
 ## Où aller ensuite
 
-| Section | Couvre |
-|---|---|
-| [SpineJS Core](app-core/overview) | `App`, modules, DI, cycle de vie, logger intégré |
-| [Gateway](gateway/overview) | Contrôleurs, handlers, guards, validation, intercepteurs |
-| [Extensions](extensions/config) | Chargement de config typé, logger Winston |
-| [Electron](electron/electron-module) | Intégration du cycle de vie Electron et transport IPC |
+| Section                              | Couvre                                                   |
+| ------------------------------------ | -------------------------------------------------------- |
+| [SpineJS Core](app-core/overview)    | `App`, modules, DI, cycle de vie, logger intégré         |
+| [Gateway](gateway/overview)          | Contrôleurs, handlers, guards, validation, intercepteurs |
+| [Extensions](extensions/config)      | Chargement de config typé, logger Winston                |
+| [Electron](electron/electron-module) | Intégration du cycle de vie Electron et transport IPC    |
 
 ## Aperçu des packages
 
-| Package | Rôle |
-|---|---|
-| `@spinejs/core` | Système de modules, conteneur DI, orchestrateur `App`, hooks de cycle de vie, logger intégré |
-| `@spinejs/gateway` | Pipeline indépendant du transport : `@Controller`, `@Handler`, `@UseGuards`, `Envelope` |
-| `@spinejs/electron-ipc-gateway` | Lie `Gateway` à `ipcMain.handle` |
-| `@spinejs/electron` | `ElectronModule` (fenêtre + cycle de vie) et `WindowService` |
-| `@spinejs/config` | Chargement de configuration typé et asynchrone |
-| `@spinejs/winston-logger` | Implémentation de `Logger` clé en main basée sur Winston |
+| Package                         | Rôle                                                                                         |
+| ------------------------------- | -------------------------------------------------------------------------------------------- |
+| `@spinejs/core`                 | Système de modules, conteneur DI, orchestrateur `App`, hooks de cycle de vie, logger intégré |
+| `@spinejs/gateway`              | Pipeline indépendant du transport : `@Controller`, `@Handler`, `@UseGuards`, `Envelope`      |
+| `@spinejs/electron-ipc-gateway` | Lie `Gateway` à `ipcMain.handle`                                                             |
+| `@spinejs/electron`             | `ElectronModule` (fenêtre + cycle de vie) et `WindowService`                                 |
+| `@spinejs/config`               | Chargement de configuration typé et asynchrone                                               |
+| `@spinejs/winston-logger`       | Implémentation de `Logger` clé en main basée sur Winston                                     |

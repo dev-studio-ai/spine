@@ -44,14 +44,14 @@ Chaque handler retourne son résultat encapsulé dans une `Envelope` :
 
 ```typescript
 type Envelope<T, Code extends string = string> =
-  | { ok: true;  data: T    }
+  | { ok: true; data: T }
   | { ok: false; code: Code };
 ```
 
 Côté renderer (ou tout consommateur du transport), vous discriminez sur `ok` :
 
 ```typescript
-const result = await ipcRenderer.invoke('users:list');
+const result = await ipcRenderer.invoke("users:list");
 if (result.ok) {
   console.log(result.data); // User[]
 } else {
@@ -79,11 +79,11 @@ Cela signifie que le même code `@Controller` / `@Handler` peut servir un transp
 
 Trois interfaces définissent les points d'extension de la gateway. Votre module de transport fournit des implémentations concrètes :
 
-| Port | Responsabilité |
-|---|---|
-| `ContextFactory<Raw, Ctx>` | Construit un contexte typé à partir des données d'appel brutes du transport. |
-| `Validator` | Valide l'entrée brute contre un schéma ; lève `ValidationError` en cas d'échec. |
-| `ErrorMapper<Code>` | Mappe toute erreur levée vers une chaîne de code d'erreur stable. |
+| Port                       | Responsabilité                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| `ContextFactory<Raw, Ctx>` | Construit un contexte typé à partir des données d'appel brutes du transport.    |
+| `Validator`                | Valide l'entrée brute contre un schéma ; lève `ValidationError` en cas d'échec. |
+| `ErrorMapper<Code>`        | Mappe toute erreur levée vers une chaîne de code d'erreur stable.               |
 
 Le module de transport câble ces implémentations dans la gateway via des factory providers DI. Le code des contrôleurs et des modules de fonctionnalité ne touche jamais directement aux ports.
 
@@ -91,9 +91,9 @@ Le module de transport câble ces implémentations dans la gateway via des facto
 
 Deux classes d'erreur font partie de l'API publique de la gateway :
 
-| Classe | Quand la lever |
-|---|---|
-| `ValidationError` | Levée par le `Validator` quand le parsing du schéma échoue. |
+| Classe              | Quand la lever                                                              |
+| ------------------- | --------------------------------------------------------------------------- |
+| `ValidationError`   | Levée par le `Validator` quand le parsing du schéma échoue.                 |
 | `UnauthorizedError` | Levée par le pipeline quand le `canActivate()` d'un guard retourne `false`. |
 
 Le code applicatif peut lever ses propres types d'erreur ; l'`ErrorMapper` les rattrape tous et les mappe vers des codes.

@@ -11,19 +11,23 @@ Les intercepteurs enveloppent le pipeline `dispatch()` et sont l'endroit canoniq
 Un intercepteur est tout objet qui implémente l'interface `GatewayInterceptor` :
 
 ```typescript
-import type { Envelope, RouteDescriptor } from '@spinejs/gateway';
-import { GatewayInterceptor } from '@spinejs/gateway';
+import type { Envelope, RouteDescriptor } from "@spinejs/gateway";
+import { GatewayInterceptor } from "@spinejs/gateway";
 
 class LoggingInterceptor implements GatewayInterceptor {
   async intercept(
     route: RouteDescriptor,
     ctx: unknown,
     rawInput: unknown,
-    next: () => Promise<Envelope<unknown>>,
+    next: () => Promise<Envelope<unknown>>
   ): Promise<Envelope<unknown>> {
-    console.debug('→', route.address, rawInput);
+    console.debug("→", route.address, rawInput);
     const envelope = await next();
-    console.debug('←', route.address, envelope.ok ? 'ok' : `error:${envelope.code}`);
+    console.debug(
+      "←",
+      route.address,
+      envelope.ok ? "ok" : `error:${envelope.code}`
+    );
     return envelope;
   }
 }
@@ -44,18 +48,25 @@ Les intercepteurs sont chaînés dans l'ordre d'enregistrement. Le premier inter
 Passez les intercepteurs à travers l'appel `configure()`. L'option `interceptors` suit le même pattern d'adaptateur que les autres ports — elle accepte une simple `value` ou une `factory` DI avec une liste `inject` :
 
 ```typescript
-import { loggerToken, Logger } from '@spinejs/core';
-import { ElectronIpcGatewayModule, IpcLoggingInterceptor } from '@spinejs/electron-ipc-gateway';
+import { loggerToken, Logger } from "@spinejs/core";
+import {
+  ElectronIpcGatewayModule,
+  IpcLoggingInterceptor,
+} from "@spinejs/electron-ipc-gateway";
 
 ElectronIpcGatewayModule.configure({
   imports: [SessionModule],
-  contextFactory: { /* … */ },
-  errorMapper: { /* … */ },
+  contextFactory: {
+    /* … */
+  },
+  errorMapper: {
+    /* … */
+  },
   interceptors: {
     inject: [loggerToken],
     factory: (logger: Logger) => [new IpcLoggingInterceptor(logger)],
   },
-})
+});
 ```
 
 Quand `interceptors` est omis, la gateway s'exécute sans aucun intercepteur.
@@ -78,8 +89,12 @@ Câblez-le comme montré ci-dessus. L'intercepteur utilise le `loggerToken` de S
 Les intercepteurs peuvent injecter n'importe quel service et effectuer un travail asynchrone arbitraire avant et après le pipeline. Ils peuvent aussi court-circuiter en retournant une enveloppe sans appeler `next()` :
 
 ```typescript
-import { GatewayInterceptor, Envelope, RouteDescriptor } from '@spinejs/gateway';
-import { MetricsService } from '../metrics';
+import {
+  GatewayInterceptor,
+  Envelope,
+  RouteDescriptor,
+} from "@spinejs/gateway";
+import { MetricsService } from "../metrics";
 
 export class MetricsInterceptor implements GatewayInterceptor {
   constructor(private readonly metrics: MetricsService) {}
@@ -88,7 +103,7 @@ export class MetricsInterceptor implements GatewayInterceptor {
     route: RouteDescriptor,
     ctx: unknown,
     rawInput: unknown,
-    next: () => Promise<Envelope<unknown>>,
+    next: () => Promise<Envelope<unknown>>
   ): Promise<Envelope<unknown>> {
     const start = Date.now();
     const envelope = await next();

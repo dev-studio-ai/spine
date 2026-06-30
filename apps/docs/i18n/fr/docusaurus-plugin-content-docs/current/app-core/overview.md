@@ -11,51 +11,45 @@ sidebar_position: 1
 `App` est le point d'entrée. Elle accepte une liste de valeurs `ModuleEntry`, câble le conteneur DI et pilote le cycle de vie `init → start → stop`.
 
 ```typescript
-import { App } from '@spinejs/core';
-import { ConfigModule } from '@spinejs/config';
-import { AppModule } from './app.module';
+import { App } from "@spinejs/core";
+import { ConfigModule } from "@spinejs/config";
+import { AppModule } from "./app.module";
 
-const app = new App(
-  [
-    ConfigModule.configure({ configs: [] }),
-    AppModule,
-  ],
-  {
-    // Optional: swap the built-in console logger for a Winston instance.
-    // logger: new WinstonLogger({ level: 'debug', dir: '/var/log/myapp' }),
+const app = new App([ConfigModule.configure({ configs: [] }), AppModule], {
+  // Optional: swap the built-in console logger for a Winston instance.
+  // logger: new WinstonLogger({ level: 'debug', dir: '/var/log/myapp' }),
 
-    // Optional: control the minimum log level of the built-in console logger.
-    loggerOptions: { level: process.env.LOG_LEVEL ?? 'info' },
-  },
-);
+  // Optional: control the minimum log level of the built-in console logger.
+  loggerOptions: { level: process.env.LOG_LEVEL ?? "info" },
+});
 
-await app.init();   // Build the module graph, run onInit() on every module.
-await app.start();  // Run onStart() on every module that implements OnStart.
+await app.init(); // Build the module graph, run onInit() on every module.
+await app.start(); // Run onStart() on every module that implements OnStart.
 ```
 
 ### `AppOptions`
 
-| Option | Type | Défaut | Description |
-|---|---|---|---|
-| `logger` | `Logger` | `AppLogger` | Instance de logger personnalisée (remplace celle intégrée). |
-| `loggerOptions` | `LoggerOptions` | `{}` | Options transmises au `AppLogger` intégré. |
-| `handleProcessExit` | `boolean` | `true` | Quand `true`, écoute `SIGINT`/`SIGTERM` et appelle `app.exit()`. |
+| Option              | Type            | Défaut      | Description                                                      |
+| ------------------- | --------------- | ----------- | ---------------------------------------------------------------- |
+| `logger`            | `Logger`        | `AppLogger` | Instance de logger personnalisée (remplace celle intégrée).      |
+| `loggerOptions`     | `LoggerOptions` | `{}`        | Options transmises au `AppLogger` intégré.                       |
+| `handleProcessExit` | `boolean`       | `true`      | Quand `true`, écoute `SIGINT`/`SIGTERM` et appelle `app.exit()`. |
 
 ### Méthodes
 
-| Méthode | Description |
-|---|---|
-| `init()` | Charge tous les modules dans l'ordre des dépendances, en appelant `onInit()` sur chacun. Lève une erreur (et s'auto-arrête) en cas d'échec. |
-| `start()` | Appelle `onStart()` sur chaque module qui implémente `OnStart`. Lève une erreur (et s'auto-arrête) en cas d'échec. |
-| `stop()` | Appelle `onStop()` dans l'ordre d'init inverse. Idempotent — sûr à appeler plusieurs fois. |
-| `exit(code?)` | Arrête l'application, vide le logger, puis appelle `process.exit(code)`. Sûr en ré-entrance. |
+| Méthode       | Description                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init()`      | Charge tous les modules dans l'ordre des dépendances, en appelant `onInit()` sur chacun. Lève une erreur (et s'auto-arrête) en cas d'échec. |
+| `start()`     | Appelle `onStart()` sur chaque module qui implémente `OnStart`. Lève une erreur (et s'auto-arrête) en cas d'échec.                          |
+| `stop()`      | Appelle `onStop()` dans l'ordre d'init inverse. Idempotent — sûr à appeler plusieurs fois.                                                  |
+| `exit(code?)` | Arrête l'application, vide le logger, puis appelle `process.exit(code)`. Sûr en ré-entrance.                                                |
 
 ## Tokens globaux
 
 Deux valeurs `InjectionToken` sont pré-enregistrées dans le conteneur global de chaque application :
 
 ```typescript
-import { appToken, loggerToken } from '@spinejs/core';
+import { appToken, loggerToken } from "@spinejs/core";
 
 @Module({
   inject: [appToken, loggerToken],

@@ -23,10 +23,10 @@ Les guards peuvent aussi lever directement (par ex. pour distinguer différentes
 Un guard est une simple classe qui implémente l'interface. Il peut injecter n'importe quel provider via son constructeur :
 
 ```typescript
-import { Guard } from '@spinejs/gateway';
-import { Inject } from '@spinejs/core';
-import { SessionStore } from '../session';
-import { ElectronIpcContext } from './electron-ipc.types';
+import { Guard } from "@spinejs/gateway";
+import { Inject } from "@spinejs/core";
+import { SessionStore } from "../session";
+import { ElectronIpcContext } from "./electron-ipc.types";
 
 @Inject([SessionStore])
 export class SessionGuard implements Guard<ElectronIpcContext> {
@@ -48,19 +48,19 @@ export class SessionGuard implements Guard<ElectronIpcContext> {
 Attacher `@UseGuards` à la classe du contrôleur applique le guard à chaque handler de la classe :
 
 ```typescript
-import { Controller, Handler, UseGuards } from '@spinejs/gateway';
-import { SessionGuard } from './session.guard';
+import { Controller, Handler, UseGuards } from "@spinejs/gateway";
+import { SessionGuard } from "./session.guard";
 
 @UseGuards(SessionGuard)
 @Controller()
 export class ProjectsController {
-  @Handler({ address: 'projects:list' })
+  @Handler({ address: "projects:list" })
   list(ctx: ElectronIpcContext): Promise<Project[]> {
     // SessionGuard runs before this handler.
     return this.projectService.findAll(ctx.session.userId);
   }
 
-  @Handler({ address: 'projects:get' })
+  @Handler({ address: "projects:get" })
   get(ctx: ElectronIpcContext, input: string): Promise<Project> {
     // SessionGuard runs before this handler too.
     return this.projectService.findById(input);
@@ -76,15 +76,16 @@ Attacher `@UseGuards` à une méthode ajoute des guards supplémentaires par-des
 @UseGuards(SessionGuard)
 @Controller()
 export class AdminController {
-  @UseGuards(AdminRoleGuard)      // SessionGuard + AdminRoleGuard
-  @Handler({ address: 'admin:reset' })
+  @UseGuards(AdminRoleGuard) // SessionGuard + AdminRoleGuard
+  @Handler({ address: "admin:reset" })
   reset(ctx: ElectronIpcContext): void {
     // ...
   }
 
-  @Handler({ address: 'admin:status' })
-  status(): string {              // SessionGuard only
-    return 'ok';
+  @Handler({ address: "admin:status" })
+  status(): string {
+    // SessionGuard only
+    return "ok";
   }
 }
 ```
@@ -109,15 +110,15 @@ La machinerie du module de fonctionnalité auto-enregistre toutes les classes de
 Parce que les guards sont résolus par DI, ils s'intègrent naturellement avec n'importe quel service du graphe de modules :
 
 ```typescript
-import { Inject } from '@spinejs/core';
-import { Guard } from '@spinejs/gateway';
+import { Inject } from "@spinejs/core";
+import { Guard } from "@spinejs/gateway";
 
 @Inject([AuthService])
 export class JwtGuard implements Guard<HttpContext> {
   constructor(private readonly auth: AuthService) {}
 
   async canActivate(ctx: HttpContext): Promise<boolean> {
-    const token = ctx.request.headers.authorization?.split(' ')[1];
+    const token = ctx.request.headers.authorization?.split(" ")[1];
     if (!token) return false;
     return this.auth.verifyToken(token);
   }
@@ -133,7 +134,7 @@ Plusieurs guards sont vérifiés dans l'ordre : niveau classe d'abord, puis nive
 @Controller()
 export class PublicApiController {
   @UseGuards(CsrfGuard)
-  @Handler({ address: 'api:mutate' })
+  @Handler({ address: "api:mutate" })
   mutate(ctx: HttpContext, input: unknown): Promise<Result> {
     // Guard order: AuthenticatedGuard → RateLimitGuard → CsrfGuard
     return this.service.mutate(input);

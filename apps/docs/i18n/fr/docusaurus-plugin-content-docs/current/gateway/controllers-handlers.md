@@ -11,7 +11,7 @@ Les contrôleurs sont les classes qui portent votre logique de traitement des re
 `@Controller` marque une classe comme contrôleur de gateway. Il ne porte aucune configuration — son seul rôle est de taguer la classe pour que la gateway distingue les contrôleurs des providers ordinaires.
 
 ```typescript
-import { Controller } from '@spinejs/gateway';
+import { Controller } from "@spinejs/gateway";
 
 @Controller()
 export class UserController {
@@ -26,13 +26,13 @@ Une classe de contrôleur doit figurer dans le tableau `controllers` d'un module
 `@Handler` déclare une route de gateway sur une méthode. L'`address` est une chaîne opaque au transport : pour l'IPC elle devient le canal `ipcMain.handle` ; pour le HTTP ce pourrait être un chemin ; pour un transport personnalisé elle signifie ce que l'implémentation `bind()` du transport attend.
 
 ```typescript
-import { Controller, Handler } from '@spinejs/gateway';
+import { Controller, Handler } from "@spinejs/gateway";
 
 @Controller()
 export class PingController {
-  @Handler({ address: 'ping' })
+  @Handler({ address: "ping" })
   ping(): string {
-    return 'pong';
+    return "pong";
   }
 }
 ```
@@ -47,7 +47,7 @@ La méthode handler reçoit deux arguments :
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Handler({ address: 'users:get-by-id' })
+  @Handler({ address: "users:get-by-id" })
   getById(ctx: ElectronIpcContext, input: unknown): Promise<User> {
     const id = input as string; // raw — no schema provided
     return this.userService.findById(id);
@@ -57,21 +57,21 @@ export class UserController {
 
 ### `HandlerOptions`
 
-| Option | Type | Requis | Description |
-|---|---|---|---|
-| `address` | `string` | Oui | L'adresse de la route. Opaque au transport — interprétée par le `bind()` du transport. |
-| `input` | `ParseableSchema<T>` | Non | Un schéma avec une méthode `parse(input: unknown): T`. Quand présent, l'entrée brute est validée avant l'appel du handler. |
+| Option    | Type                 | Requis | Description                                                                                                                |
+| --------- | -------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `address` | `string`             | Oui    | L'adresse de la route. Opaque au transport — interprétée par le `bind()` du transport.                                     |
+| `input`   | `ParseableSchema<T>` | Non    | Un schéma avec une méthode `parse(input: unknown): T`. Quand présent, l'entrée brute est validée avant l'appel du handler. |
 
 ## Validation d'entrée avec `ParseableSchema<T>`
 
 L'option `input` accepte tout objet doté d'une méthode `parse(input: unknown): T`. Ce contrat structurel est satisfait par les schémas zod sans importer zod dans la bibliothèque gateway.
 
 ```typescript
-import { z } from 'zod';
-import { Controller, Handler } from '@spinejs/gateway';
+import { z } from "zod";
+import { Controller, Handler } from "@spinejs/gateway";
 
 const createUserSchema = z.object({
-  name:  z.string().min(1),
+  name: z.string().min(1),
   email: z.string().email(),
 });
 
@@ -81,7 +81,7 @@ type CreateUserInput = z.infer<typeof createUserSchema>;
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Handler({ address: 'users:create', input: createUserSchema })
+  @Handler({ address: "users:create", input: createUserSchema })
   create(ctx: ElectronIpcContext, input: CreateUserInput): Promise<User> {
     // `input` is already parsed and typed as CreateUserInput.
     return this.userService.create(input);
@@ -100,17 +100,17 @@ TypeScript infère `input` comme `CreateUserInput` dans le corps du handler quan
 Les contrôleurs sont des providers de classe ordinaires dans le conteneur DI. Déclarez leurs dépendances avec `@Inject` :
 
 ```typescript
-import { Inject, InjectionToken } from '@spinejs/core';
-import { Controller, Handler } from '@spinejs/gateway';
+import { Inject, InjectionToken } from "@spinejs/core";
+import { Controller, Handler } from "@spinejs/gateway";
 
-const userServiceToken = new InjectionToken<UserService>('user-service');
+const userServiceToken = new InjectionToken<UserService>("user-service");
 
 @Inject([userServiceToken])
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Handler({ address: 'users:list' })
+  @Handler({ address: "users:list" })
   list(): Promise<User[]> {
     return this.userService.findAll();
   }

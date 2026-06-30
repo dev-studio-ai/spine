@@ -9,9 +9,15 @@ SpineJS orchestre l'initialisation et le démontage des modules via trois interf
 ## Interfaces
 
 ```typescript
-interface OnInit  { onInit():  void | Promise<void> }
-interface OnStart { onStart(): void | Promise<void> }
-interface OnStop  { onStop():  void | Promise<void> }
+interface OnInit {
+  onInit(): void | Promise<void>;
+}
+interface OnStart {
+  onStart(): void | Promise<void>;
+}
+interface OnStop {
+  onStop(): void | Promise<void>;
+}
 ```
 
 Les trois méthodes peuvent être `async`. SpineJS attend (`await`) chacune avant de passer au module suivant.
