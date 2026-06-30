@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Injection de dépendances
 
-SpineJS inclut un conteneur DI synchrone avec détection de cycles. Il résout les providers paresseusement à la première demande et met le résultat en cache — chaque token se résout en singleton au sein d'une portée de conteneur.
+SpineJS inclut un conteneur DI synchrone avec détection de cycles. Il résout les providers paresseusement à la première demande et met le résultat en cache — chaque token se résout selon sa [portée](#portées-de-provider) (`singleton` par défaut) au sein d'une portée de conteneur.
 
 ## `InjectionToken<T>`
 
@@ -151,6 +151,15 @@ export class UserRepository {
 }
 ```
 
+Sous le capot, cette sécurité de type est portée par `ResolvedTuple<D>` : un type utilitaire qui mappe un tuple de tokens vers le tuple des types qu'ils résolvent.
+
+```typescript
+type D = [InjectionToken<Database>, InjectionToken<CacheService>];
+// ResolvedTuple<D> = [Database, CacheService]
+```
+
+`@Injectable` et `@Module` utilisent tous deux `ResolvedTuple<D>` pour contraindre le constructeur de la classe décorée à exactement ce tuple — un ordre ou un type erroné est rejeté par TypeScript à la compilation, avant même que le conteneur s'exécute. Vous n'avez quasiment jamais besoin d'écrire `ResolvedTuple` vous-même ; il est inféré automatiquement à partir du tableau `inject` que vous fournissez.
+
 Les modules utilisent typiquement le champ `inject` de `@Module` plutôt que `@Injectable` directement :
 
 ```typescript
@@ -194,17 +203,6 @@ Quand les deux sont présents, l'objet provider l'emporte (il est local au modul
 Pour l'état par requête (utilisateur courant, identifiant de corrélation), SpineJS n'ajoute pas de
 portée DI « request » — utilisez plutôt [CLS](../extensions/cls.md), qui garde les services en
 singletons.
-
-## `ResolvedTuple<D>`
-
-`ResolvedTuple<D>` est le type utilitaire qui mappe un tuple de tokens vers le tuple de leurs types résolus. Il alimente l'application au niveau des types dans `@Module` et `@Injectable` :
-
-```typescript
-type D = [InjectionToken<Database>, InjectionToken<Logger>];
-// ResolvedTuple<D> = [Database, Logger]
-```
-
-Vous avez rarement besoin de référencer ce type directement ; il est inféré automatiquement à partir du tableau `inject` que vous fournissez.
 
 ## Règles de résolution du conteneur
 
