@@ -1,19 +1,20 @@
 import { Injectable } from "@spinejs/core";
-import { ClsService } from "@spinejs/cls";
+import { DispatchContext } from "./dispatch-store";
 
 /**
  * A deep singleton with NO `ctx` parameter. It reads the current request's data straight from the
- * CLS store, so it sees the right user even though it is shared across all concurrent requests.
+ * typed `DispatchContext`, so it sees the right user even though it is shared across all concurrent
+ * requests.
  */
-@Injectable({ inject: [ClsService] })
+@Injectable({ inject: [DispatchContext] })
 export class AuditService {
-  constructor(private readonly cls: ClsService) {}
+  constructor(private readonly dispatchContext: DispatchContext) {}
 
   currentUser(): string {
-    return this.cls.get<string>("user") ?? "anonymous";
+    return this.dispatchContext.get("user") ?? "anonymous";
   }
 
   currentReqId(): string {
-    return this.cls.get<string>("reqId") ?? "none";
+    return this.dispatchContext.get("reqId") ?? "none";
   }
 }

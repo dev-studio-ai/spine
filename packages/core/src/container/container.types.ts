@@ -38,11 +38,18 @@ export interface DelegateProvider<T = unknown> {
   delegate: () => NoInfer<T>;
 }
 
+/** Pure alias: resolving `provide` resolves `existing` instead — same instance, same cache slot. */
+export interface ExistingProvider<T = unknown> {
+  provide: Token<T>;
+  existing: Token<T>;
+}
+
 export type Provider<T = unknown> =
   | BaseProvider<T>
   | FactoryProvider<T>
   | ValueProvider<T>
-  | DelegateProvider<T>;
+  | DelegateProvider<T>
+  | ExistingProvider<T>;
 
 /**
  * Entry accepted in `providers: [...]`: either an explicit Provider, or a

@@ -22,7 +22,7 @@ Each `InjectionToken` instance creates a unique `Symbol` internally. Two tokens 
 
 ## Provider types
 
-The `Provider<T>` union has four shapes:
+The `Provider<T>` union has five shapes:
 
 ### `BaseProvider` — class constructor
 
@@ -115,6 +115,21 @@ const dbToken = new InjectionToken<Database>("database");
 })
 export class ChildModule {}
 ```
+
+### `ExistingProvider` — pure alias
+
+An existing provider resolves `provide` by resolving `existing` instead — no new instance, same cached singleton, shared identity. Useful for exposing one provider under a second, more specific token (e.g. a typed subclass used purely as a DI marker):
+
+```typescript
+import { InjectionToken } from "@spinejs/core";
+
+@Module({
+  providers: [Database, { provide: legacyDbToken, existing: Database }],
+})
+export class DataModule {}
+```
+
+`container.get(legacyDbToken) === container.get(Database)` — both tokens resolve to the exact same instance.
 
 ## `@Injectable` decorator
 

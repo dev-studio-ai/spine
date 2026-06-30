@@ -4396,6 +4396,7 @@ __metadata:
   resolution: "@spinejs/cls@workspace:packages/cls"
   dependencies:
     "@spinejs/core": "workspace:*"
+    "@spinejs/gateway": "workspace:*"
   languageName: unknown
   linkType: soft
 

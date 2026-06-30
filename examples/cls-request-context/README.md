@@ -4,10 +4,16 @@ Runnable example of `@spinejs/cls`: per-request ambient data without a DI reques
 threading `ctx` through every service. See [ADR 0003](../../docs/adr/0003-cls-request-context.md) for
 the rationale.
 
-- A `ClsInterceptor` opens a CLS scope per dispatch (`cls.run`), seeded from the context.
-- The singleton `AuditService` reads `cls.get("user")` — no `ctx` parameter — and still sees the
-  right user per request, even under concurrency, because `AsyncLocalStorage` isolates by async
-  context, not by instance.
+- The app declares its store shape once (`interface DispatchStore { user, reqId }`) and a `DispatchContext`
+  class (`extends ClsService<DispatchStore>`, empty body — just a typed DI token), aliased to the same
+  `ClsService` singleton via `{ provide: DispatchContext, existing: ClsService }` — no factory, no extra
+  object, `get`/`set` key-checked against `DispatchStore`.
+- `@spinejs/cls`'s generic `ClsInterceptor` opens the scope per dispatch; no hand-written interceptor
+  class — only a `seed` function mapping the dispatch context to the store (here adding a generated
+  `reqId`).
+- The singleton `AuditService` reads `dispatchContext.get("user")` — no `ctx` parameter — and still
+  sees the right user per request, even under concurrency, because `AsyncLocalStorage` isolates by
+  async context, not by instance.
 - `@spinejs/core` and `@spinejs/gateway` are untouched: the scope rides the gateway's existing
   interceptor hook.
 

@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "@spinejs/core": "workspace:*"
+    "@spinejs/core": "workspace:*",
+    "@spinejs/gateway": "workspace:*"
   }
 }

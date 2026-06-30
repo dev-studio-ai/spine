@@ -1,14 +1,30 @@
 import { ClsService } from "./cls.service";
 
+interface UserStore {
+  user: string;
+  reqId: string;
+}
+
 describe("ClsService", () => {
   it("reads and writes within an active scope", () => {
     const cls = new ClsService();
     cls.run({ user: "alice" }, () => {
-      expect(cls.get<string>("user")).toBe("alice");
+      expect(cls.get("user")).toBe("alice");
       cls.set("reqId", "r-1");
-      expect(cls.get<string>("reqId")).toBe("r-1");
+      expect(cls.get("reqId")).toBe("r-1");
       expect(cls.has("user")).toBe(true);
       expect(cls.has("missing")).toBe(false);
+    });
+  });
+
+  it("key-checks get/set when narrowed via a subclass", () => {
+    class UserContext extends ClsService<UserStore> {}
+    const ctx = new UserContext();
+    ctx.run({ user: "alice", reqId: "r-1" }, () => {
+      const user: string | undefined = ctx.get("user"); // compiles: T["user"] is string
+      expect(user).toBe("alice");
+      ctx.set("reqId", "r-2");
+      expect(ctx.get("reqId")).toBe("r-2");
     });
   });
 
@@ -37,7 +53,7 @@ describe("ClsService", () => {
     const readBack = (user: string) =>
       cls.run({ user }, async () => {
         await new Promise((r) => setTimeout(r, 5)); // force interleaving
-        return cls.get<string>("user");
+        return cls.get("user");
       });
     const [a, b] = await Promise.all([readBack("alice"), readBack("bob")]);
     expect(a).toBe("alice");
