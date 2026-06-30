@@ -17,10 +17,10 @@
       "Bash(yarn test:all)",
       "Bash(yarn docs:build)",
       "Bash(git push *)",
-      "Bash(yarn format:check)"
-    ],
-    "additionalDirectories": [
-      "/home/fab/workspace/perso/dev-studio/spine/.claude"
+      "Bash(yarn format:check)",
+      "Bash(git mv *)",
+      "Bash(yarn format:write)",
+      "Bash(yarn install *)"
     ]
   }
 }
