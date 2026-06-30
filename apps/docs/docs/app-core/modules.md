@@ -25,12 +25,12 @@ export class DatabaseModule {}
 
 ### Metadata fields
 
-| Field       | Type              | Description                                                                                                                                                            |
-| ----------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Field       | Type              | Description                                                                                                                                                           |
+| ----------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `inject`    | `Token[]`         | Constructor dependencies of the module class itself. TypeScript checks the array against the constructor's parameter types and order — a mismatch is a compile error. |
 | `imports`   | `ModuleEntry[]`   | Other modules whose exported providers become available inside this module.                                                                                           |
-| `providers` | `ProviderEntry[]` | Providers (classes, factories, values) local to this module.                                                                                                           |
-| `exports`   | `Token[]`         | Tokens made available to any module that imports this one.                                                                                                             |
+| `providers` | `ProviderEntry[]` | Providers (classes, factories, values) local to this module.                                                                                                          |
+| `exports`   | `Token[]`         | Tokens made available to any module that imports this one.                                                                                                            |
 
 ### Typed constructor injection
 

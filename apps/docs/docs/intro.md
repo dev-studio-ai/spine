@@ -73,20 +73,20 @@ The same `PingController` can be served by any concrete transport binding withou
 
 ## Core concepts
 
-| Concept | What it does |
-|---|---|
-| **Module** | Structural unit declared with `@Module({ inject: [...] })`; participates in the `init → start → stop` lifecycle. |
-| **DI container** | Resolves constructor dependencies between modules via `InjectionToken`s — no decorators-on-everything, no reflect-metadata. |
-| **`App`** | Orchestrates the module graph: builds it, runs lifecycle hooks in order, and handles process signals. |
-| **Gateway** | Optional transport-agnostic request pipeline (guards → validation → handler → envelope) for processes that need to expose an API surface. |
+| Concept          | What it does                                                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Module**       | Structural unit declared with `@Module({ inject: [...] })`; participates in the `init → start → stop` lifecycle.                          |
+| **DI container** | Resolves constructor dependencies between modules via `InjectionToken`s — no decorators-on-everything, no reflect-metadata.               |
+| **`App`**        | Orchestrates the module graph: builds it, runs lifecycle hooks in order, and handles process signals.                                     |
+| **Gateway**      | Optional transport-agnostic request pipeline (guards → validation → handler → envelope) for processes that need to expose an API surface. |
 
 ## Where to go next
 
-| Section | Covers |
-|---|---|
-| [App Core](app-core/overview) | `App`, modules, DI, lifecycle, built-in logger |
-| [Gateway](gateway/overview) | Controllers, handlers, guards, validation, interceptors |
-| [Extensions](extensions/config) | Typed config loading, Winston logger |
+| Section                              | Covers                                                    |
+| ------------------------------------ | --------------------------------------------------------- |
+| [App Core](app-core/overview)        | `App`, modules, DI, lifecycle, built-in logger            |
+| [Gateway](gateway/overview)          | Controllers, handlers, guards, validation, interceptors   |
+| [Extensions](extensions/config)      | Typed config loading, Winston logger                      |
 | [Electron](electron/electron-module) | Electron-specific lifecycle integration and IPC transport |
 
 ## Package overview

@@ -19,42 +19,44 @@ sidebar_position: 1
 Le module est toujours consommé via sa factory `DynamicModule` :
 
 ```typescript
-import { ElectronModule } from '@spinejs/electron';
+import { ElectronModule } from "@spinejs/electron";
 
 ElectronModule.configure({
   window: {
     width: 1280,
     height: 800,
     webPreferences: {
-      preload: join(__dirname, 'preload.js'),
+      preload: join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
     },
   },
-  devUrl:      'http://localhost:5173',
-  packagePath: join(__dirname, '../renderer/index.html'),
+  devUrl: "http://localhost:5173",
+  packagePath: join(__dirname, "../renderer/index.html"),
 });
 ```
 
 ### `ElectronModuleOptions`
 
-| Champ | Type | Description |
-|---|---|---|
-| `window` | `BrowserWindowConstructorOptions` | Passé directement à `new BrowserWindow(...)`. Les bornes de la fenêtre (position et taille) sont persistées entre les sessions et fusionnées par-dessus ces options. |
-| `devUrl` | `string` | URL chargée en développement (`app.isPackaged === false` et `E2E_LOAD_FILE !== '1'`). Typiquement votre serveur de dev Vite. |
-| `packagePath` | `string` | Chemin vers le fichier HTML du renderer bundlé, chargé en production. |
+| Champ         | Type                              | Description                                                                                                                                                          |
+| ------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `window`      | `BrowserWindowConstructorOptions` | Passé directement à `new BrowserWindow(...)`. Les bornes de la fenêtre (position et taille) sont persistées entre les sessions et fusionnées par-dessus ces options. |
+| `devUrl`      | `string`                          | URL chargée en développement (`app.isPackaged === false` et `E2E_LOAD_FILE !== '1'`). Typiquement votre serveur de dev Vite.                                         |
+| `packagePath` | `string`                          | Chemin vers le fichier HTML du renderer bundlé, chargé en production.                                                                                                |
 
 ## Création de la fenêtre
 
 `ElectronModule` ne crée pas la fenêtre automatiquement pendant `onInit()`. Il attend que le module parent appelle explicitement `createMainWindow()`. Cela donne à l'application le contrôle du moment où la fenêtre apparaît — par exemple, après la restauration de l'authentification :
 
 ```typescript
-import { Module, OnInit } from '@spinejs/core';
-import { ElectronModule } from '@spinejs/electron';
+import { Module, OnInit } from "@spinejs/core";
+import { ElectronModule } from "@spinejs/electron";
 
 @Module({
   imports: [
-    ElectronModule.configure({ /* ... */ }),
+    ElectronModule.configure({
+      /* ... */
+    }),
     AuthModule,
   ],
   inject: [ElectronModule, AuthService],
@@ -62,7 +64,7 @@ import { ElectronModule } from '@spinejs/electron';
 export class MainModule implements OnInit {
   constructor(
     private readonly electronModule: ElectronModule,
-    private readonly authService: AuthService,
+    private readonly authService: AuthService
   ) {}
 
   async onInit(): Promise<void> {
@@ -84,12 +86,13 @@ export class MainModule implements OnInit {
 ```typescript
 // windowServiceProvider is exported for convenience.
 // It is already included in ElectronModule's providers.
-import { WindowService, windowServiceToken } from '@spinejs/electron';
+import { WindowService, windowServiceToken } from "@spinejs/electron";
 ```
 
 ### `createMainWindow(windowOptions, devUrl, packagePath)`
 
 Crée la `BrowserWindow` avec les options données, fusionnées avec les dernières bornes persistées (position + taille). Charge :
+
 - `devUrl` en développement (quand `app.isPackaged === false` et `E2E_LOAD_FILE !== '1'`).
 - `packagePath` en production.
 
@@ -131,10 +134,19 @@ Cela garantit que les services dotés d'implémentations `onStop()` (connexions 
 Lorsque vous utilisez `ElectronModule`, passez `handleProcessExit: false` à `new App(...)`. Electron contrôle la sortie du process via `app.quit()` — les écouteurs SIGINT/SIGTERM par défaut de SpineJS entreraient en course avec la séquence de quit d'Electron.
 
 ```typescript
-const app = new App([ElectronModule.configure({ /* ... */ }), MainModule], {
-  handleProcessExit: false,
-});
+const app = new App(
+  [
+    ElectronModule.configure({
+      /* ... */
+    }),
+    MainModule,
+  ],
+  {
+    handleProcessExit: false,
+  }
+);
 ```
+
 :::
 
 ## `electronModuleOptionsToken`
@@ -142,7 +154,7 @@ const app = new App([ElectronModule.configure({ /* ... */ }), MainModule], {
 Le token d'options est exporté pour les cas où un autre module a besoin de lire la configuration de la fenêtre :
 
 ```typescript
-import { electronModuleOptionsToken } from '@spinejs/electron';
+import { electronModuleOptionsToken } from "@spinejs/electron";
 
 @Module({ inject: [electronModuleOptionsToken] })
 export class DeepLinkModule {
@@ -156,7 +168,7 @@ export class DeepLinkModule {
 
 ```typescript
 // Inside ElectronModule.createMainWindow():
-electronApp.on('activate', () => {
+electronApp.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) this.createMainWindow();
 });
 ```

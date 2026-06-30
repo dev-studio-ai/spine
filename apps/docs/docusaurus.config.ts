@@ -43,7 +43,8 @@ const config: Config = {
         docs: {
           sidebarPath: "./sidebars.ts",
           routeBasePath: "/docs",
-          editUrl: "https://github.com/dev-studio-ai/spine/tree/main/apps/docs/",
+          editUrl:
+            "https://github.com/dev-studio-ai/spine/tree/main/apps/docs/",
         },
         blog: false,
         theme: { customCss: "./src/css/custom.css" },
@@ -58,7 +59,12 @@ const config: Config = {
       title: "SpineJS",
       logo: { alt: "SpineJS logo", src: "img/logo.svg" },
       items: [
-        { type: "docSidebar", sidebarId: "mainSidebar", position: "left", label: "Docs" },
+        {
+          type: "docSidebar",
+          sidebarId: "mainSidebar",
+          position: "left",
+          label: "Docs",
+        },
         {
           href: "https://github.com/dev-studio-ai/spine",
           label: "GitHub",
@@ -88,7 +94,9 @@ const config: Config = {
         },
         {
           title: "More",
-          items: [{ label: "GitHub", href: "https://github.com/dev-studio-ai/spine" }],
+          items: [
+            { label: "GitHub", href: "https://github.com/dev-studio-ai/spine" },
+          ],
         },
       ],
       copyright: `Copyright © ${new Date().getFullYear()} Dev Studio. Built with Docusaurus.`,

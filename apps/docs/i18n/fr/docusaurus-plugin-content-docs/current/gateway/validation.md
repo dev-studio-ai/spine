@@ -15,6 +15,7 @@ interface Validator {
 ```
 
 La méthode `validate` reçoit :
+
 - **`schema`** — tout objet doté d'une méthode `parse(input: unknown): T` (le type structurel `ParseableSchema<T>`).
 - **`input`** — l'entrée brute du transport (typiquement le second argument d'un appel invoke IPC).
 
@@ -35,8 +36,8 @@ Cette interface structurelle est satisfaite par toute bibliothèque de schéma q
 Voici l'implémentation `ZodValidator` de l'application Electron de référence :
 
 ```typescript
-import { ZodError } from 'zod';
-import { ParseableSchema, ValidationError, Validator } from '@spinejs/gateway';
+import { ZodError } from "zod";
+import { ParseableSchema, ValidationError, Validator } from "@spinejs/gateway";
 
 export class ZodValidator implements Validator {
   validate<T>(schema: ParseableSchema<T>, input: unknown): T {
@@ -45,8 +46,10 @@ export class ZodValidator implements Validator {
     } catch (err) {
       if (err instanceof ZodError) {
         const detail = err.issues
-          .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
-          .join('; ');
+          .map(
+            (issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`
+          )
+          .join("; ");
         throw new ValidationError(detail);
       }
       throw err;
@@ -62,19 +65,19 @@ Le contrat clé : `ZodError` est normalisée en `ValidationError`. Le pipeline d
 Le validateur est injecté dans la gateway via un factory provider dans le module de transport :
 
 ```typescript
-import { InjectionToken, Module } from '@spinejs/core';
-import { Validator } from '@spinejs/gateway';
-import { ElectronIpcGateway } from '@spinejs/electron-ipc-gateway';
-import { ZodValidator } from './zod.validator';
+import { InjectionToken, Module } from "@spinejs/core";
+import { Validator } from "@spinejs/gateway";
+import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
+import { ZodValidator } from "./zod.validator";
 
-const validatorToken = new InjectionToken<Validator>('validator');
+const validatorToken = new InjectionToken<Validator>("validator");
 
 @Module({
   providers: [
     { provide: validatorToken, factory: () => new ZodValidator() },
     {
       provide: ElectronIpcGateway,
-      inject: [validatorToken, /* errorMapper, contextFactory, logger */],
+      inject: [validatorToken /* errorMapper, contextFactory, logger */],
       factory: (validator, errorMapper, contextFactory, logger) =>
         new ElectronIpcGateway(validator, errorMapper, contextFactory, logger),
     },
@@ -89,11 +92,11 @@ export class ElectronIpcGatewayModule {}
 Passez un schéma à `@Handler({ input: schema })`. Le pipeline appelle `validator.validate(schema, rawInput)` avant d'invoquer le handler :
 
 ```typescript
-import { z } from 'zod';
-import { Controller, Handler } from '@spinejs/gateway';
+import { z } from "zod";
+import { Controller, Handler } from "@spinejs/gateway";
 
 const loginSchema = z.object({
-  email:    z.string().email(),
+  email: z.string().email(),
   password: z.string().min(8),
 });
 
@@ -101,7 +104,7 @@ type LoginInput = z.infer<typeof loginSchema>;
 
 @Controller()
 export class AuthController {
-  @Handler({ address: 'auth:login', input: loginSchema })
+  @Handler({ address: "auth:login", input: loginSchema })
   login(_ctx: ElectronIpcContext, input: LoginInput): Promise<AuthResult> {
     // `input` is already validated — email is a valid email, password has ≥8 chars.
     return this.authService.login(input.email, input.password);
@@ -129,10 +132,10 @@ C'est très bien pour les handlers qui ne prennent aucune entrée, ou quand vous
 `ValidationError` est ré-exportée depuis `@spinejs/gateway`. Importez-la dans votre implémentation de `Validator` et dans votre `ErrorMapper` :
 
 ```typescript
-import { ValidationError } from '@spinejs/gateway';
+import { ValidationError } from "@spinejs/gateway";
 
 // In ErrorMapper.toCode():
-if (err instanceof ValidationError) return 'INVALID_INPUT';
+if (err instanceof ValidationError) return "INVALID_INPUT";
 ```
 
 Le message porté par `ValidationError` n'est pas transmis au consommateur du transport (l'`ErrorMapper` ne retourne que la chaîne de code). Journalisez-le côté serveur si vous avez besoin du détail.

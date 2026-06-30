@@ -1,13 +1,29 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(git push *)",
-      "Bash(yarn format *)",
-      "Bash(yarn lint:all)",
+      "Bash(yarn *)",
+      "Bash(npx eslint *)",
       "Bash(npx nx *)",
-      "Bash(yarn format:write)"
+      "Bash(git rm *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(yarn workspace *)",
+      "Bash(python3 -c ' *)",
+      "Bash(gh pr *)",
+      "Bash(git rebase *)",
+      "Bash(cp .claude/settings.json /tmp/claude-1000/-home-fab-workspace-perso-dev-studio-spine/a0acb537-72af-4621-a3b6-462200c240f2/scratchpad/local-settings-backup.json)",
+      "Bash(rm .claude/settings.json)",
+      "Bash(rm -rf .claude && git rebase origin/main 2>&1 | tail -60)",
+      "Bash(yarn lint:all)",
+      "Bash(yarn typecheck:all)",
+      "Bash(yarn test:all)",
+      "Bash(yarn docs:build)",
+      "Bash(git push *)",
+      "Bash(yarn format:check)"
+    ],
+    "additionalDirectories": [
+      "/home/fab/workspace/perso/dev-studio/spine/.claude"
     ]
   }
 }
