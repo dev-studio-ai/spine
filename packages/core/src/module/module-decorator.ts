@@ -31,9 +31,13 @@ export type ModuleEntry = ModuleConstructor | DynamicModule | ModuleNode;
 
 /**
  * Declares a module: its constructor deps (`inject`), imports, providers and exports.
- * `inject` is typed by the generic `D`: the constraint on `C` forces the constructor to
- * accept exactly `ResolvedTuple<D>` (default `[]` → a no-arg constructor). A token of the
- * wrong type/order = compile error. The lifecycle is optional via `OnInit`/`OnStop`.
+ *
+ * `D` is the tuple type of the `inject` array you pass in (e.g. `[typeof appToken, typeof loggerToken]`).
+ * It's then fed into `ResolvedTuple<D>`, which maps each token to the type it resolves to, and that
+ * result becomes the required constructor signature. So `inject: [appToken, loggerToken]` forces the
+ * class constructor to be `(app: App, logger: Logger)` — same order, same types. Mismatch = compile
+ * error. No `inject` (default `D = []`) means a no-arg constructor. The lifecycle is optional via
+ * `OnInit`/`OnStop`.
  */
 export function Module<const D extends readonly Token[] = []>(
   meta: ModuleMetadata & { inject?: D } = {}

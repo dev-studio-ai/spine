@@ -14,6 +14,8 @@
   ],
   "scripts": {
     "docs:dev": "nx run docs:dev",
+    "docs:build": "yarn workspace @spinejs/docs build",
+    "docs:serve": "yarn workspace @spinejs/docs serve",
     "typecheck:all": "nx run-many -t typecheck --all",
     "test:all": "nx run-many -t test --all",
     "lint:all": "nx run-many -t lint --all",

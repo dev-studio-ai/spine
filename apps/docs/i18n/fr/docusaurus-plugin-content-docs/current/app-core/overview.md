@@ -75,7 +75,3 @@ Par défaut, `App` enregistre des écouteurs pour `SIGINT` et `SIGTERM` qui appe
 Les exceptions non rattrapées et les rejets de promesse non gérés sont aussi interceptés : l'erreur est journalisée, puis `app.exit(1)` est appelé.
 
 Lorsque l'application s'arrête (avec succès ou après une erreur), ces écouteurs sont retirés automatiquement pour éviter tout redéclenchement intempestif.
-
-:::tip Electron
-Dans un process principal Electron, passez `handleProcessExit: false`. Electron contrôle la sortie du process via `app.quit()` — avoir les deux mécanismes actifs provoque des courses d'arrêt double. Utilisez plutôt `ElectronModule` pour câbler le cycle de vie côté Electron.
-:::
