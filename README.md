@@ -67,6 +67,10 @@ export class PingModule {}
 
 Full docs live in [`apps/docs/`](apps/docs/) (Docusaurus). Architecture Decision Records are in [`docs/adr/`](docs/adr/).
 
+```bash
+yarn docs:dev
+```
+
 ## Development
 
 ```bash

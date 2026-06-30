@@ -17,13 +17,26 @@ const config: Config = {
 
   i18n: { defaultLocale: "en", locales: ["en"] },
 
+  themes: [
+    [
+      "@easyops-cn/docusaurus-search-local",
+      {
+        hashed: true,
+        docsRouteBasePath: "/docs",
+        indexBlog: false,
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
+
   presets: [
     [
       "classic",
       {
         docs: {
           sidebarPath: "./sidebars.ts",
-          routeBasePath: "/",
+          routeBasePath: "/docs",
+          editUrl: "https://github.com/dev-studio-ai/spine/tree/main/apps/docs/",
         },
         blog: false,
         theme: { customCss: "./src/css/custom.css" },
@@ -32,18 +45,16 @@ const config: Config = {
   ],
 
   themeConfig: {
+    image: "img/logo.svg",
     colorMode: { defaultMode: "dark", disableSwitch: false },
     navbar: {
       title: "SpineJS",
+      logo: { alt: "SpineJS logo", src: "img/logo.svg" },
       items: [
+        { type: "docSidebar", sidebarId: "mainSidebar", position: "left", label: "Docs" },
+        { to: "/docs/gateway/overview", label: "Gateway", position: "left" },
         {
-          type: "docSidebar",
-          sidebarId: "mainSidebar",
-          position: "left",
-          label: "Docs",
-        },
-        {
-          href: "https://github.com/dev-studio",
+          href: "https://github.com/dev-studio-ai/spine",
           label: "GitHub",
           position: "right",
         },
@@ -51,10 +62,33 @@ const config: Config = {
     },
     footer: {
       style: "dark",
-      copyright: `Copyright © ${new Date().getFullYear()} Dev Studio`,
+      links: [
+        {
+          title: "Docs",
+          items: [
+            { label: "Introduction", to: "/docs/intro" },
+            { label: "Core", to: "/docs/app-core/overview" },
+            { label: "Gateway", to: "/docs/gateway/overview" },
+          ],
+        },
+        {
+          title: "Packages",
+          items: [
+            { label: "Extensions", to: "/docs/extensions/config" },
+            { label: "Electron", to: "/docs/electron/electron-module" },
+            { label: "Transports", to: "/docs/transports/electron-ipc" },
+          ],
+        },
+        {
+          title: "More",
+          items: [{ label: "GitHub", href: "https://github.com/dev-studio-ai/spine" }],
+        },
+      ],
+      copyright: `Copyright © ${new Date().getFullYear()} Dev Studio. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.oneDark,
+      darkTheme: prismThemes.oneDark,
       additionalLanguages: ["typescript", "bash"],
     },
   } satisfies Preset.ThemeConfig,
