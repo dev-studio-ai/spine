@@ -176,6 +176,10 @@ Quand les deux sont présents, l'objet provider l'emporte (il est local au modul
 
 > **Transient dans un singleton :** un transient injecté dans un singleton est résolu **une seule fois**, à la construction du singleton — celui-ci capture cette instance pour sa durée de vie. « Transient » signifie une instance neuve par _résolution du token_, pas par accès depuis le porteur (comportement standard NestJS/Angular).
 
+Pour l'état par requête (utilisateur courant, identifiant de corrélation), SpineJS n'ajoute pas de
+portée DI « request » — utilisez plutôt [CLS](../extensions/cls.md), qui garde les services en
+singletons.
+
 ## `ResolvedTuple<D>`
 
 `ResolvedTuple<D>` est le type utilitaire qui mappe un tuple de tokens vers le tuple de leurs types résolus. Il alimente l'application au niveau des types dans `@Module` et `@Injectable` :
