@@ -9,9 +9,6 @@ injectable singleton `ClsService`. Use it to make request data (the authenticate
 id, the current tenant) available deep in a service graph **without threading a context object**
 through every method — and without the cost of a DI request scope (no per-request re-instantiation).
 
-See [ADR 0003](https://github.com/dev-studio-ai/spine/blob/main/docs/adr/0003-cls-request-context.md)
-for the rationale.
-
 ## Installation
 
 `ClsModule` is a standard SpineJS module. Import it wherever you inject `ClsService`:

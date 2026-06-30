@@ -10,9 +10,6 @@ authentifié, un identifiant de corrélation, le tenant courant) disponibles au 
 services **sans faire passer un objet de contexte** à travers chaque méthode — et sans le coût d'une
 portée DI « request » (pas de réinstanciation par requête).
 
-Voir [l'ADR 0003](https://github.com/dev-studio-ai/spine/blob/main/docs/adr/0003-cls-request-context.md)
-pour la justification.
-
 ## Installation
 
 `ClsModule` est un module SpineJS standard. Importez-le partout où vous injectez `ClsService` :

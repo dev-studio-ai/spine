@@ -107,7 +107,7 @@ export class App {
     if (this.stopped) return;
     this.stopped = true;
 
-    this.logger.debug("Application shutdown ...", App.name);
+    this.logger.debug("🥱 Application shutdown ...", App.name);
 
     // onStop hooks in reverse init order (dependents stop before their deps).
     for (const ref of [...this.loader.modules.values()].reverse()) {
@@ -116,7 +116,7 @@ export class App {
     // Release the process-level listeners installed at construction: the App is now terminal.
     this.detachProcessHandlers();
 
-    this.logger.info("⏹️ Application stopped", App.name);
+    this.logger.info("😴 Application stopped", App.name);
   }
 
   /** Clean exit: stops the app, lets the logger flush, then exits the process. */
