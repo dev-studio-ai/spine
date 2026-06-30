@@ -118,7 +118,7 @@ export class ChildModule {}
 
 ## `@Inject` decorator
 
-`@Inject` is the class-level decorator for declaring constructor dependencies without `reflect-metadata`. It is type-safe: the `D` generic ties each token's resolved type to the corresponding constructor parameter position.
+`@Inject` is the class-level decorator for declaring constructor dependencies without `reflect-metadata`. It is type-safe: TypeScript ties each token's resolved type to the corresponding constructor parameter position.
 
 ```typescript
 import { Inject, InjectionToken } from "@spinejs/core";

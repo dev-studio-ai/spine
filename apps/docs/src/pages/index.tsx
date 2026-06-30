@@ -72,8 +72,8 @@ const FEATURES: Feature[] = [
     ),
     body: (
       <Translate id="home.feature.longlived.body">
-        Background workers, CLI daemons, Electron mains, services — anything that
-        outgrows a flat index.ts.
+        Background workers, CLI daemons, Electron mains, warm serverless —
+        anything that outgrows a flat index.ts.
       </Translate>
     ),
   },

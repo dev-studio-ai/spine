@@ -24,14 +24,14 @@ export class DatabaseModule {}
 
 | Champ | Type | Description |
 |---|---|---|
-| `inject` | `Token[]` | Dépendances de constructeur de la classe du module elle-même. Typées par le générique `D` — un mauvais ordre ou type est une erreur de compilation. |
+| `inject` | `Token[]` | Dépendances de constructeur de la classe du module elle-même. TypeScript vérifie le tableau face aux types et à l'ordre des paramètres du constructeur — un écart est une erreur de compilation. |
 | `imports` | `ModuleEntry[]` | Autres modules dont les providers exportés deviennent disponibles dans ce module. |
 | `providers` | `ProviderEntry[]` | Providers (classes, factories, valeurs) locaux à ce module. |
 | `exports` | `Token[]` | Tokens rendus disponibles à tout module qui importe celui-ci. |
 
 ### Injection de constructeur typée
 
-Le générique `D` sur `@Module` lie le tableau `inject` à la signature du constructeur à la compilation :
+`@Module` ne type pas juste `inject` en `Token[]` — il infère le tuple exact que tu passes et l'utilise pour contraindre la signature du constructeur. Te tromper d'ordre ou de type empêche la compilation :
 
 ```typescript
 import { Module, InjectionToken } from '@spinejs/core';
@@ -39,7 +39,7 @@ import { Module, InjectionToken } from '@spinejs/core';
 const configToken = new InjectionToken<AppConfig>('app.config');
 
 @Module({
-  inject: [configToken],            // D = [InjectionToken<AppConfig>]
+  inject: [configToken],
   imports: [ConfigModule],
 })
 export class AppModule {

@@ -33,7 +33,7 @@
     "message": "Pensé pour Node au long cours"
   },
   "home.feature.longlived.body": {
-    "message": "Workers d'arrière-plan, démons CLI, process principaux Electron, services — tout ce qui dépasse un index.ts plat."
+    "message": "Workers d'arrière-plan, démons CLI, process principaux Electron, serverless à chaud — tout ce qui dépasse un index.ts plat."
   },
   "home.hero.tagline": {
     "message": "Modules, DI et cycle de vie pour les process Node au long cours."

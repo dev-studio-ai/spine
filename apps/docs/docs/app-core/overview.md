@@ -69,7 +69,3 @@ By default, `App` registers listeners for `SIGINT` and `SIGTERM` that call `app.
 Uncaught exceptions and unhandled promise rejections are also intercepted: the error is logged, then `app.exit(1)` is called.
 
 When the app stops (successfully or after an error), these listeners are removed automatically to prevent spurious re-triggering.
-
-:::tip Electron
-In an Electron main process, pass `handleProcessExit: false`. Electron controls process exit via `app.quit()` — both mechanisms active causes double-shutdown races. Use `ElectronModule` to wire the Electron-side lifecycle instead.
-:::
