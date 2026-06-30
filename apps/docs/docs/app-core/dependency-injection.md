@@ -4,7 +4,7 @@ sidebar_position: 3
 
 # Dependency Injection
 
-SpineJS includes a synchronous, cycle-detecting DI container. It resolves providers lazily on first request and caches the result — every token resolves to a singleton within a container scope.
+SpineJS includes a synchronous, cycle-detecting DI container. It resolves providers lazily on first request and caches the result — each token resolves according to its [scope](#provider-scopes) (`singleton` by default) within a container scope.
 
 ## `InjectionToken<T>`
 
@@ -151,6 +151,15 @@ export class UserRepository {
 }
 ```
 
+Under the hood, this type-safety is powered by `ResolvedTuple<D>`: a utility type that maps a tuple of tokens to the tuple of the types they resolve to.
+
+```typescript
+type D = [InjectionToken<Database>, InjectionToken<CacheService>];
+// ResolvedTuple<D> = [Database, CacheService]
+```
+
+Both `@Injectable` and `@Module` use `ResolvedTuple<D>` to constrain the decorated class's constructor to exactly that tuple — get the order or the types wrong and TypeScript rejects it at compile time, before the container ever runs. You rarely write `ResolvedTuple` yourself; it's inferred automatically from the `inject` array you pass in.
+
 Modules typically use the `inject` field on `@Module` instead of `@Injectable` directly:
 
 ```typescript
@@ -193,17 +202,6 @@ When both are set, the provider object wins (it is local to the registering modu
 
 For per-request state (current user, correlation id), SpineJS does not add a DI "request" scope —
 use [CLS](../extensions/cls.md) instead, which keeps services as singletons.
-
-## `ResolvedTuple<D>`
-
-`ResolvedTuple<D>` is the utility type that maps a tuple of tokens to the tuple of their resolved types. It powers the type-level enforcement in `@Module` and `@Injectable`:
-
-```typescript
-type D = [InjectionToken<Database>, InjectionToken<Logger>];
-// ResolvedTuple<D> = [Database, Logger]
-```
-
-You rarely need to reference this type directly; it is inferred automatically from the `inject` array you provide.
 
 ## Container resolution rules
 

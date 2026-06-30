@@ -1,5 +1,8 @@
 # SpineJS
 
+[![CI](https://github.com/dev-studio-ai/spine/actions/workflows/ci.yml/badge.svg)](https://github.com/dev-studio-ai/spine/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Lightweight, NestJS-flavored micro-framework for structuring Node processes.
 
 Brings the patterns you know from NestJS — modules, dependency injection, lifecycle hooks — without the weight of the full NestJS runtime or its HTTP-first assumptions.
@@ -81,3 +84,7 @@ yarn typecheck:all
 yarn test:all
 yarn lint:all
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, branch/PR conventions, and docs requirements.
