@@ -1,21 +1,10 @@
 // Mocks `electron` before anything below imports it transitively, so the real
 // `ElectronIpcGateway` binds its routes on a fake `ipcMain` (no Electron process needed).
-import { invokeIpc } from "@spinejs/electron-ipc-gateway/testing";
-import type { Logger } from "@spinejs/core";
+import { invokeIpc, silentLogger } from "@spinejs/electron-ipc-gateway/testing";
 
 import { App } from "@spinejs/core";
 import { createApp } from "./main";
 import type { WhoAmIResult } from "./whoami.controller";
-
-const silentLogger = {
-  info() {},
-  error() {},
-  warn() {},
-  debug() {},
-  verbose() {},
-  fatal() {},
-  exit: async () => {},
-} as unknown as Logger;
 
 describe("CLS request context over the electron IPC gateway", () => {
   let app: App;
