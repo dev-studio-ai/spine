@@ -17,7 +17,7 @@
   },
   "link.item.label.Core": {
     "message": "Core",
-    "description": "The label of footer link with label=Core linking to /docs/app-core/overview"
+    "description": "The label of footer link with label=Core linking to /docs/core/overview"
   },
   "link.item.label.Gateway": {
     "message": "Gateway",

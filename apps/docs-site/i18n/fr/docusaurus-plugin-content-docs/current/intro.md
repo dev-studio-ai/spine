@@ -59,7 +59,7 @@ Le guide [**Prise en main**](getting-started) vous mène d'un dossier vide à un
 | Section                              | Couvre                                                   |
 | ------------------------------------ | -------------------------------------------------------- |
 | [Prise en main](getting-started)     | Construire une API HTTP de bout en bout en cinq étapes   |
-| [SpineJS Core](app-core/overview)    | `App`, modules, DI, cycle de vie, logger intégré         |
+| [SpineJS Core](core/overview)        | `App`, modules, DI, cycle de vie, logger intégré         |
 | [Gateway](gateway/overview)          | Contrôleurs, handlers, guards, validation, intercepteurs |
 | [Extensions](extensions/config)      | Chargement de config typé, logger Winston                |
 | [Electron](electron/electron-module) | Intégration du cycle de vie Electron et transport IPC    |

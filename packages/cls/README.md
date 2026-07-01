@@ -52,4 +52,4 @@ new ClsInterceptor(cls, (ctx) => ({ userId: ctx.session.userId }));
 
 ## Full docs
 
-[apps/docs/docs/extensions/cls](../../apps/docs/docs/extensions/cls.md)
+[apps/docs-site/docs/extensions/cls](../../apps/docs-site/docs/extensions/cls.md)

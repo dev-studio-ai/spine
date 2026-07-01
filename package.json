@@ -12,12 +12,12 @@
     "packages/electron",
     "packages/electron-ipc-gateway",
     "packages/http-gateway",
-    "apps/docs"
+    "apps/docs-site"
   ],
   "scripts": {
-    "docs:dev": "nx run docs:dev",
-    "docs:build": "yarn workspace @spinejs/docs build",
-    "docs:serve": "yarn workspace @spinejs/docs serve",
+    "docs-site:dev": "nx run docs-site:dev",
+    "docs-site:build": "yarn workspace @spinejs/docs-site build",
+    "docs-site:serve": "yarn workspace @spinejs/docs-site serve",
     "typecheck:all": "nx run-many -t typecheck --all",
     "test:all": "nx run-many -t test --all",
     "lint:all": "nx run-many -t lint --all",

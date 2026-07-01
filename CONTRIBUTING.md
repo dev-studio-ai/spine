@@ -45,6 +45,6 @@ yarn format:write
 
 Any change to the framework's public interface (API, decorators, exported types, options) or any new feature must be reflected in the Docusaurus docs, in **both** English and French:
 
-- `apps/docs/docs/**/*.md` (EN)
-- `apps/docs/i18n/fr/docusaurus-plugin-content-docs/current/**/*.md` (FR)
-- `apps/docs/src/pages/index.tsx` and `apps/docs/i18n/fr/code.json` if the change affects the homepage
+- `apps/docs-site/docs/**/*.md` (EN)
+- `apps/docs-site/i18n/fr/docusaurus-plugin-content-docs/current/**/*.md` (FR)
+- `apps/docs-site/src/pages/index.tsx` and `apps/docs-site/i18n/fr/code.json` if the change affects the homepage

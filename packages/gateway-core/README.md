@@ -17,7 +17,7 @@ import { get, post } from "@spinejs/http-gateway";
 export class UsersController {
   constructor(private readonly users: UsersStore) {}
 
-  // input is inferred from the schema; the same controller works over HTTP or IPC.
+  // input is inferred from the route schema; return the plain value — the gateway envelopes it.
   list = get("/users", {}, () => this.users.list());
   create = post(
     "/users",
@@ -142,4 +142,4 @@ export class MyGateway<Ctx, Code extends string> {
 
 ## Full docs
 
-[apps/docs/docs/gateway/](../../apps/docs/docs/gateway/)
+[apps/docs-site/docs/gateway/](../../apps/docs-site/docs/gateway/)

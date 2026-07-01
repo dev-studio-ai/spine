@@ -71,4 +71,4 @@ const logger = new WinstonLogger({
 
 ## Full docs
 
-[apps/docs/docs/extensions/winston-logger](../../apps/docs/docs/extensions/winston-logger.md)
+[apps/docs-site/docs/extensions/winston-logger](../../apps/docs-site/docs/extensions/winston-logger.md)

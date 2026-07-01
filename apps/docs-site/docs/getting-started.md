@@ -187,15 +187,15 @@ curl -X POST localhost:3000/users -H 'content-type: application/json' -d '{"name
 
 | Piece                  | What it did                                                   | Learn more                                             |
 | ---------------------- | ------------------------------------------------------------- | ------------------------------------------------------ |
-| `App` + lifecycle      | Built the module graph and ran `init → start → stop`          | [Lifecycle](app-core/lifecycle)                        |
-| `@Module` / imports    | Composed the transport and feature modules                    | [Modules](app-core/modules)                            |
+| `App` + lifecycle      | Built the module graph and ran `init → start → stop`          | [Lifecycle](core/lifecycle)                            |
+| `@Module` / imports    | Composed the transport and feature modules                    | [Modules](core/modules)                                |
 | `@Controller` + routes | Declared handlers as typed fields                             | [Controllers and Routes](gateway/controllers-handlers) |
 | `get`/`post` + schemas | Typed and validated `input`                                   | [Validation](gateway/validation)                       |
-| `@Injectable` / DI     | Constructed `UserService` and injected it into the controller | [Dependency Injection](app-core/dependency-injection)  |
+| `@Injectable` / DI     | Constructed `UserService` and injected it into the controller | [Dependency Injection](core/dependency-injection)      |
 
 ## Next steps
 
 - Add **auth** with a [Guard](gateway/guards).
 - Add cross-cutting logging/metrics with an [Interceptor](gateway/interceptors).
 - Understand the request pipeline in the [Gateway overview](gateway/overview).
-- Serve the same controllers over Electron IPC — see [Electron IPC Transport](transports/electron-ipc). The controller code does not change.
+- Reuse the same **services and guards** over Electron IPC — see [Electron IPC Transport](transports/electron-ipc). Routes are re-declared in the IPC vocabulary (`handle("channel", …)` instead of `get`/`post`).

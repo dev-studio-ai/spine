@@ -64,7 +64,7 @@ export class UserController {
 }
 ```
 
-The same controllers run unchanged over Electron IPC — swap `@spinejs/http-gateway` for `@spinejs/electron-ipc-gateway`. See the [**Getting Started**](https://dev-studio-ai.github.io/spine/docs/getting-started) guide for the full walkthrough (service, feature module, and `curl`).
+The same **services, guards, and feature-module wiring** carry over to Electron IPC — you re-declare the routes with `handle("channel", …)` from `@spinejs/electron-ipc-gateway` instead of the HTTP `get`/`post` path routes. See the [**Getting Started**](https://dev-studio-ai.github.io/spine/docs/getting-started) guide for the full walkthrough (service, feature module, and `curl`).
 
 ## Why SpineJS?
 
@@ -93,7 +93,7 @@ SpineJS answers the same architectural questions at a fraction of the weight:
 
 Full docs are published at **[dev-studio-ai.github.io/spine](https://dev-studio-ai.github.io/spine/)**.
 
-Source lives in [`apps/docs/`](apps/docs/) (Docusaurus). Architecture Decision Records are in [`docs/adr/`](docs/adr/).
+Source lives in [`apps/docs-site/`](apps/docs-site/) (Docusaurus). Architecture Decision Records are in [`docs/adr/`](docs/adr/).
 
 ```bash
 yarn docs:dev

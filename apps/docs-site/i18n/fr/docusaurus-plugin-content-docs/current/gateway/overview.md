@@ -15,7 +15,7 @@ Vous écrivez de simples controllers avec des champs de route typés — aucun d
 export class UsersController {
   constructor(private readonly users: UsersStore) {}
 
-  // Le même controller fonctionne en HTTP ou en IPC, sans changement.
+  // Champ de route — get/post HTTP ici ; en IPC on déclare la même logique avec handle("channel", …).
   list = get("/users", {}, () => this.users.list());
 }
 ```
@@ -101,7 +101,7 @@ class HttpGateway<Ctx, Code> {
 }
 ```
 
-Chaque transport gère l'extraction d'adresse, la construction du contexte et l'émission de l'enveloppe ; seul `dispatch()` est partagé. Cela signifie que le même code `@Controller` à routes en champ peut servir un transport IPC dans une application Electron et un transport HTTP, sans aucune modification du contrôleur.
+Chaque transport gère l'extraction d'adresse, la construction du contexte et l'émission de l'enveloppe ; seul `dispatch()` est partagé. Les **services, guards et la structure** d'un controller se réutilisent tels quels d'un transport à l'autre — mais ses **routes sont spécifiques au transport** : HTTP utilise `get`/`post` par chemin avec une entrée `{ params, query, body }`, tandis que l'IPC Electron utilise `handle` par canal avec un payload unique. Vous redéclarez les routes dans le vocabulaire du transport cible ; la logique métier qu'elles appellent ne change pas.
 
 ## Ports
 

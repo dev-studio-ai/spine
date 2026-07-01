@@ -185,17 +185,17 @@ curl -X POST localhost:3000/users -H 'content-type: application/json' -d '{"name
 
 ## Ce que vous venez d'utiliser
 
-| Élément                | Ce qu'il a fait                                                   | En savoir plus                                            |
-| ---------------------- | ----------------------------------------------------------------- | --------------------------------------------------------- |
-| `App` + lifecycle      | A construit le graphe de modules et exécuté `init → start → stop` | [Cycle de vie](app-core/lifecycle)                        |
-| `@Module` / imports    | A composé le transport et les feature-modules                     | [Modules](app-core/modules)                               |
-| `@Controller` + routes | A déclaré les handlers comme champs typés                         | [Controllers et Routes](gateway/controllers-handlers)     |
-| `get`/`post` + schémas | A typé et validé l'`input`                                        | [Validation](gateway/validation)                          |
-| `@Injectable` / DI     | A construit `UserService` et l'a injecté dans le controller       | [Injection de dépendances](app-core/dependency-injection) |
+| Élément                | Ce qu'il a fait                                                   | En savoir plus                                        |
+| ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| `App` + lifecycle      | A construit le graphe de modules et exécuté `init → start → stop` | [Cycle de vie](core/lifecycle)                        |
+| `@Module` / imports    | A composé le transport et les feature-modules                     | [Modules](core/modules)                               |
+| `@Controller` + routes | A déclaré les handlers comme champs typés                         | [Controllers et Routes](gateway/controllers-handlers) |
+| `get`/`post` + schémas | A typé et validé l'`input`                                        | [Validation](gateway/validation)                      |
+| `@Injectable` / DI     | A construit `UserService` et l'a injecté dans le controller       | [Injection de dépendances](core/dependency-injection) |
 
 ## Étapes suivantes
 
 - Ajoutez de l'**auth** avec un [Guard](gateway/guards).
 - Ajoutez logging/métriques transverses avec un [Interceptor](gateway/interceptors).
 - Comprenez le pipeline de requête dans l'[aperçu Gateway](gateway/overview).
-- Servez les mêmes controllers en IPC Electron — voir [Transport IPC Electron](transports/electron-ipc). Le code du controller ne change pas.
+- Réutilisez les mêmes **services et guards** en IPC Electron — voir [Transport IPC Electron](transports/electron-ipc). Les routes sont redéclarées dans le vocabulaire IPC (`handle("channel", …)` au lieu de `get`/`post`).
