@@ -120,6 +120,20 @@ export class DatabaseModule implements OnInit, OnStop {
 
 It is re-entrant safe: a duplicate call (e.g. from a second signal) is ignored after the first has started.
 
+### Shutdown timeout (force exit)
+
+Because SpineJS intercepts `SIGINT`/`SIGTERM` and owns the call to `process.exit()`, it also guarantees the process actually terminates. A hung `onStop()` (a dangling connection, a stuck flush) must not keep the process alive forever — otherwise it would defeat the orchestrator's own kill window.
+
+`exit()` arms a hard-kill timer over the whole shutdown sequence: if `stop()` plus the logger flush do not complete within `shutdownTimeout` (default `5000` ms), the process is force-exited. The clean path clears the timer before its own `process.exit()`.
+
+```typescript
+const app = new App([AppModule], {
+  shutdownTimeout: 3000, // force exit after 3s; 0 disables (wait indefinitely)
+});
+```
+
+Keep `shutdownTimeout` below your orchestrator's grace period (e.g. Docker's default 10s before `SIGKILL`) so the framework's force-exit fires first.
+
 ```typescript
 // Graceful shutdown from application logic:
 const app = new App([AppModule]);
@@ -153,7 +167,9 @@ app.stop()  [idempotent]
   └─ detach process listeners
 
 app.exit(code)  [re-entrant-safe]
+  └─ arm hard-kill timer (shutdownTimeout) ── on timeout ─→ process.exit(code)
   └─ stop()
   └─ logger.exit()
+  └─ clear hard-kill timer
   └─ process.exit(code)
 ```

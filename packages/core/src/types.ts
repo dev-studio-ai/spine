@@ -20,4 +20,9 @@ export interface AppOptions {
   logger?: Logger;
   loggerOptions?: LoggerOptions;
   timeZone?: string;
+  /**
+   * Max time (ms) given to `onStop()` hooks before `exit()` gives up waiting and force-exits
+   * the process. Default `5000`. Set to `0` to wait indefinitely.
+   */
+  shutdownTimeout?: number;
 }
