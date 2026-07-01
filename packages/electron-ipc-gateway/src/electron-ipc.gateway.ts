@@ -29,16 +29,20 @@ export class ElectronIpcGateway<
   Ctx extends ElectronIpcBaseContext = ElectronIpcBaseContext,
   Code extends string = string
 > {
-  private readonly pipeline: DispatchPipeline<Ctx, Code>;
+  private readonly pipeline: DispatchPipeline<Ctx, Code, IpcRoute<Ctx>>;
 
   constructor(
     validator: Validator,
     errorMapper: ErrorMapper<Code>,
     private readonly contextFactory: ContextFactory<ElectronIpcRaw, Ctx>,
     private readonly logger: Logger,
-    interceptors: GatewayInterceptor<Ctx, Code>[] = []
+    interceptors: GatewayInterceptor<Ctx, Code, IpcRoute<Ctx>>[] = []
   ) {
-    this.pipeline = new DispatchPipeline(validator, errorMapper, interceptors);
+    this.pipeline = new DispatchPipeline<Ctx, Code, IpcRoute<Ctx>>(
+      validator,
+      errorMapper,
+      interceptors
+    );
   }
 
   /** Mounts pre-resolved IPC routes on `ipcMain`. Called by the feature module. */
