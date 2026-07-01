@@ -5,15 +5,15 @@ import {
   loggerToken,
   Module,
   ModuleEntry,
-  Provider,
-  ProviderConstructor,
 } from "@spinejs/core";
+import { toProvider } from "@spinejs/gateway-core";
 import type {
   ContextFactory,
   ErrorMapper,
   GatewayInterceptor,
+  ProviderAdapter,
   Validator,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 import { ElectronIpcGateway } from "./electron-ipc.gateway";
 import { ZodValidator } from "./zod.validator";
 import { DefaultErrorMapper } from "./default-error.mapper";
@@ -34,24 +34,6 @@ const contextFactoryToken = new InjectionToken<
 const interceptorsToken = new InjectionToken<GatewayInterceptor[]>(
   "electron-ipc-gateway.interceptors"
 );
-
-type FactoryAdapter<T> = {
-  inject?: (InjectionToken | ProviderConstructor)[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  factory: (...args: any[]) => T;
-};
-type ValueAdapter<T> = { value: T };
-type Adapter<T> = FactoryAdapter<T> | ValueAdapter<T>;
-
-function toProvider<T>(
-  provide: InjectionToken<T>,
-  adapter: Adapter<T>
-): Provider<T> {
-  if ("value" in adapter) {
-    return { provide, value: adapter.value };
-  }
-  return { provide, inject: adapter.inject, factory: adapter.factory };
-}
 
 /**
  * Gateway transport module for the Electron IPC binding. The base `@Module` registers the
@@ -100,12 +82,12 @@ export class ElectronIpcGatewayModule {
    */
   static configure(options: {
     imports: ModuleEntry[];
-    contextFactory: Adapter<
+    contextFactory: ProviderAdapter<
       ContextFactory<ElectronIpcRaw, ElectronIpcBaseContext>
     >;
-    errorMapper?: Adapter<ErrorMapper<string>>;
-    validator?: Adapter<Validator>;
-    interceptors?: Adapter<GatewayInterceptor[]>;
+    errorMapper?: ProviderAdapter<ErrorMapper<string>>;
+    validator?: ProviderAdapter<Validator>;
+    interceptors?: ProviderAdapter<GatewayInterceptor[]>;
   }): DynamicModule {
     return {
       module: ElectronIpcGatewayModule,

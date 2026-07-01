@@ -14,7 +14,7 @@ the rationale.
 - The singleton `AuditService` reads `dispatchContext.get("user")` — no `ctx` parameter — and still
   sees the right user per request, even under concurrency, because `AsyncLocalStorage` isolates by
   async context, not by instance.
-- `@spinejs/core` and `@spinejs/gateway` are untouched: the scope rides the gateway's existing
+- `@spinejs/core` and `@spinejs/gateway-core` are untouched: the scope rides the gateway's existing
   interceptor hook.
 
 ## Run

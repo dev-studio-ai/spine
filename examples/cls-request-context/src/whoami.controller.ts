@@ -1,7 +1,6 @@
-import { Injectable } from "@spinejs/core";
-import { Controller, Handler } from "@spinejs/gateway";
+import { Controller } from "@spinejs/gateway-core";
+import { handle } from "@spinejs/electron-ipc-gateway";
 import { AuditService } from "./audit.service";
-import type { AppContext } from "./app-context";
 
 /** Shape returned by the `whoami` handler. */
 export interface WhoAmIResult {
@@ -14,14 +13,12 @@ export interface WhoAmIResult {
  * `AuditService`, which reads the per-request user from CLS. The `await` forces interleaving so the
  * test exercises concurrent scopes.
  */
-@Controller()
-@Injectable({ inject: [AuditService] })
+@Controller({ inject: [AuditService] })
 export class WhoAmIController {
   constructor(private readonly audit: AuditService) {}
 
-  @Handler({ address: "whoami" })
-  async whoami(_ctx: AppContext): Promise<WhoAmIResult> {
+  whoami = handle("whoami", {}, async (): Promise<WhoAmIResult> => {
     await new Promise((r) => setTimeout(r, 5));
     return { user: this.audit.currentUser(), reqId: this.audit.currentReqId() };
-  }
+  });
 }

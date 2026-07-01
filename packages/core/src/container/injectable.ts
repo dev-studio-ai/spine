@@ -38,7 +38,7 @@ export type ResolvedTuple<D extends readonly Token[]> = {
  * constructor declaring a precise `T<Concrete>` must be accepted — hence we check
  * `params ⊆ resolved`, not the reverse.
  */
-type CtorDepsMatch<
+export type CtorDepsMatch<
   C extends new (...args: never[]) => unknown,
   D extends readonly Token[]
 > = ConstructorParameters<C> extends ResolvedTuple<D> ? unknown : never;

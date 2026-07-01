@@ -1,8 +1,4 @@
-import type {
-  Envelope,
-  GatewayContext,
-  RouteDescriptor,
-} from "./gateway.types";
+import type { DispatchTarget, Envelope, GatewayContext } from "./gateway.types";
 import type { ParseableSchema } from "./gateway.types";
 
 /**
@@ -32,8 +28,14 @@ export interface ErrorMapper<Code extends string = string> {
  * Cross-cutting concern injected around every `dispatch()` call. Interceptors wrap the
  * pipeline in registration order — the first registered interceptor is the outermost wrapper.
  *
+ * `Target` defaults to the transport-agnostic `DispatchTarget` (guards + input + invoke), so a
+ * portable interceptor (e.g. `ClsInterceptor`, which only touches `ctx`) stays cross-transport. A
+ * transport-specific interceptor that needs the route's `address`/`meta` narrows `Target` to its
+ * own `LoadedRoute<Ctx, Addr>` — method-parameter bivariance keeps it assignable wherever a plain
+ * `GatewayInterceptor` is expected.
+ *
  * @example
- * class LoggingInterceptor implements GatewayInterceptor {
+ * class LoggingInterceptor implements GatewayInterceptor<Ctx, string, LoadedRoute<Ctx, string>> {
  *   async intercept(route, ctx, rawInput, next) {
  *     console.log('→', route.address);
  *     const envelope = await next();
@@ -44,10 +46,11 @@ export interface ErrorMapper<Code extends string = string> {
  */
 export interface GatewayInterceptor<
   Ctx extends GatewayContext = GatewayContext,
-  Code extends string = string
+  Code extends string = string,
+  Target extends DispatchTarget<Ctx> = DispatchTarget<Ctx>
 > {
   intercept(
-    route: RouteDescriptor<Ctx>,
+    target: Target,
     ctx: Ctx,
     rawInput: unknown,
     next: () => Promise<Envelope<unknown, Code>>

@@ -4,20 +4,28 @@ sidebar_position: 4
 
 # Interceptors
 
-Interceptors wrap the `dispatch()` pipeline and are the canonical place for cross-cutting concerns: logging, metrics, tracing, auditing, and response transformation.
+Interceptors wrap the `dispatch()` pipeline and are the canonical place for cross-cutting concerns: logging, metrics, tracing, auditing, and response transformation. You write an object with an `intercept()` method that calls `next()`, then register it through the transport module's `configure({ interceptors })`. Reach for one whenever logic should run around **every** route rather than inside one.
 
-## `GatewayInterceptor<Ctx, Code>`
+## Writing an interceptor
 
-An interceptor is any object that implements the `GatewayInterceptor` interface:
+An interceptor is any object that implements the `GatewayInterceptor` interface. It receives the dispatch target, the context, the raw input, and a `next()` that runs the rest of the chain — do your work before and/or after calling it:
 
 ```typescript
-import type { Envelope, RouteDescriptor } from "@spinejs/gateway";
-import { GatewayInterceptor } from "@spinejs/gateway";
+import type {
+  Envelope,
+  GatewayContext,
+  LoadedRoute,
+} from "@spinejs/gateway-core";
+import { GatewayInterceptor } from "@spinejs/gateway-core";
 
-class LoggingInterceptor implements GatewayInterceptor {
+// A portable interceptor that only touches `ctx` can implement `GatewayInterceptor` with the default
+// target. One that reads the route's `address`/`meta` narrows the target to `LoadedRoute`:
+class LoggingInterceptor
+  implements GatewayInterceptor<GatewayContext, string, LoadedRoute>
+{
   async intercept(
-    route: RouteDescriptor,
-    ctx: unknown,
+    route: LoadedRoute,
+    ctx: GatewayContext,
     rawInput: unknown,
     next: () => Promise<Envelope<unknown>>
   ): Promise<Envelope<unknown>> {
@@ -32,6 +40,8 @@ class LoggingInterceptor implements GatewayInterceptor {
   }
 }
 ```
+
+The interceptor's first argument is the dispatch **target**. It defaults to the transport-agnostic `DispatchTarget` (guards + input + invoke); narrow it to `LoadedRoute<Ctx, Addr>` when you need the route's `address` or `meta`, as above.
 
 `next()` delegates to the next interceptor in the chain, or — if this is the last one — to the core pipeline (guards → validate → invoke). Always return the result of `next()` (or a replacement envelope) so the chain completes.
 
@@ -92,16 +102,19 @@ Interceptors can inject any service and perform arbitrary async work before and 
 import {
   GatewayInterceptor,
   Envelope,
-  RouteDescriptor,
-} from "@spinejs/gateway";
+  GatewayContext,
+  LoadedRoute,
+} from "@spinejs/gateway-core";
 import { MetricsService } from "../metrics";
 
-export class MetricsInterceptor implements GatewayInterceptor {
+export class MetricsInterceptor
+  implements GatewayInterceptor<GatewayContext, string, LoadedRoute>
+{
   constructor(private readonly metrics: MetricsService) {}
 
   async intercept(
-    route: RouteDescriptor,
-    ctx: unknown,
+    route: LoadedRoute,
+    ctx: GatewayContext,
     rawInput: unknown,
     next: () => Promise<Envelope<unknown>>
   ): Promise<Envelope<unknown>> {

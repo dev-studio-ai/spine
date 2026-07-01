@@ -19,8 +19,9 @@ const FEATURES: Feature[] = [
     ),
     body: (
       <Translate id="home.feature.noReflect.body">
-        Decorators store metadata as plain own-property symbols. Safe under
-        esbuild/swc with no global polyfill and no surprise runtime weight.
+        Decorators store metadata as plain own-property symbols. No
+        experimentalDecorators flag — plain esbuild/swc builds work, with no
+        global polyfill and no surprise runtime weight.
       </Translate>
     ),
   },
@@ -111,7 +112,7 @@ function Hero(): ReactNode {
           <h1 className={styles.heroTitle}>{siteConfig.title}</h1>
           <p className={styles.heroTagline}>
             <Translate id="home.hero.tagline">
-              Modules, DI, and lifecycle for long-lived Node processes.
+              Modules, DI, and lifecycle for Node processes.
             </Translate>
           </p>
           <div className={styles.heroButtons}>
@@ -159,12 +160,12 @@ export default function Home(): ReactNode {
     <Layout
       title={translate({
         id: "home.meta.title",
-        message: "SpineJS — Modules, DI, and lifecycle for long-lived Node",
+        message: "SpineJS — Modules, DI, and lifecycle for Node",
       })}
       description={translate({
         id: "home.meta.description",
         message:
-          "Modules, dependency injection, and lifecycle for long-lived Node processes.",
+          "Modules, dependency injection, and lifecycle for Node processes.",
       })}
     >
       <Hero />

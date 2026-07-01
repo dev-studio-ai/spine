@@ -1,7 +1,7 @@
 import {
   gatewayFeatureFactory,
   gatewayModuleDecorator,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 import { ElectronIpcGateway } from "./electron-ipc.gateway";
 import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 

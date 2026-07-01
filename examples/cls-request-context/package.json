@@ -6,7 +6,7 @@
   "types": "src/main.ts",
   "dependencies": {
     "@spinejs/core": "workspace:*",
-    "@spinejs/gateway": "workspace:*",
+    "@spinejs/gateway-core": "workspace:*",
     "@spinejs/electron-ipc-gateway": "workspace:*",
     "@spinejs/cls": "workspace:*"
   }

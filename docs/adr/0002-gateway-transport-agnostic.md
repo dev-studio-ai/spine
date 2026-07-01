@@ -1,9 +1,18 @@
-# ADR 0002 — Transport-agnostic gateway: `@spinejs/gateway` + `@spinejs/electron-ipc-gateway`
+# ADR 0002 — Transport-agnostic gateway: `@spinejs/gateway-core` + `@spinejs/electron-ipc-gateway`
 
-- **Status**: Accepted
+- **Status**: Accepted — **partially superseded** (see note below)
 - **Date**: 2026-06-29
 - **Scope**: `packages/gateway`, `packages/electron-ipc-gateway`, `packages/electron`
-- **Relation**: builds on the module/DI model defined in `packages/core`.
+- **Relation**: builds on the module/DI model defined in `packages/core`. Its route-declaration surface (`@Handler` methods) is superseded by [ADR 0004](./0004-field-form-routes.md); its **inheritance mechanism** (the abstract `Gateway` base class transports `extend`) is superseded by [ADR 0005](./0005-gateway-composition-http-transport.md).
+
+:::note Superseded parts
+The 3-layer split, DI-injectable guards and the ports (`Validator`/`ContextFactory`/`ErrorMapper`) below still hold. Two things changed since:
+
+- **Route declaration**: `@Controller` + `@Handler` **methods** → `@Controller` + field routes built by framework-level helpers (`get`/`post`/… for HTTP, `handle` for IPC), with `ctx` typed via a `declare module` context registry. `@Handler` is removed. See ADR 0004.
+- **Pipeline mechanism**: the abstract `Gateway<Ctx, Code>` base transports `extend` (implementing `bind()`) → a composable `DispatchPipeline` helper each transport **holds**. `RouteDescriptor` → `DispatchTarget`/`LoadedRoute`. See ADR 0005.
+
+Read the mentions of "abstract `Gateway` class", "`extends Gateway`", "`bind()`" and "`RouteDescriptor`" below as historical.
+:::
 
 ## Context
 
@@ -83,7 +92,7 @@ to test the pipeline without launching an Electron process.
 - **Positive**: the pipeline is testable via a mock transport (no `electron` import required in the
   core's unit tests).
 - **Positive**: reusable — a second transport (HTTP, WebSocket) extends `Gateway` without touching
-  either `@spinejs/gateway` or the existing controllers.
+  either `@spinejs/gateway-core` or the existing controllers.
 - **Positive**: guards are composable, DI-injectable, and isolated from the transport.
 - **Positive**: clean separation of concerns — the transport only knows the raw event; the
   `ContextFactory` is the single point of contact with the session.

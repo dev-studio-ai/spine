@@ -1,69 +1,76 @@
 # @spinejs/electron-ipc-gateway
 
-Electron IPC transport binding for `@spinejs/gateway`. Binds each `@Handler({ address })` to an `ipcMain.handle(address, …)` channel.
+Electron IPC transport for `@spinejs/gateway-core`. Each `handle(channel, …)` route becomes an `ipcMain.handle(channel, …)` listener. It **composes** the pipeline (it does not extend a base class).
 
-## What it provides
+## Quick start
 
-- **`ElectronIpcGateway`** — extends `Gateway`, implements `bind()` via `ipcMain.handle`.
-- **`ZodValidator`** — `Validator` implementation backed by Zod (used by default).
-- **`ElectronIpcBaseContext`** / **`ElectronIpcRaw`** — base types for context and raw call data.
-- **`gatewayFeatureFactory`** / **`gatewayModuleDecorator`** helpers pre-bound to `ElectronIpcGateway` (via `electron-ipc-module.ts` convention — see below).
-
-## Setup
-
-### 1. Create the gateway module
-
-Wire the three ports for your application:
+Register your context once, write a controller, register it.
 
 ```typescript
-import { Module, InjectionToken, loggerToken, Logger } from "@spinejs/core";
-import { ContextFactory, ErrorMapper, Validator } from "@spinejs/gateway";
-import {
-  ElectronIpcGateway,
-  ElectronIpcRaw,
-} from "@spinejs/electron-ipc-gateway";
+// electron-ipc.types.ts — register your context ONCE as the default `ctx` of every route
+import type { ElectronIpcBaseContext } from "@spinejs/electron-ipc-gateway";
 
-const validatorToken = new InjectionToken<Validator>("validator");
-const errorMapperToken = new InjectionToken<ErrorMapper<ErrorCode>>(
-  "error-mapper"
-);
-const contextFactoryToken = new InjectionToken<
-  ContextFactory<ElectronIpcRaw, AppContext>
->("context-factory");
+export interface ElectronIpcContext extends ElectronIpcBaseContext {
+  session: { userId: string };
+}
 
-@Module({
-  imports: [SessionModule],
-  providers: [
-    { provide: validatorToken, factory: () => new ZodValidator() },
-    { provide: errorMapperToken, factory: () => new AppErrorMapper() },
-    {
-      provide: contextFactoryToken,
-      inject: [SessionStore],
-      factory: (session: SessionStore) => new SessionContextFactory(session),
-    },
-    {
-      provide: ElectronIpcGateway,
-      inject: [
-        validatorToken,
-        errorMapperToken,
-        contextFactoryToken,
-        loggerToken,
-      ],
-      factory: (v, e, c, l: Logger) => new ElectronIpcGateway(v, e, c, l),
-    },
-  ],
-  exports: [ElectronIpcGateway],
-})
-export class ElectronIpcGatewayModule {}
+declare module "@spinejs/electron-ipc-gateway" {
+  interface IpcContextRegistry {
+    context: ElectronIpcContext;
+  }
+}
 ```
 
-### 2. Create the IPC helpers
+```typescript
+// projects.controller.ts
+import { z } from "zod";
+import { Controller, UseGuards } from "@spinejs/gateway-core";
+import { handle } from "@spinejs/electron-ipc-gateway";
+import { SessionGuard } from "./session.guard";
+
+@UseGuards(SessionGuard)
+@Controller({ inject: [ProjectsService] })
+export class ProjectsController {
+  constructor(private readonly projects: ProjectsService) {}
+
+  list = handle("projects:list", {}, (_input, ctx) =>
+    this.projects.findAll(ctx.session.userId)
+  );
+  create = handle(
+    "projects:create",
+    { input: z.object({ name: z.string().min(1) }) },
+    (input, ctx) => this.projects.create(ctx.session.userId, input.name)
+  );
+}
+```
 
 ```typescript
+// projects.ipc.module.ts
+import { IpcModule } from "./electron-ipc-module";
+import { ProjectsController } from "./projects.controller";
+
+@IpcModule({ controllers: [ProjectsController] })
+export class ProjectsIpcModule {}
+```
+
+On the renderer, discriminate on the envelope:
+
+```typescript
+const res = await ipcRenderer.invoke("projects:list");
+if (res.ok) console.log(res.data);
+else console.error(res.code); // 'UNAUTHORIZED', 'SERVER', …
+```
+
+## Wiring the transport module
+
+`ElectronIpcGatewayModule` wires the three ports and produces the gateway. Build it once per app; it defaults to `ZodValidator`. Then bind the feature helpers:
+
+```typescript
+// electron-ipc-module.ts
 import {
   gatewayFeatureFactory,
   gatewayModuleDecorator,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
 import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 
@@ -77,55 +84,27 @@ export const IpcModule = gatewayModuleDecorator(
 );
 ```
 
-### 3. Write controllers
-
-```typescript
-import { Controller, Handler, UseGuards } from "@spinejs/gateway";
-import { IpcModule } from "./infrastructure/electron-ipc-module";
-import { SessionGuard } from "./infrastructure/session.guard";
-
-@UseGuards(SessionGuard)
-@Controller()
-export class ProjectsController {
-  @Handler({ address: "projects:list" })
-  list(ctx: AppContext): Project[] {
-    /* … */
-  }
-
-  @Handler({ address: "projects:create", input: CreateProjectSchema })
-  create(ctx: AppContext, input: CreateProject): Project {
-    /* … */
-  }
-}
-
-@IpcModule({ controllers: [ProjectsController] })
-export class ProjectsIpcModule {}
-```
-
 ## Implementing the ports
 
-### `ContextFactory`
-
 ```typescript
+// ContextFactory — enrich the context
 export class SessionContextFactory
-  implements ContextFactory<ElectronIpcRaw, AppContext>
+  implements ContextFactory<ElectronIpcRaw, ElectronIpcContext>
 {
   constructor(private readonly sessionStore: SessionStore) {}
-
-  create(raw: ElectronIpcRaw): AppContext {
+  create(raw: ElectronIpcRaw): ElectronIpcContext {
     return { event: raw.event, session: this.sessionStore.current() };
   }
 }
 ```
 
-### `ErrorMapper`
-
 ```typescript
+// ErrorMapper — no raw message ever reaches the renderer
 import {
   ErrorMapper,
   UnauthorizedError,
   ValidationError,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 
 type ErrorCode = "UNAUTHORIZED" | "INVALID_INPUT" | "NOT_FOUND" | "SERVER";
 
@@ -139,12 +118,10 @@ export class AppErrorMapper implements ErrorMapper<ErrorCode> {
 }
 ```
 
-## Raw input convention
+## Reference
 
-`ipcRenderer.invoke(channel, arg)` → `arg` passed as `rawInput`.  
-`ipcRenderer.invoke(channel, a, b)` → `[a, b]` passed as `rawInput`.
-
-Prefer a single object argument per call to keep schemas simple.
+- Exports: `ElectronIpcGateway`, `ElectronIpcGatewayModule`, the route helper `handle` (and the deprecated `ipcRoutes` factory), `ipcFeature`, `IpcModule`, `IpcLoggingInterceptor`, `ZodValidator`, `DefaultErrorMapper`, and the `ElectronIpcBaseContext` / `ElectronIpcRaw` / `IpcContextRegistry` / `DefaultCtx` types.
+- **Raw input:** `ipcRenderer.invoke(channel, arg)` → `arg` as `rawInput`; multiple args → `[a, b]`. Prefer a single object argument per call.
 
 ## Full docs
 

@@ -7,6 +7,7 @@ export {
   InjectionToken,
   Injectable,
   InjectableOptions,
+  CtorDepsMatch,
   getInjectedDeps,
   getProviderScope,
   ResolvedTuple,
@@ -14,6 +15,9 @@ export {
   ProviderConstructor,
   ProviderFactory,
   ProviderScope,
+  FactoryProvider,
+  ValueProvider,
+  Token,
 } from "./container";
 export {
   Module,

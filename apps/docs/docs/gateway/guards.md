@@ -4,9 +4,30 @@ sidebar_position: 3
 
 # Guards
 
-Guards decide whether an incoming message may proceed to the handler. They implement the `Guard<Ctx>` interface and are resolved by DI — they can have constructor dependencies like any other service.
+Guards decide whether an incoming message may proceed to the handler. You write a small class with a `canActivate()` method and attach it to a controller (all its routes) or to a single route. Guards are resolved by DI, so they can inject services like any other provider.
 
-## `Guard<Ctx>` interface
+## Defining a guard
+
+A guard is a plain class with one method. Return `true` to allow the message, `false` to reject it — a `false` makes the pipeline throw `UnauthorizedError`, which the `ErrorMapper` maps to your unauthorized code (typically `'UNAUTHORIZED'`). It can inject any provider via its constructor:
+
+```typescript
+import { Guard } from "@spinejs/gateway-core";
+import { Injectable } from "@spinejs/core";
+import { SessionStore } from "../session";
+import type { AppContext } from "./app-context";
+
+@Injectable({ inject: [SessionStore] })
+export class SessionGuard implements Guard<AppContext> {
+  constructor(private readonly sessionStore: SessionStore) {}
+
+  canActivate(ctx: AppContext): boolean {
+    // ctx.session is enriched by the ContextFactory from the session store.
+    return ctx.session !== null;
+  }
+}
+```
+
+The contract is a single method:
 
 ```typescript
 interface Guard<Ctx extends GatewayContext> {
@@ -14,130 +35,92 @@ interface Guard<Ctx extends GatewayContext> {
 }
 ```
 
-A guard receives the transport context and returns `true` to allow the incoming message or `false` to reject it. Returning `false` causes the pipeline to throw `UnauthorizedError`, which the `ErrorMapper` maps to your configured unauthorized error code (typically `'UNAUTHORIZED'`).
+Guards may also throw directly (e.g. to distinguish between different unauthorized conditions); the `ErrorMapper` handles those throws the same way as a `false` return.
 
-Guards may also throw directly (e.g. to distinguish between different unauthorized conditions), and the `ErrorMapper` handles those throws the same way.
+## Applying guards
 
-## Defining a guard
+A guard class can be applied at two levels. Both accept guard **classes** (not instances); the container resolves the instances during feature module initialization.
 
-A guard is a plain class that implements the interface. It can inject any provider via its constructor:
+### Class-level — `@UseGuards`
 
-```typescript
-import { Guard } from "@spinejs/gateway";
-import { Injectable } from "@spinejs/core";
-import { SessionStore } from "../session";
-import { ElectronIpcContext } from "./electron-ipc.types";
-
-@Injectable({ inject: [SessionStore] })
-export class SessionGuard implements Guard<ElectronIpcContext> {
-  constructor(private readonly sessionStore: SessionStore) {}
-
-  canActivate(ctx: ElectronIpcContext): boolean {
-    // ctx.session is enriched by the ContextFactory from the session store.
-    return ctx.session !== null;
-  }
-}
-```
-
-## Applying guards with `@UseGuards`
-
-`@UseGuards` accepts one or more guard **classes** (not instances). The container resolves the instances during feature module initialization.
-
-### Class-level guard
-
-Attaching `@UseGuards` to the controller class applies the guard to every handler in the class:
+Attaching `@UseGuards` to the controller class applies the guards to **every** route on it — the common case for authenticating a whole controller:
 
 ```typescript
-import { Controller, Handler, UseGuards } from "@spinejs/gateway";
+import { Controller, UseGuards } from "@spinejs/gateway-core";
+import { get } from "./app-context";
 import { SessionGuard } from "./session.guard";
 
 @UseGuards(SessionGuard)
-@Controller()
+@Controller({ inject: [ProjectsStore] })
 export class ProjectsController {
-  @Handler({ address: "projects:list" })
-  list(ctx: ElectronIpcContext): Promise<Project[]> {
-    // SessionGuard runs before this handler.
-    return this.projectService.findAll(ctx.session.userId);
-  }
+  constructor(private readonly projects: ProjectsStore) {}
 
-  @Handler({ address: "projects:get" })
-  get(ctx: ElectronIpcContext, input: string): Promise<Project> {
-    // SessionGuard runs before this handler too.
-    return this.projectService.findById(input);
-  }
+  // SessionGuard runs before every route below.
+  list = get("/projects", {}, (_input, ctx) =>
+    this.projects.findAll(ctx.session.userId)
+  );
+  getById = get("/projects/:id", { params: idParam }, ({ params }) =>
+    this.projects.findById(params.id)
+  );
 }
 ```
 
-### Method-level guard
+:::note Class-only decorator
+`@UseGuards` is a **class** decorator. Because routes are instance fields (not methods), there is no method-level decorator target — per-route granularity lives in the route options instead (below).
+:::
 
-Attaching `@UseGuards` to a method adds extra guards on top of any class-level guards. Class guards run first, then method guards:
+### Per-route — the `guards` option
+
+Pass `guards: [...]` in a route's options to add guards to that single route. They are merged **after** the controller's class-level guards:
 
 ```typescript
-@UseGuards(SessionGuard)
-@Controller()
-export class AdminController {
-  @UseGuards(AdminRoleGuard) // SessionGuard + AdminRoleGuard
-  @Handler({ address: "admin:reset" })
-  reset(ctx: ElectronIpcContext): void {
-    // ...
-  }
+import { Controller, UseGuards } from "@spinejs/gateway-core";
+import { get, post } from "./app-context";
+import { SessionGuard } from "./session.guard";
+import { AdminGuard } from "./admin.guard";
 
-  @Handler({ address: "admin:status" })
-  status(): string {
-    // SessionGuard only
-    return "ok";
-  }
+@UseGuards(SessionGuard)
+@Controller({ inject: [AdminStore] })
+export class AdminController {
+  constructor(private readonly store: AdminStore) {}
+
+  // SessionGuard + AdminGuard
+  reset = post("/admin/reset", { guards: [AdminGuard] }, () =>
+    this.store.reset()
+  );
+
+  // SessionGuard only
+  status = get("/admin/status", {}, () => "ok");
 }
 ```
 
-## Guard resolution and the `guardMap`
+## Guard resolution
 
 At feature module initialization (inside `onInit()`), the framework:
 
-1. Collects all unique guard classes referenced on the module's controllers.
-2. Resolves them via DI (they must be listed as providers — the feature module factory does this automatically).
-3. Builds a `Map<GuardConstructor, Guard<Ctx>>` called the `guardMap`.
-4. Passes the `guardMap` to `getRoutes()`, which resolves each handler's guard list from the map.
+1. Scans each controller **instance** for the guard classes it references — class-level (`@UseGuards`) plus the per-route `guards` on its field markers.
+2. Resolves each guard from the feature module's own container, registering an unknown guard class on demand so its `@Injectable` dependencies resolve from that container (its imports' exports + providers).
+3. Builds a `Map<GuardConstructor, Guard<Ctx>>` and passes it to `getRoutes()`, which attaches each route's resolved guard list.
 
-This means guards are singletons within the module scope — the same `SessionGuard` instance is reused across all handlers that reference it.
+Guards are singletons within the module scope — the same `SessionGuard` instance is reused across every route that references it.
 
-:::warning Guards must be in providers
-The feature module machinery auto-registers all guard classes from the controllers into `providers` and `inject`. If you reference a guard class in `@UseGuards` but forget to include its dependencies (via `@Injectable` on the guard class), the DI resolution will fail at `onInit()` time with a clear error.
+:::note Why lazy resolution
+Per-route guard classes live inside controller fields, so they are only known **after** the controller is instantiated. The feature module therefore resolves guards lazily at `onInit` (via its own container), rather than collecting them statically at module-definition time. A guard whose dependency is not reachable from the module container fails at init with a clear error.
 :::
-
-## Guards as DI consumers
-
-Because guards are DI-resolved, they integrate naturally with any service in the module graph:
-
-```typescript
-import { Injectable } from "@spinejs/core";
-import { Guard } from "@spinejs/gateway";
-
-@Injectable({ inject: [AuthService] })
-export class JwtGuard implements Guard<HttpContext> {
-  constructor(private readonly auth: AuthService) {}
-
-  async canActivate(ctx: HttpContext): Promise<boolean> {
-    const token = ctx.request.headers.authorization?.split(" ")[1];
-    if (!token) return false;
-    return this.auth.verifyToken(token);
-  }
-}
-```
 
 ## Combining multiple guards
 
-Multiple guards are checked in order: class-level first, then method-level. The first guard to return `false` short-circuits — subsequent guards are not called.
+Multiple guards are checked in order: class-level first, then per-route. The first guard to return `false` short-circuits — subsequent guards are not called.
 
 ```typescript
 @UseGuards(AuthenticatedGuard, RateLimitGuard)
 @Controller()
 export class PublicApiController {
-  @UseGuards(CsrfGuard)
-  @Handler({ address: "api:mutate" })
-  mutate(ctx: HttpContext, input: unknown): Promise<Result> {
-    // Guard order: AuthenticatedGuard → RateLimitGuard → CsrfGuard
-    return this.service.mutate(input);
-  }
+  // Guard order: AuthenticatedGuard → RateLimitGuard → CsrfGuard
+  mutate = post(
+    "/api/mutate",
+    { body: mutateBody, guards: [CsrfGuard] },
+    ({ body }) => this.service.mutate(body)
+  );
 }
 ```

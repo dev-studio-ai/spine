@@ -3145,6 +3145,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hono/node-server@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "@hono/node-server@npm:2.0.6"
+  peerDependencies:
+    hono: ^4
+  checksum: 10c0/493361ac3b165c4e91fc4442160d60c4fdfb2cd4d303e0d0ee70f1be17acbe6abd516582556a66bbfd8a47ad5f436468caf3bb7f89090b1a07fd613ffd6ad0e7
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.2":
   version: 0.19.2
   resolution: "@humanfs/core@npm:0.19.2"
@@ -4396,7 +4405,7 @@ __metadata:
   resolution: "@spinejs/cls@workspace:packages/cls"
   dependencies:
     "@spinejs/core": "workspace:*"
-    "@spinejs/gateway": "workspace:*"
+    "@spinejs/gateway-core": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -4438,7 +4447,7 @@ __metadata:
   resolution: "@spinejs/electron-ipc-gateway@workspace:packages/electron-ipc-gateway"
   dependencies:
     "@spinejs/core": "workspace:*"
-    "@spinejs/gateway": "workspace:*"
+    "@spinejs/gateway-core": "workspace:*"
     zod: "npm:^3.25.76"
   peerDependencies:
     electron: ">=30.0.0"
@@ -4455,11 +4464,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@spinejs/gateway@workspace:*, @spinejs/gateway@workspace:packages/gateway":
+"@spinejs/gateway-core@workspace:*, @spinejs/gateway-core@workspace:packages/gateway-core":
   version: 0.0.0-use.local
-  resolution: "@spinejs/gateway@workspace:packages/gateway"
+  resolution: "@spinejs/gateway-core@workspace:packages/gateway-core"
   dependencies:
     "@spinejs/core": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@spinejs/http-gateway@workspace:packages/http-gateway":
+  version: 0.0.0-use.local
+  resolution: "@spinejs/http-gateway@workspace:packages/http-gateway"
+  dependencies:
+    "@hono/node-server": "npm:^2.0.6"
+    "@spinejs/core": "workspace:*"
+    "@spinejs/gateway-core": "workspace:*"
+    hono: "npm:^4.12.27"
+    zod: "npm:^3.25.76"
   languageName: unknown
   linkType: soft
 
@@ -9332,6 +9353,13 @@ __metadata:
   dependencies:
     react-is: "npm:^16.7.0"
   checksum: 10c0/fe0889169e845d738b59b64badf5e55fa3cf20454f9203d1eb088df322d49d4318df774828e789898dcb280e8a5521bb59b3203385662ca5e9218a6ca5820e74
+  languageName: node
+  linkType: hard
+
+"hono@npm:^4.12.27":
+  version: 4.12.27
+  resolution: "hono@npm:4.12.27"
+  checksum: 10c0/1c62a52ccafde751656d065bbdacffbd421d3cfaedfbffefe80ecdb8ccf96c2209af732a74064cd33ac6d187a91ec32b1dc7ddde2416a53052fe7c0a94352a89
   languageName: node
   linkType: hard
 

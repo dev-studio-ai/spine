@@ -1,5 +1,5 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type { GatewayContext } from "@spinejs/gateway";
+import type { GatewayContext } from "@spinejs/gateway-core";
 
 /**
  * Transport-level context — app-agnostic. The generic `ElectronIpcGateway` only knows the electron

@@ -2,14 +2,12 @@
 
 Electron lifecycle integration for SpineJS. Manages `BrowserWindow` creation, Electron app events, and graceful shutdown.
 
-## What it provides
+## Quick start
 
-- **`ElectronModule`** — SpineJS module that wraps the Electron `app` object.
-- **`WindowService`** — owns the `BrowserWindow` instance, persists window bounds between sessions.
-
-## Setup
+Add `ElectronModule.configure(...)` to your app and pass `handleProcessExit: false` — Electron controls process exit.
 
 ```typescript
+// main.ts
 import { App } from "@spinejs/core";
 import { ElectronModule } from "@spinejs/electron";
 import { MainModule } from "./main.module";
@@ -31,26 +29,17 @@ const app = new App(
     }),
     MainModule,
   ],
-  { handleProcessExit: false } // required — Electron controls process exit
+  { handleProcessExit: false } // required with ElectronModule
 );
 
 await app.init();
 await app.start();
 ```
 
-## `ElectronModuleOptions`
-
-| Field         | Type                              | Description                                                           |
-| ------------- | --------------------------------- | --------------------------------------------------------------------- |
-| `window`      | `BrowserWindowConstructorOptions` | Passed to `new BrowserWindow(…)`. Persisted bounds are merged on top. |
-| `devUrl`      | `string`                          | URL loaded when `app.isPackaged === false` (Vite dev server).         |
-| `packagePath` | `string`                          | Path to the bundled renderer HTML, loaded in production.              |
-
-## Window creation
-
-The window is not created automatically during `onInit()`. Call `createMainWindow()` explicitly — typically after restoring auth or other startup state:
+The window is **not** created automatically. Call `createMainWindow()` explicitly — typically after restoring auth or other startup state:
 
 ```typescript
+// main.module.ts
 import { Module, OnInit } from "@spinejs/core";
 import { ElectronModule } from "@spinejs/electron";
 
@@ -78,10 +67,13 @@ export class MainModule implements OnInit {
 
 ## `WindowService`
 
+Owns the `BrowserWindow`. Inject it to drive the window from anywhere:
+
 ```typescript
+import { Injectable } from "@spinejs/core";
 import { WindowService } from "@spinejs/electron";
 
-@Inject([WindowService])
+@Injectable({ inject: [WindowService] })
 export class TrayService {
   constructor(private readonly window: WindowService) {}
 
@@ -104,11 +96,19 @@ Electron 'before-quit'
   → electronApp.quit()  (now let Electron quit)
 ```
 
-Always pass `handleProcessExit: false` to `new App(…)` when using `ElectronModule` to avoid double-shutdown races.
+Always pass `handleProcessExit: false` to `new App(…)` to avoid double-shutdown races.
 
-## macOS behaviour
+## Reference
 
-`window-all-closed` does not quit on macOS. The `activate` event (Dock click with no open window) re-creates the main window automatically.
+### `ElectronModuleOptions`
+
+| Field         | Type                              | Description                                                           |
+| ------------- | --------------------------------- | --------------------------------------------------------------------- |
+| `window`      | `BrowserWindowConstructorOptions` | Passed to `new BrowserWindow(…)`. Persisted bounds are merged on top. |
+| `devUrl`      | `string`                          | URL loaded when `app.isPackaged === false` (Vite dev server).         |
+| `packagePath` | `string`                          | Path to the bundled renderer HTML, loaded in production.              |
+
+**macOS:** `window-all-closed` does not quit; the `activate` event (Dock click, no open window) re-creates the main window automatically.
 
 ## Full docs
 

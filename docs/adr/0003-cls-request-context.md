@@ -182,7 +182,7 @@ CLS restores.
 ### Bake CLS into the gateway
 
 Rejected: CLS is a generic capability (cron jobs, queues, other transports want it too). Folding it
-into `@spinejs/gateway` would tie a transport-agnostic primitive to the gateway and pull
+into `@spinejs/gateway-core` would tie a transport-agnostic primitive to the gateway and pull
 `node:async_hooks` into the pipeline. A standalone package consumed via the interceptor hook keeps
 both clean.
 

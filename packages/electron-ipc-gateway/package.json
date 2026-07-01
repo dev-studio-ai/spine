@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@spinejs/core": "workspace:*",
-    "@spinejs/gateway": "workspace:*",
+    "@spinejs/gateway-core": "workspace:*",
     "zod": "^3.25.76"
   },
   "peerDependencies": {

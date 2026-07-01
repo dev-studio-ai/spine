@@ -1,10 +1,10 @@
 # @spinejs/winston-logger
 
-Production-grade logger for SpineJS. Implements the `Logger` interface from `@spinejs/core` — drop-in replacement for the built-in `AppLogger`. Keeps Winston and its transitive deps out of `@spinejs/core`.
+Production-grade logger for SpineJS. Implements the `Logger` interface from `@spinejs/core` — a drop-in replacement for the built-in `AppLogger`. Keeps Winston and its transitive deps out of `@spinejs/core`.
 
-## Setup
+## Quick start
 
-Pass a `WinstonLogger` instance to `AppOptions.logger`:
+Pass a `WinstonLogger` to `AppOptions.logger`. It registers under `loggerToken` automatically — no further wiring.
 
 ```typescript
 import { App } from "@spinejs/core";
@@ -20,20 +20,7 @@ const app = new App([AppModule], {
 });
 ```
 
-The instance is registered under `loggerToken` automatically — no further wiring needed.
-
-## `WinstonLoggerOptions`
-
-| Option       | Type                   | Default  | Description                                                             |
-| ------------ | ---------------------- | -------- | ----------------------------------------------------------------------- |
-| `level`      | `string`               | `'info'` | Minimum log level.                                                      |
-| `stdout`     | `boolean`              | `true`   | Add a Console transport with colored output.                            |
-| `dir`        | `string`               | —        | Base directory for file transports. Required when `files` is non-empty. |
-| `files`      | `LogFileConfig[]`      | `[]`     | File transport configs (`filename`, optionally `level`, `format`, …).   |
-| `transports` | `unknown[]`            | `[]`     | Raw Winston transports (e.g. `DailyRotateFile`).                        |
-| `console`    | `ConsoleFormatOptions` | —        | Console formatter tweaks (colors, timestamps, pid).                     |
-
-## Using the logger in modules
+Then inject it anywhere as `Logger` (the interface) — your modules stay decoupled from the implementation:
 
 ```typescript
 import { Module, Logger, loggerToken } from "@spinejs/core";
@@ -41,14 +28,15 @@ import { Module, Logger, loggerToken } from "@spinejs/core";
 @Module({ inject: [loggerToken] })
 export class MyModule {
   constructor(private readonly logger: Logger) {}
-
   async onInit() {
     this.logger.info("ready", MyModule.name);
   }
 }
 ```
 
-## Advanced: rotating file transport
+## Rotating file transport
+
+Pass raw Winston transports via `transports`:
 
 ```typescript
 import DailyRotateFile from "winston-daily-rotate-file";
@@ -66,9 +54,20 @@ const logger = new WinstonLogger({
 });
 ```
 
-## Flush on shutdown
+## Reference
 
-`WinstonLogger` implements `Logger.exit()` by draining Winston transports (max 200 ms). `App.exit()` calls this automatically before `process.exit()`.
+### `WinstonLoggerOptions`
+
+| Option       | Type                   | Default  | Description                                                             |
+| ------------ | ---------------------- | -------- | ----------------------------------------------------------------------- |
+| `level`      | `string`               | `'info'` | Minimum log level.                                                      |
+| `stdout`     | `boolean`              | `true`   | Add a Console transport with colored output.                            |
+| `dir`        | `string`               | —        | Base directory for file transports. Required when `files` is non-empty. |
+| `files`      | `LogFileConfig[]`      | `[]`     | File transport configs (`filename`, optionally `level`, `format`, …).   |
+| `transports` | `unknown[]`            | `[]`     | Raw Winston transports (e.g. `DailyRotateFile`).                        |
+| `console`    | `ConsoleFormatOptions` | —        | Console formatter tweaks (colors, timestamps, pid).                     |
+
+**Flush on shutdown:** `WinstonLogger.exit()` drains Winston transports (max 200 ms); `App.exit()` calls it automatically before `process.exit()`.
 
 ## Full docs
 

@@ -3,9 +3,10 @@ import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 const sidebars: SidebarsConfig = {
   mainSidebar: [
     "intro",
+    "getting-started",
     {
       type: "category",
-      label: "SpineJS Core",
+      label: "Core",
       items: [
         "app-core/overview",
         "app-core/modules",
@@ -16,20 +17,20 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Gateway",
+      label: "Building an API",
       items: [
         "gateway/overview",
         "gateway/controllers-handlers",
-        "gateway/guards",
-        "gateway/validation",
-        "gateway/interceptors",
         "gateway/feature-modules",
+        "gateway/validation",
+        "gateway/guards",
+        "gateway/interceptors",
       ],
     },
     {
       type: "category",
       label: "Transports",
-      items: ["transports/electron-ipc"],
+      items: ["transports/http", "transports/electron-ipc"],
     },
     {
       type: "category",

@@ -41,7 +41,7 @@ export class App {
       this.logger = new AppLogger(options?.loggerOptions ?? {});
     }
 
-    this.logger.info("🚀 Application initialization...", App.name);
+    this.logger.info("⏳ Application initialization...", App.name);
 
     this.handleProcessErrors();
 
@@ -98,7 +98,7 @@ export class App {
     }
     // 'boot' started in the constructor → full startup time.
     this.logger.debug(
-      `App started in ${this.timer.getTime("boot")} ms`,
+      `🚀 App started in ${this.timer.getTime("boot")} ms`,
       App.name
     );
   }

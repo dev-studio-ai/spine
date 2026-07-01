@@ -6,7 +6,7 @@ sidebar_position: 5
 
 Feature modules are the glue between your controllers and a gateway transport. They encapsulate the wiring: instantiate controllers via DI, resolve guard instances, build the guard map, and register the resulting routes on the gateway — all in a synthesized `onInit()`.
 
-`@spinejs/gateway` provides two sugar functions that produce this wiring from a transport-specific binding:
+`@spinejs/gateway-core` provides two sugar functions that produce this wiring from a transport-specific binding:
 
 | Function                                   | Style                                        | When to use                                         |
 | ------------------------------------------ | -------------------------------------------- | --------------------------------------------------- |
@@ -24,7 +24,7 @@ Bind the generic functions to your transport's gateway class and module:
 import {
   gatewayFeatureFactory,
   gatewayModuleDecorator,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
 import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 
@@ -109,13 +109,12 @@ interface FeatureModuleConfig extends ModuleMetadata {
 
 When the feature module initializes, the framework:
 
-1. Collects all unique guard classes from all controllers' `@UseGuards` metadata.
-2. Builds the DI inject order: `[gatewayToken, ...controllerClasses, ...guardClasses, ...userInject]`.
-3. Receives resolved instances from DI in the same order.
-4. Builds the `guardMap: Map<GuardConstructor, Guard>`.
-5. For each controller, calls `getRoutes(controllerInstance, guardMap)` to produce `RouteDescriptor[]`.
-6. Calls `gateway.register(routes)` with all descriptors.
-7. If the user's class (decorator form) has its own `onInit()`, calls it afterwards.
+1. Builds the DI inject order `[gatewayToken, ...controllerClasses, ...userInject]` and receives the resolved instances.
+2. Reads its **own container** (stamped by the core module loader on a hidden slot just before `onInit`).
+3. Scans each controller instance for the guard classes it references — class-level `@UseGuards` plus per-route `guards` on the field markers — resolving each from that container (registering an unknown guard class on demand), to build the `guardMap: Map<GuardConstructor, Guard>`.
+4. For each controller, calls `getRoutes(controllerInstance, guardMap)` to produce `LoadedRoute[]`.
+5. Calls `gateway.register(routes)` with all routes.
+6. If the user's class (decorator form) has its own `onInit()`, calls it afterwards.
 
 ## Full wiring example
 
@@ -138,27 +137,27 @@ export class ProjectsIpcModule {}
 
 ```typescript
 // projects.controller.ts
-import { Controller, Handler, UseGuards } from "@spinejs/gateway";
+import { Controller, UseGuards } from "@spinejs/gateway-core";
 import { SessionGuard } from "../infrastructure/session.guard";
-import { ElectronIpcContext } from "../infrastructure/electron-ipc.types";
+import { handle } from "@spinejs/electron-ipc-gateway";
 import { z } from "zod";
 
 const createProjectSchema = z.object({ name: z.string().min(1) });
 
 @UseGuards(SessionGuard)
-@Controller()
+@Controller({ inject: [ProjectsService] })
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Handler({ address: "projects:list" })
-  list(ctx: ElectronIpcContext): Promise<Project[]> {
-    return this.projectsService.findAll(ctx.session.userId);
-  }
+  list = handle("projects:list", {}, (_input, ctx) =>
+    this.projectsService.findAll(ctx.session.userId)
+  );
 
-  @Handler({ address: "projects:create", input: createProjectSchema })
-  create(ctx: ElectronIpcContext, input: { name: string }): Promise<Project> {
-    return this.projectsService.create(ctx.session.userId, input.name);
-  }
+  create = handle(
+    "projects:create",
+    { input: createProjectSchema },
+    (input, ctx) => this.projectsService.create(ctx.session.userId, input.name)
+  );
 }
 ```
 
@@ -173,8 +172,8 @@ import { ProjectsIpcModule } from "./projects.ipc.module";
 export class MainModule {}
 ```
 
-## Guard auto-registration
+## Guard resolution
 
-You do not need to list guard classes in the `providers` array manually. The feature module factory scans all controllers' `@UseGuards` metadata at definition time and adds all unique guard classes to `providers` and `inject` automatically.
+You do not need to list guard classes in the `providers` array manually. At `onInit`, the feature module scans the controller instances for every referenced guard class — class-level `@UseGuards` **and** per-route `guards` options — and resolves each from its own container, registering an unknown class on demand.
 
-Guards referenced in `@UseGuards` must still have their own dependencies declared via `@Injectable` on the guard class — the DI container resolves them through the normal provider chain.
+Guards must still declare their own dependencies via `@Injectable` on the guard class, and those dependencies must be reachable from the feature module's container (its imports' exports + providers) — the container resolves them through the normal provider chain. A guard whose dependency is not reachable fails at `onInit` with a clear error.

@@ -299,7 +299,7 @@ under concurrency, while staying a singleton.
   "types": "src/main.ts",
   "dependencies": {
     "@spinejs/core": "workspace:*",
-    "@spinejs/gateway": "workspace:*",
+    "@spinejs/gateway-core": "workspace:*",
     "@spinejs/electron-ipc-gateway": "workspace:*",
     "@spinejs/cls": "workspace:*"
   }
@@ -381,7 +381,7 @@ import type {
   ElectronIpcBaseContext,
   ElectronIpcRaw,
 } from "@spinejs/electron-ipc-gateway";
-import type { ContextFactory, ErrorMapper } from "@spinejs/gateway";
+import type { ContextFactory, ErrorMapper } from "@spinejs/gateway-core";
 
 /**
  * The app's dispatch context: the transport's base context (the electron event) plus the caller's
@@ -418,7 +418,7 @@ import type {
   Envelope,
   GatewayInterceptor,
   RouteDescriptor,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 import type { AppContext } from "./app-context";
 
 /**
@@ -468,7 +468,7 @@ export class AuditService {
 
 ```ts
 import { Injectable } from "@spinejs/core";
-import { Controller, Handler } from "@spinejs/gateway";
+import { Controller, Handler } from "@spinejs/gateway-core";
 import { AuditService } from "./audit.service";
 import type { AppContext } from "./app-context";
 
@@ -647,7 +647,7 @@ via `@spinejs/cls`, without DI request scope and without threading `ctx` through
 - The singleton `AuditService` reads `cls.get("user")` — no `ctx` parameter — and still sees the
   right user per request, even under concurrency, because `AsyncLocalStorage` isolates by async
   context, not by instance.
-- `@spinejs/core` and `@spinejs/gateway` are untouched: the scope rides the gateway's existing
+- `@spinejs/core` and `@spinejs/gateway-core` are untouched: the scope rides the gateway's existing
   interceptor hook.
 
 ## Run
@@ -722,7 +722,7 @@ gateway core is not touched:
 \`\`\`typescript
 import { randomUUID } from "node:crypto";
 import { ClsService } from "@spinejs/cls";
-import type { GatewayInterceptor } from "@spinejs/gateway";
+import type { GatewayInterceptor } from "@spinejs/gateway-core";
 
 export class ClsInterceptor implements GatewayInterceptor<AppContext> {
 constructor(private readonly cls: ClsService) {}

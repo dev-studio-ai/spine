@@ -2,158 +2,128 @@
 sidebar_position: 2
 ---
 
-# Contrôleurs et handlers
+# Contrôleurs et routes
 
-Les contrôleurs sont les classes qui regroupent votre logique de traitement des messages entrants. Ils sont déclarés avec `@Controller` et exposent des handlers individuels via `@Handler` sur leurs méthodes.
+Les contrôleurs regroupent la logique de traitement des messages entrants. On les déclare avec `@Controller` et on expose chaque route comme **champ d'instance** construit par les helpers de routes typés d'un transport (`get`/`post`/… pour HTTP, `handle` pour IPC).
+
+:::tip
+Pour un parcours de bout en bout (service → controller → serveur qui tourne), commencez par [Prise en main](../getting-started). Cette page est la référence complète pour déclarer controllers et routes.
+:::
+
+:::info Routes en champ (field-form)
+Les routes sont déclarées comme **champs**, pas comme méthodes décorées. Un helper de champ (`get(...)`, `handle(...)`, …) est un appel de fonction : il peut donc **inférer** le type d'`input` du handler depuis le schéma zod de la route — une seule source de vérité, vérifiée à la compilation, sans `reflect-metadata`. Voir l'ADR 0004 (`docs/adr/0004-field-form-routes.md`) pour la justification. L'ancien décorateur de méthode `@Handler` a été supprimé.
+:::
 
 ## `@Controller()`
 
-`@Controller` marque une classe comme contrôleur de gateway. Il ne porte aucune configuration — son seul rôle est de taguer la classe pour que la gateway distingue les contrôleurs des providers ordinaires.
+`@Controller` marque une classe comme contrôleur de gateway **et** intègre `@Injectable` : le même décorateur déclare la classe comme provider DI avec ses dépendances de constructeur typées.
 
 ```typescript
-import { Controller } from "@spinejs/gateway";
+import { Controller } from "@spinejs/gateway-core";
 
-@Controller()
-export class UserController {
-  // ...
+@Controller({ inject: [UsersStore] })
+export class UsersController {
+  constructor(private readonly users: UsersStore) {}
+  // routes en champs…
 }
 ```
 
-Une classe de contrôleur doit figurer dans le tableau `controllers` d'un module de fonctionnalité (voir [Modules de fonctionnalité](./feature-modules)). La gateway résout les instances de contrôleur via DI.
+`inject` est typé exactement comme `@Injectable` — un token de mauvais type, ordre ou arité est une erreur de compilation. Un `@Controller()` nu (sans dépendance) est aussi valide. Une classe contrôleur doit figurer dans le tableau `controllers` d'un feature module (voir [Feature Modules](./feature-modules)) ; la gateway résout les instances via DI.
 
-## `@Handler({ address, input? })`
+## Déclarer des routes avec un helper
 
-`@Handler` déclare un handler de gateway sur une méthode. L'`address` est une chaîne opaque au transport : pour l'IPC elle devient le canal `ipcMain.handle` ; pour le HTTP ce pourrait être un chemin ; pour un transport personnalisé elle signifie ce que l'implémentation `bind()` du transport attend.
+Chaque transport exporte des helpers de routes au niveau du framework que vous importez directement. Le `ctx` de leur callback vaut par défaut votre **contexte d'app**, que vous enregistrez **une seule fois** via une augmentation `declare module` (comme `Express.Request`) :
 
 ```typescript
-import { Controller, Handler } from "@spinejs/gateway";
+// app-context.ts
+import type { HttpBaseContext } from "@spinejs/http-gateway";
 
-@Controller()
-export class PingController {
-  @Handler({ address: "ping" })
-  ping(): string {
-    return "pong";
+export interface AppContext extends HttpBaseContext {
+  user: string;
+}
+
+// Enregistre AppContext comme `ctx` par défaut de chaque route (une fois par app).
+declare module "@spinejs/http-gateway" {
+  interface HttpContextRegistry {
+    context: AppContext;
   }
 }
 ```
 
-La méthode handler reçoit deux arguments :
+:::caution
+Sans cette augmentation, le `ctx` par défaut retombe sur le contexte de base du transport (`HttpBaseContext` / `ElectronIpcBaseContext`), donc des champs applicatifs comme `ctx.user` n'existent pas. Déclarez-la une fois par app.
+:::
 
-- **`ctx`** — le contexte de transport (typé par le transport ; porte l'événement IPC, les données de session, etc.).
-- **`input`** — l'entrée validée, ou l'entrée brute si aucun schéma n'a été fourni.
-
-Sans schéma, `input` est `unknown` et doit être casté manuellement :
-
-```typescript
-@Controller()
-export class UserController {
-  constructor(private readonly userService: UserService) {}
-
-  @Handler({ address: "users:get-by-id" })
-  getById(ctx: GatewayContext, input: unknown): Promise<User> {
-    const id = input as string; // brut — pas de schéma, pas de type safety
-    return this.userService.findById(id);
-  }
-}
-```
-
-Avec un schéma, `input` est validé et pleinement typé :
+Puis importez les helpers depuis le paquet du transport et déclarez les routes comme champs. Le callback prend l'**`input` validé d'abord** et le **`ctx` en dernier**, tous deux typés sans annotation :
 
 ```typescript
 import { z } from "zod";
+import { Controller } from "@spinejs/gateway-core";
+import { get, post } from "@spinejs/http-gateway";
 
-const getByIdSchema = z.string();
-
-@Controller()
-export class UserController {
-  constructor(private readonly userService: UserService) {}
-
-  @Handler({ address: "users:get-by-id", input: getByIdSchema })
-  getById(ctx: GatewayContext, input: string): Promise<User> {
-    return this.userService.findById(input);
-  }
-}
-```
-
-### `HandlerOptions`
-
-| Option    | Type                 | Requis | Description                                                                                                                |
-| --------- | -------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `address` | `string`             | Oui    | L'adresse du handler. Opaque au transport — interprétée par le `bind()` du transport.                                      |
-| `input`   | `ParseableSchema<T>` | Non    | Un schéma avec une méthode `parse(input: unknown): T`. Quand présent, l'entrée brute est validée avant l'appel du handler. |
-
-## Validation d'entrée avec `ParseableSchema<T>`
-
-L'option `input` accepte tout objet doté d'une méthode `parse(input: unknown): T`. Ce contrat structurel est satisfait par les schémas zod sans importer zod dans la bibliothèque gateway.
-
-```typescript
-import { z } from "zod";
-import { Controller, Handler } from "@spinejs/gateway";
-
-const createUserSchema = z.object({
+const listQuery = z.object({ role: z.enum(["admin", "member"]).optional() });
+const createBody = z.object({
   name: z.string().min(1),
   email: z.string().email(),
 });
 
-type CreateUserInput = z.infer<typeof createUserSchema>;
+@Controller({ inject: [UsersStore] })
+export class UsersController {
+  constructor(private readonly users: UsersStore) {}
 
-@Controller()
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+  // GET /users?role=admin — `query` est inféré comme { role?: "admin" | "member" }
+  list = get("/users", { query: listQuery }, ({ query }) =>
+    this.users.list(query.role)
+  );
 
-  @Handler({ address: "users:create", input: createUserSchema })
-  create(ctx: ElectronIpcContext, input: CreateUserInput): Promise<User> {
-    // `input` is already parsed and typed as CreateUserInput.
-    return this.userService.create(input);
-  }
+  // POST /users — `body` inféré ; 201 en cas de succès
+  create = post(
+    "/users",
+    { body: createBody, successStatus: 201 },
+    ({ body }) => this.users.create(body)
+  );
 }
 ```
 
-Quand la validation échoue, le port `Validator` (par ex. `ZodValidator`) lève une `ValidationError`, que le pipeline mappe vers le code d'erreur correspondant (typiquement `'INVALID_INPUT'`). La méthode handler n'est jamais appelée.
+- **`input`** est l'entrée validée, découpée par source pour HTTP (`{ params, query, body }` — seules apparaissent les sources pour lesquelles vous avez déclaré un schéma). Chaque clé est typée par la sortie inférée de son schéma.
+- **`ctx`** est le contexte de transport, par défaut votre contexte d'app enregistré. Une route qui l'ignore écrit `(input) => …` ; une route qui en a besoin écrit `(input, ctx) => …`. Pour désolidariser une route du contexte d'app, annotez son `ctx` (ex. `(_input, ctx: HttpBaseContext) => …`) — l'annotation surcharge le défaut pour cette route uniquement.
+
+Comme les helpers sont des champs initialisés dans la portée du constructeur, `this` (et donc les services injectés comme `this.users`) est disponible dans le callback.
+
+## Options de route
+
+Le second argument est l'objet d'**options** de la route. Pour HTTP :
+
+| Option          | Type                       | Description                                                                              |
+| --------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
+| `params`        | `ParseableSchema<P>`       | Schéma des params de chemin (`/users/:id`). Présent ⇒ `input.params` est validé et typé. |
+| `query`         | `ParseableSchema<Q>`       | Schéma de la query string. Présent ⇒ `input.query` est validé et typé.                   |
+| `body`          | `ParseableSchema<B>`       | Schéma du corps JSON (POST/PUT/PATCH). Présent ⇒ `input.body` est validé et typé.        |
+| `response`      | `ParseableSchema<unknown>` | Réservé à la génération OpenAPI — porté dans le `meta` du marker, **jamais** validé.     |
+| `guards`        | `GuardConstructor[]`       | Guards par route, fusionnés après le `@UseGuards` de classe. Voir [Guards](./guards).    |
+| `successStatus` | `number`                   | Statut HTTP pour une enveloppe en succès. Défaut `200` (ex. `201` pour une création).    |
+| `headers`       | `Record<string, string>`   | En-têtes de réponse statiques ajoutés en succès. Écrasent le `Content-Type` par défaut.  |
+
+Les routes IPC (`handle`) prennent un unique schéma `input` au lieu des sources découpées (un appel IPC porte une seule charge utile), plus les mêmes `response` et `guards`.
+
+## Validation d'entrée avec `ParseableSchema<T>`
+
+Un schéma est tout objet exposant une méthode `parse(input: unknown): T` — le contrat structurel que zod satisfait, si bien que la lib gateway infère vos types **sans importer zod**. HTTP compose les schémas par source (`params`/`query`/`body`) en un seul validateur sur l'entrée structurée ; chaque source est validée indépendamment.
+
+En cas d'échec, le port `Validator` (ex. `ZodValidator`) lève une `ValidationError`, que le pipeline mappe vers votre code `BAD_REQUEST` (HTTP 400 par défaut). Le callback du handler n'est jamais appelé.
 
 :::note Inférence de schéma
-TypeScript infère `input` comme `CreateUserInput` dans le corps du handler quand le schéma est typé (par ex. `z.ZodObject<...>`). Le générique `In` sur `@Handler<In>` circule depuis le type de retour de `parse` du schéma à travers `HandlerOptions<In>`, donc vous obtenez la sûreté de typage sans aucune annotation explicite sur le paramètre de méthode.
+Le type d'`input` du handler découle de l'objet de schémas passé au site d'appel. Omettez une source et sa clé disparaît entièrement d'`input` ; fournissez-la et la clé est typée par le type de retour de `parse`. Aucune annotation explicite sur le paramètre du callback.
 :::
 
-## Injection de constructeur des contrôleurs
+## Valeurs de retour
 
-Les contrôleurs sont des providers de classe ordinaires dans le conteneur DI. Déclarez leurs dépendances avec `@Injectable` :
-
-```typescript
-import { Injectable, InjectionToken } from "@spinejs/core";
-import { Controller, Handler } from "@spinejs/gateway";
-
-const userServiceToken = new InjectionToken<UserService>("user-service");
-
-@Injectable({ inject: [userServiceToken] })
-@Controller()
-export class UserController {
-  constructor(private readonly userService: UserService) {}
-
-  @Handler({ address: "users:list" })
-  list(): Promise<User[]> {
-    return this.userService.findAll();
-  }
-}
-```
-
-Ou bien, en les listant explicitement dans la surcharge `inject` du module de fonctionnalité — mais le pattern `@Injectable` + classe-comme-token est généralement plus simple.
-
-## Valeurs de retour des handlers
-
-Un handler peut retourner une valeur simple ou une `Promise`. Le pipeline encapsule la valeur résolue dans `{ ok: true, data: value }`. Lever une erreur (ou retourner une promesse rejetée) provoque à la place le retour de `{ ok: false, code: <code mappé> }`.
+Un handler peut renvoyer une valeur simple ou une `Promise`. Le pipeline enveloppe la valeur résolue dans `{ ok: true, data: value }`. Lever une erreur (ou renvoyer une promesse rejetée) renvoie `{ ok: false, code: <code mappé> }` — l'erreur est mappée par l'`ErrorMapper` du transport.
 
 ```typescript
-@Handler({ address: 'app:version' })
-getVersion(): string {
-  return '1.0.0';
-}
-// → { ok: true, data: '1.0.0' }
+getVersion = get("/version", {}, () => "1.0.0");
+// → { ok: true, data: "1.0.0" }
 
-@Handler({ address: 'data:load' })
-async loadData(): Promise<Data> {
-  // If this rejects, the error is caught by dispatch() and mapped to a code.
-  return await fetchData();
-}
-// → { ok: true, data: {...} }  or  { ok: false, code: 'SERVER' }
+load = get("/data", {}, async () => await fetchData());
+// → { ok: true, data: {...} }  ou  { ok: false, code: "INTERNAL_ERROR" }
 ```

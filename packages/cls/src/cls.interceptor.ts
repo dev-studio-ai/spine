@@ -1,13 +1,13 @@
 import type {
+  DispatchTarget,
   Envelope,
   GatewayContext,
   GatewayInterceptor,
-  RouteDescriptor,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 import type { ClsService, ClsStore } from "./cls.service";
 
 /**
- * Generic per-dispatch CLS scope opener for any `@spinejs/gateway` transport. Default `seed` spreads
+ * Generic per-dispatch CLS scope opener for any `@spinejs/gateway-core` transport. Default `seed` spreads
  * the whole dispatch context into the store, so a plain `interface AppContext extends ...` is enough
  * to use CLS — no app has to hand-write this class. Pass a custom `seed` when the store needs
  * something the context doesn't carry verbatim (e.g. a generated `reqId`).
@@ -22,7 +22,7 @@ export class ClsInterceptor<Ctx extends GatewayContext>
   ) {}
 
   intercept(
-    _route: RouteDescriptor<Ctx>,
+    _target: DispatchTarget<Ctx>,
     ctx: Ctx,
     _rawInput: unknown,
     next: () => Promise<Envelope<unknown>>

@@ -9,16 +9,62 @@ Brings the patterns you know from NestJS — modules, dependency injection, life
 
 Works equally well in background workers, CLI tools, desktop app main processes, serverless functions, or any Node program that outgrows a flat `index.ts`.
 
-## Packages
+## Quick start
 
-| Package                         | Role                                                                              |
-| ------------------------------- | --------------------------------------------------------------------------------- |
-| `@spinejs/core`                 | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger |
-| `@spinejs/gateway`              | Transport-agnostic pipeline: `@Controller`, `@Handler`, `@UseGuards`, `Envelope`  |
-| `@spinejs/electron-ipc-gateway` | Binds `Gateway` to `ipcMain.handle`                                               |
-| `@spinejs/electron`             | `ElectronModule` (window + lifecycle) and `WindowService`                         |
-| `@spinejs/config`               | Typed, async-capable config loading                                               |
-| `@spinejs/winston-logger`       | Drop-in `Logger` implementation backed by Winston                                 |
+An HTTP API, top-down — the way you build: entry point → root module → controller → service.
+
+```typescript
+// src/main.ts
+import { App } from "@spinejs/core";
+import { AppModule } from "./modules/app.module";
+
+const app = new App([AppModule]);
+await app.init();
+await app.start();
+// SIGINT/SIGTERM handled — onStop() runs in reverse order, then the process exits
+```
+
+```typescript
+// src/modules/app.module.ts
+import { Module } from "@spinejs/core";
+import { HttpGatewayModule } from "@spinejs/http-gateway";
+import { AppContextFactory } from "../app-context";
+import { UserModule } from "./user/user.module";
+
+@Module({
+  imports: [
+    HttpGatewayModule.configure({
+      imports: [],
+      contextFactory: { value: new AppContextFactory() },
+      port: 3000,
+    }),
+    UserModule,
+  ],
+})
+export class AppModule {}
+```
+
+```typescript
+// src/modules/user/user.controller.ts
+import { z } from "zod";
+import { Controller } from "@spinejs/gateway-core";
+import { get, post } from "../../app-context"; // httpRoutes<AppContext>() helpers
+import { UserService } from "./user.service";
+
+@Controller({ inject: [UserService] })
+export class UserController {
+  constructor(private readonly users: UserService) {}
+
+  list = get("/users", {}, () => this.users.list());
+  create = post(
+    "/users",
+    { body: z.object({ name: z.string().min(1) }), successStatus: 201 },
+    ({ body }) => this.users.create(body.name)
+  );
+}
+```
+
+The same controllers run unchanged over Electron IPC — swap `@spinejs/http-gateway` for `@spinejs/electron-ipc-gateway`. See the [**Getting Started**](https://dev-studio-ai.github.io/spine/docs/getting-started) guide for the full walkthrough (service, feature module, and `curl`).
 
 ## Why SpineJS?
 
@@ -27,44 +73,21 @@ Node processes grow quickly. What starts as a flat script soon needs a config lo
 SpineJS answers the same architectural questions at a fraction of the weight:
 
 - **No `reflect-metadata`.** Decorators store metadata as plain own-property symbols — safe under esbuild/swc without a global polyfill.
-- **No transport lock-in.** The `Gateway` abstraction decouples your controllers from whatever carries the bytes — IPC, HTTP, WebSocket, or nothing at all.
+- **No transport lock-in.** The gateway pipeline decouples your controllers from whatever carries the bytes — IPC, HTTP, WebSocket, or nothing at all.
 - **Structured lifecycle.** Every module participates in `init → start → stop`. Graceful shutdown, signal handling, and error propagation are handled for you.
 
-## Quick start
+## Packages
 
-```typescript
-import { Module, OnInit, App } from "@spinejs/core";
-
-@Module({ inject: [] })
-export class GreeterModule implements OnInit {
-  async onInit() {
-    console.log("Hello from GreeterModule");
-  }
-}
-
-const app = new App([GreeterModule]);
-await app.init();
-await app.start();
-// SIGINT/SIGTERM handled automatically — onStop() runs in reverse order, then process exits
-```
-
-### With Electron IPC
-
-```typescript
-import { Controller, Handler } from "@spinejs/gateway";
-import { IpcModule } from "@spinejs/electron-ipc-gateway";
-
-@Controller()
-export class PingController {
-  @Handler({ address: "ping" })
-  ping(_ctx: GatewayContext): string {
-    return "pong";
-  }
-}
-
-@IpcModule({ controllers: [PingController] })
-export class PingModule {}
-```
+| Package                                                          | Role                                                                                          |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [`@spinejs/core`](packages/core)                                 | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger             |
+| [`@spinejs/gateway-core`](packages/gateway-core)                 | Transport-agnostic pipeline building blocks: `@Controller`, field routes, `@UseGuards`, ports |
+| [`@spinejs/http-gateway`](packages/http-gateway)                 | HTTP transport (Hono) — composes the pipeline onto HTTP routes                                |
+| [`@spinejs/electron-ipc-gateway`](packages/electron-ipc-gateway) | Electron IPC transport — composes the pipeline onto `ipcMain.handle`                          |
+| [`@spinejs/electron`](packages/electron)                         | `ElectronModule` (window + lifecycle) and `WindowService`                                     |
+| [`@spinejs/config`](packages/config)                             | Typed, async-capable config loading                                                           |
+| [`@spinejs/winston-logger`](packages/winston-logger)             | Drop-in `Logger` implementation backed by Winston                                             |
+| [`@spinejs/cls`](packages/cls)                                   | Per-request context via `AsyncLocalStorage`                                                   |
 
 ## Documentation
 
