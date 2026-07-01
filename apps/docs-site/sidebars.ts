@@ -8,11 +8,11 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Core",
       items: [
-        "app-core/overview",
-        "app-core/modules",
-        "app-core/dependency-injection",
-        "app-core/lifecycle",
-        "app-core/logging",
+        "core/overview",
+        "core/modules",
+        "core/dependency-injection",
+        "core/lifecycle",
+        "core/logging",
       ],
     },
     {

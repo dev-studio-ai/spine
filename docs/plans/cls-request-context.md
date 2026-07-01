@@ -271,7 +271,7 @@ A new package needs a `node_modules/@spinejs/cls` symlink, created by `yarn inst
      "packages/winston-logger",
      "packages/electron",
      "packages/electron-ipc-gateway",
-     "apps/docs"
+     "apps/docs-site"
    ],
    ```
 
@@ -671,7 +671,7 @@ The spec fires two concurrent `whoami` invokes (alice + bob) and asserts each se
 A new public package is a public-interface change, so add a Docusaurus page in **both** languages and
 register it in the sidebar.
 
-### 4a. `apps/docs/docs/extensions/cls.md` (English)
+### 4a. `apps/docs-site/docs/extensions/cls.md` (English)
 
 ```md
 ---
@@ -770,7 +770,7 @@ A full runnable example lives in `examples/cls-request-context`.
 
 > Replace the escaped `\`\`\`` fences with real triple backticks.
 
-### 4b. `apps/docs/i18n/fr/docusaurus-plugin-content-docs/current/extensions/cls.md` (French)
+### 4b. `apps/docs-site/i18n/fr/docusaurus-plugin-content-docs/current/extensions/cls.md` (French)
 
 Same structure, translated. Frontmatter identical (`sidebar_position: 3`). Translate the prose to
 French (mirror the tone of the existing `extensions/config.md` FR mirror); keep all code blocks,
@@ -778,7 +778,7 @@ identifiers, and the ADR link **unchanged**. Title: `# CLS (contexte de requête
 
 ### 4c. Sidebar
 
-In `apps/docs/sidebars.ts`, add `"extensions/cls"` to the **Extensions** category items:
+In `apps/docs-site/sidebars.ts`, add `"extensions/cls"` to the **Extensions** category items:
 
 ```ts
 {
@@ -791,8 +791,8 @@ In `apps/docs/sidebars.ts`, add `"extensions/cls"` to the **Extensions** categor
 ### 4d. Cross-link from the DI doc (EN + FR)
 
 In the "Provider scopes" / "Portées de provider" section of
-`apps/docs/docs/app-core/dependency-injection.md` and its FR mirror
-(`apps/docs/i18n/fr/docusaurus-plugin-content-docs/current/app-core/dependency-injection.md`), add a
+`apps/docs-site/docs/core/dependency-injection.md` and its FR mirror
+(`apps/docs-site/i18n/fr/docusaurus-plugin-content-docs/current/core/dependency-injection.md`), add a
 short note that per-request state is handled by CLS rather than a DI request scope, linking to the
 new page. One sentence each, EN and FR. Example (EN):
 
@@ -830,11 +830,11 @@ Stage **only** the work of this task — explicitly exclude the user's pre-exist
 ```bash
 git add packages/cls examples/cls-request-context \
         docs/adr/0003-cls-request-context.md docs/plans/cls-request-context.md \
-        apps/docs/docs/extensions/cls.md \
-        apps/docs/i18n/fr/docusaurus-plugin-content-docs/current/extensions/cls.md \
-        apps/docs/sidebars.ts \
-        apps/docs/docs/app-core/dependency-injection.md \
-        apps/docs/i18n/fr/docusaurus-plugin-content-docs/current/app-core/dependency-injection.md \
+        apps/docs-site/docs/extensions/cls.md \
+        apps/docs-site/i18n/fr/docusaurus-plugin-content-docs/current/extensions/cls.md \
+        apps/docs-site/sidebars.ts \
+        apps/docs-site/docs/core/dependency-injection.md \
+        apps/docs-site/i18n/fr/docusaurus-plugin-content-docs/current/core/dependency-injection.md \
         package.json
 # Do NOT `git add` .claude/settings.json or packages/core/src/app.ts.
 ```

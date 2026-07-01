@@ -4423,9 +4423,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@spinejs/docs@workspace:apps/docs":
+"@spinejs/docs-site@workspace:apps/docs-site":
   version: 0.0.0-use.local
-  resolution: "@spinejs/docs@workspace:apps/docs"
+  resolution: "@spinejs/docs-site@workspace:apps/docs-site"
   dependencies:
     "@docusaurus/core": "npm:3.10.1"
     "@docusaurus/module-type-aliases": "npm:3.10.1"

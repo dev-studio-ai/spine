@@ -104,4 +104,4 @@ providers: [MyService]
 
 ## Full docs
 
-[apps/docs/docs/app-core/](../../apps/docs/docs/app-core/)
+[apps/docs-site/docs/core/](../../apps/docs-site/docs/core/)

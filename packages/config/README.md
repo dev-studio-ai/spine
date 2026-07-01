@@ -63,4 +63,4 @@ export const llmConfig: ConfigProvider<string> = {
 
 ## Full docs
 
-[apps/docs/docs/extensions/config](../../apps/docs/docs/extensions/config.md)
+[apps/docs-site/docs/extensions/config](../../apps/docs-site/docs/extensions/config.md)

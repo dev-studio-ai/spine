@@ -44,7 +44,7 @@ const config: Config = {
           sidebarPath: "./sidebars.ts",
           routeBasePath: "/docs",
           editUrl:
-            "https://github.com/dev-studio-ai/spine/tree/main/apps/docs/",
+            "https://github.com/dev-studio-ai/spine/tree/main/apps/docs-site/",
         },
         blog: false,
         theme: { customCss: "./src/css/custom.css" },
@@ -80,7 +80,7 @@ const config: Config = {
           title: "Docs",
           items: [
             { label: "Introduction", to: "/docs/intro" },
-            { label: "Core", to: "/docs/app-core/overview" },
+            { label: "Core", to: "/docs/core/overview" },
             { label: "Gateway", to: "/docs/gateway/overview" },
           ],
         },

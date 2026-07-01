@@ -125,4 +125,4 @@ export class AppErrorMapper implements ErrorMapper<ErrorCode> {
 
 ## Full docs
 
-[apps/docs/docs/transports/electron-ipc](../../apps/docs/docs/transports/electron-ipc.md)
+[apps/docs-site/docs/transports/electron-ipc](../../apps/docs-site/docs/transports/electron-ipc.md)

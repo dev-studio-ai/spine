@@ -112,4 +112,4 @@ Always pass `handleProcessExit: false` to `new App(…)` to avoid double-shutdow
 
 ## Full docs
 
-[apps/docs/docs/electron/electron-module](../../apps/docs/docs/electron/electron-module.md)
+[apps/docs-site/docs/electron/electron-module](../../apps/docs-site/docs/electron/electron-module.md)

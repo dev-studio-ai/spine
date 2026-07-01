@@ -59,7 +59,7 @@ The [**Getting Started**](getting-started) guide takes you from an empty folder 
 | Section                              | Covers                                                    |
 | ------------------------------------ | --------------------------------------------------------- |
 | [Getting Started](getting-started)   | Build a live HTTP API end-to-end in five steps            |
-| [App Core](app-core/overview)        | `App`, modules, DI, lifecycle, built-in logger            |
+| [App Core](core/overview)            | `App`, modules, DI, lifecycle, built-in logger            |
 | [Gateway](gateway/overview)          | Controllers, handlers, guards, validation, interceptors   |
 | [Extensions](extensions/config)      | Typed config loading, Winston logger                      |
 | [Electron](electron/electron-module) | Electron-specific lifecycle integration and IPC transport |

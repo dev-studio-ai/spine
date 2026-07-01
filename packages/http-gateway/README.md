@@ -122,4 +122,4 @@ Exports: `HttpGateway`, `HttpGatewayModule`, the route helpers `get`/`post`/`put
 
 ## Full docs
 
-[apps/docs/docs/transports/http](../../apps/docs/docs/transports/http.md)
+[apps/docs-site/docs/transports/http](../../apps/docs-site/docs/transports/http.md)

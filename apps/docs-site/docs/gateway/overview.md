@@ -15,7 +15,7 @@ You write plain controllers with typed route fields — no transport details lea
 export class UsersController {
   constructor(private readonly users: UsersStore) {}
 
-  // Same controller works over HTTP or IPC, unchanged.
+  // Route field — HTTP get/post here; IPC declares the same logic with handle("channel", …).
   list = get("/users", {}, () => this.users.list());
 }
 ```
@@ -101,7 +101,7 @@ class HttpGateway<Ctx, Code> {
 }
 ```
 
-Each transport owns address extraction, context building, and emitting the envelope; only `dispatch()` is shared. This means the same `@Controller` field-route code can serve an IPC transport in an Electron app and an HTTP transport, without any change to the controller.
+Each transport owns address extraction, context building, and emitting the envelope; only `dispatch()` is shared. A controller's **services, guards, and structure** carry across transports unchanged — but its **routes are transport-specific**: HTTP uses path-based `get`/`post` with `{ params, query, body }` input, while Electron IPC uses channel-based `handle` with a single payload. You re-declare the routes in the target transport's vocabulary; the business logic they call does not change.
 
 ## Ports
 
