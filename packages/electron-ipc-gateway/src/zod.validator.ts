@@ -1,5 +1,9 @@
 import { ZodError } from "zod";
-import { ParseableSchema, ValidationError, Validator } from "@spinejs/gateway";
+import {
+  ParseableSchema,
+  ValidationError,
+  Validator,
+} from "@spinejs/gateway-core";
 
 /**
  * zod-backed `Validator` adapter. Carries the zod dependency so the gateway core stays

@@ -4,9 +4,9 @@ sidebar_position: 1
 
 # Introduction
 
-**SpineJS** is a lightweight, NestJS-flavored micro-framework for structuring long-lived Node processes. It brings the patterns you know from NestJS — modules, dependency injection, lifecycle hooks — without the weight of the full NestJS runtime or its HTTP-first assumptions.
+**SpineJS** is a lightweight, NestJS-flavored micro-framework for structuring Node processes. It brings the patterns you know from NestJS — modules, dependency injection, lifecycle hooks — without the weight of the full NestJS runtime or its HTTP-first assumptions.
 
-It works equally well in background workers, CLI daemons, long-running services, or any Node program that outgrows a flat `index.ts`.
+It works equally well in background workers, CLI daemons, services, or any Node program that outgrows a flat `index.ts`.
 
 The ecosystem is organized in layers that you compose à la carte — see the [package overview](#package-overview) below.
 
@@ -20,14 +20,12 @@ SpineJS answers the same architectural questions at a fraction of the weight:
 - **No transport lock-in.** The `Gateway` abstraction decouples your business controllers from whatever carries the bytes — IPC, HTTP, WebSocket, or nothing at all.
 - **Structured lifecycle.** Every module participates in `init → start → stop`. Graceful shutdown, signal handling, and error propagation are handled for you.
 
-## Quick start
+## A taste
 
-A minimal app with one service and a clean shutdown:
-
-### 1. Define a module
+The smallest SpineJS app is a module with a lifecycle hook, booted by `App`:
 
 ```typescript
-import { Module, OnInit } from "@spinejs/core";
+import { App, Module, OnInit } from "@spinejs/core";
 
 @Module({ inject: [] })
 export class GreeterModule implements OnInit {
@@ -35,41 +33,17 @@ export class GreeterModule implements OnInit {
     console.log("Hello from GreeterModule");
   }
 }
-```
-
-### 2. Boot the app
-
-```typescript
-import { App } from "@spinejs/core";
-import { GreeterModule } from "./greeter.module";
 
 const app = new App([GreeterModule]);
-
 await app.init();
 await app.start();
 ```
 
-`SIGINT`/`SIGTERM` are handled automatically: `onStop()` runs in reverse init order, the logger flushes, then the process exits cleanly.
+`SIGINT`/`SIGTERM` are handled for you: `onStop()` runs in reverse init order, the logger flushes, then the process exits — you never call `process.exit()` yourself.
 
-:::tip
-You never call `process.exit()` yourself. Let the lifecycle drain — `onStop()` hooks run in reverse order so dependents shut down before their dependencies.
+:::tip Ready to build something real?
+The [**Getting Started**](getting-started) guide takes you from an empty folder to a live HTTP API — service, controller, validation, and a running server — in five short steps.
 :::
-
-### Adding a gateway
-
-If your process needs to expose request handlers — over IPC, HTTP, or any other transport — `@spinejs/gateway` gives you a transport-agnostic pipeline (guards, validation, error envelope) in front of plain controllers:
-
-```typescript
-@Controller()
-export class PingController {
-  @Handler({ address: "ping" })
-  ping(_ctx: GatewayContext): string {
-    return "pong";
-  }
-}
-```
-
-The same `PingController` can be served by any concrete transport binding without changes — see the [Gateway overview](gateway/overview) for the pipeline design, and the [transports](transports/electron-ipc) section for ready-made bindings.
 
 ## Core concepts
 
@@ -84,6 +58,7 @@ The same `PingController` can be served by any concrete transport binding withou
 
 | Section                              | Covers                                                    |
 | ------------------------------------ | --------------------------------------------------------- |
+| [Getting Started](getting-started)   | Build a live HTTP API end-to-end in five steps            |
 | [App Core](app-core/overview)        | `App`, modules, DI, lifecycle, built-in logger            |
 | [Gateway](gateway/overview)          | Controllers, handlers, guards, validation, interceptors   |
 | [Extensions](extensions/config)      | Typed config loading, Winston logger                      |
@@ -91,11 +66,12 @@ The same `PingController` can be served by any concrete transport binding withou
 
 ## Package overview
 
-| Package                         | Role                                                                              |
-| ------------------------------- | --------------------------------------------------------------------------------- |
-| `@spinejs/core`                 | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger |
-| `@spinejs/gateway`              | Transport-agnostic pipeline: `@Controller`, `@Handler`, `@UseGuards`, `Envelope`  |
-| `@spinejs/electron-ipc-gateway` | Binds `Gateway` to `ipcMain.handle`                                               |
-| `@spinejs/electron`             | `ElectronModule` (window + lifecycle) and `WindowService`                         |
-| `@spinejs/config`               | Typed, async-capable config loading                                               |
-| `@spinejs/winston-logger`       | Drop-in `Logger` implementation backed by Winston                                 |
+| Package                         | Role                                                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `@spinejs/core`                 | Module system, DI container, `App` orchestrator, lifecycle hooks, built-in logger                                              |
+| `@spinejs/gateway-core`         | Building blocks to build a transport gateway: `DispatchPipeline`, ports, `@Controller`, field routes, `@UseGuards`, `Envelope` |
+| `@spinejs/electron-ipc-gateway` | Electron IPC transport — composes the pipeline onto `ipcMain.handle`                                                           |
+| `@spinejs/http-gateway`         | HTTP transport on Hono — composes the pipeline onto HTTP routes                                                                |
+| `@spinejs/electron`             | `ElectronModule` (window + lifecycle) and `WindowService`                                                                      |
+| `@spinejs/config`               | Typed, async-capable config loading                                                                                            |
+| `@spinejs/winston-logger`       | Drop-in `Logger` implementation backed by Winston                                                                              |

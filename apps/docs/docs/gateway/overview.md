@@ -4,9 +4,31 @@ sidebar_position: 1
 
 # Gateway Overview
 
-`@spinejs/gateway` is the transport-agnostic message pipeline that sits between your application logic and the communication layer (IPC, HTTP, WebSocket, or any custom transport). It defines a consistent message/response contract without binding to any particular runtime.
+`@spinejs/gateway-core` provides a protocol-independent inbound data pipeline that sits between your application logic and the communication layer (IPC, HTTP, WebSocket, or any custom transport). It defines a consistent message/response contract without binding to any particular runtime.
 
-## Design philosophy
+## What you write
+
+You write plain controllers with typed route fields — no transport details leak in:
+
+```typescript
+@Controller({ inject: [UsersStore] })
+export class UsersController {
+  constructor(private readonly users: UsersStore) {}
+
+  // Same controller works over HTTP or IPC, unchanged.
+  list = get("/users", {}, () => this.users.list());
+}
+```
+
+The gateway takes each incoming call and runs it through a fixed pipeline — enrich context → check guards → validate input → invoke your handler → wrap the result in an envelope — then hands the envelope back to the transport. You declare the handler; the pipeline does the rest.
+
+New here? Follow the [Getting Started](../getting-started) guide for a runnable HTTP app, then come back for the design details below.
+
+:::info `@spinejs/gateway-core` ships building blocks, not a base class
+This package is not instantiated or extended directly. It ships the **building blocks** to build a gateway: the `DispatchPipeline` (guards → validate → invoke → envelope), the ports (`Validator`, `ContextFactory`, `ErrorMapper`), the DI route-loader (`@Controller`, field-route markers, `@UseGuards`) and the feature-module sugar. A **concrete gateway** — `HttpGateway`, `ElectronIpcGateway` — composes these blocks and owns its own bind/register. See ADR 0005 (`docs/adr/0005-gateway-composition-http-transport.md`).
+:::
+
+## How a request flows
 
 A common mistake is to write transport handlers that directly call application services, scatter guard logic across each handler, and pass raw transport-specific objects (an IPC event, an HTTP request, a socket message) to business code. The gateway eliminates this coupling by establishing a clear pipeline with explicit responsibilities.
 
@@ -23,7 +45,7 @@ Guards: canActivate(ctx)?         ← authorization checks (DI-resolved, composa
 Validator.validate(schema, input) ← input narrowing (zod, or any parse()-compatible schema)
   │
   ▼
-Handler method invocation         ← your controller, receiving (ctx, input)
+Route handler invocation          ← your controller field route, receiving (input, ctx)
   │
   ▼
 Envelope<T, Code>                 ← { ok: true, data } | { ok: false, code }
@@ -32,7 +54,7 @@ Envelope<T, Code>                 ← { ok: true, data } | { ok: false, code }
 Transport sends the envelope back
 ```
 
-The gateway `dispatch()` method implements this pipeline. It **never throws**: any error — guard rejection, validation failure, handler exception — is caught and mapped to a stable error code via `ErrorMapper`. The caller always receives an `Envelope`.
+The shared `DispatchPipeline.dispatch()` implements this pipeline. It **never throws**: any error — guard rejection, validation failure, handler exception — is caught and mapped to a stable error code via `ErrorMapper`. The caller always receives an `Envelope`.
 
 :::info Why an envelope, not a thrown error?
 Transport boundaries (IPC, HTTP) serialize poorly across thrown exceptions and leak stack traces. Returning a discriminated `Envelope` keeps the contract explicit and the error surface stable for every consumer.
@@ -63,17 +85,23 @@ Error codes are application-defined strings — the gateway core never leaks raw
 
 ## Transport-agnostic design
 
-The `Gateway<Ctx, Code>` abstract class owns the pipeline logic. Concrete transports extend it and implement one method:
+The pipeline is a **composable helper**, not a base class. `DispatchPipeline<Ctx, Code>` owns the cross-transport core (guards → validate → invoke → envelope) and the interceptor chain. A transport **holds** a pipeline and calls `dispatch()` from its own listener:
 
 ```typescript
-abstract class Gateway<Ctx extends GatewayContext, Code extends string> {
-  protected abstract bind(route: RouteDescriptor<Ctx>): void;
+class HttpGateway<Ctx, Code> {
+  private readonly pipeline = new DispatchPipeline<Ctx, Code>(
+    validator,
+    errorMapper,
+    interceptors
+  );
+
+  register(routes: LoadedRoute<Ctx>[]) {
+    for (const route of routes) this.bind(route); // attach a transport listener per route
+  }
 }
 ```
 
-`bind()` is called once per registered route and is responsible for attaching a transport listener (e.g. `ipcMain.handle(address, ...)` for IPC). The shared `dispatch()` method is then called from within that listener.
-
-This means the same `@Controller` / `@Handler` code can serve an IPC transport in an Electron app and an HTTP transport in a Fastify app, without any changes to the controller.
+Each transport owns address extraction, context building, and emitting the envelope; only `dispatch()` is shared. This means the same `@Controller` field-route code can serve an IPC transport in an Electron app and an HTTP transport, without any change to the controller.
 
 ## Ports
 

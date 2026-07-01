@@ -6,6 +6,25 @@ sidebar_position: 5
 
 SpineJS ships a zero-dependency console logger (`AppLogger`) that covers the common development and production use cases. For richer output — file transports, JSON, log rotation — the opt-in `@spinejs/winston-logger` package provides a drop-in replacement.
 
+## Logging in your code
+
+The active logger is registered under `loggerToken`. Inject it into any module or service and call a level method:
+
+```typescript
+import { Module, Logger, loggerToken } from "@spinejs/core";
+
+@Module({ inject: [loggerToken] })
+export class AuthModule {
+  constructor(private readonly logger: Logger) {}
+
+  async onInit(): Promise<void> {
+    this.logger.info("AuthModule initialized", AuthModule.name);
+  }
+}
+```
+
+Type the field as `Logger` (the interface), **not** `AppLogger` — the same module then works unchanged whether the app runs the built-in logger or Winston. That is all you need day to day; the sections below cover the interface, the built-in logger's options, swapping the implementation, and the level ladder.
+
 ## The `Logger` interface
 
 All loggers in the ecosystem implement the same interface:
@@ -54,25 +73,6 @@ logger.error(new Error("Something went wrong"), "AuthService");
 | `stdout`  | `boolean`              | `true`   | Emit `info` and below to `stdout` (vs `stderr`).           |
 | `appName` | `string`               | `'App'`  | Prefix shown in every log line.                            |
 | `console` | `ConsoleFormatOptions` | `{}`     | Fine-grained console rendering tweaks (colors, pid, etc.). |
-
-## Injecting the logger
-
-The active logger is registered in the global container under `loggerToken`. Inject it into any module or service:
-
-```typescript
-import { Module, Logger, loggerToken } from "@spinejs/core";
-
-@Module({ inject: [loggerToken] })
-export class AuthModule {
-  constructor(private readonly logger: Logger) {}
-
-  async onInit(): Promise<void> {
-    this.logger.info("AuthModule initialized", AuthModule.name);
-  }
-}
-```
-
-Using `Logger` (the interface) as the type — not `AppLogger` — keeps the code decoupled from the concrete implementation. The same module works unchanged whether the app uses `AppLogger` or `WinstonLogger`.
 
 ## Custom logger
 

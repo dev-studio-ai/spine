@@ -3,13 +3,13 @@
     "message": "Actuel",
     "description": "The label for version current"
   },
-  "sidebar.mainSidebar.category.SpineJS Core": {
-    "message": "SpineJS Core",
-    "description": "The label for category 'SpineJS Core' in sidebar 'mainSidebar'"
+  "sidebar.mainSidebar.category.Core": {
+    "message": "Cœur",
+    "description": "The label for category 'Core' in sidebar 'mainSidebar'"
   },
-  "sidebar.mainSidebar.category.Gateway": {
-    "message": "Gateway",
-    "description": "The label for category 'Gateway' in sidebar 'mainSidebar'"
+  "sidebar.mainSidebar.category.Building an API": {
+    "message": "Construire une API",
+    "description": "The label for category 'Building an API' in sidebar 'mainSidebar'"
   },
   "sidebar.mainSidebar.category.Transports": {
     "message": "Transports",

@@ -6,6 +6,36 @@ sidebar_position: 3
 
 SpineJS inclut un conteneur DI synchrone avec détection de cycles. Il résout les providers paresseusement à la première demande et met le résultat en cache — chaque token se résout selon sa [portée](#portées-de-provider) (`singleton` par défaut) au sein d'une portée de conteneur.
 
+## Déclarer et injecter un service
+
+La DI se résume le plus souvent à un décorateur. Marquez une classe `@Injectable`, listez ses besoins dans `inject`, et enregistrez-la dans un module — le conteneur la construit et câble les dépendances :
+
+```typescript
+import { Injectable, Module } from "@spinejs/core";
+
+@Injectable()
+export class Clock {
+  now() {
+    return new Date();
+  }
+}
+
+@Injectable({ inject: [Clock] })
+export class GreetingService {
+  constructor(private readonly clock: Clock) {}
+  greet() {
+    return `Hello at ${this.clock.now().toISOString()}`;
+  }
+}
+
+@Module({ providers: [Clock, GreetingService] })
+export class GreetingModule {}
+```
+
+`inject` est vérifié au type : les types résolus des tokens doivent correspondre aux paramètres du constructeur, dans l'ordre — en inverser deux est une erreur de compilation. Cela couvre le cas courant.
+
+Le reste de cette page est la boîte à outils complète — types de token, les cinq formes de provider, les portées, et l'API du conteneur — pour quand une simple référence de classe ne suffit pas (interfaces, valeurs pré-construites, factories, alias).
+
 ## `InjectionToken<T>`
 
 `InjectionToken<T>` est un token typé et opaque utilisé comme clé DI pour des valeurs et des interfaces (lorsqu'une référence de classe n'est pas disponible ou pas appropriée).

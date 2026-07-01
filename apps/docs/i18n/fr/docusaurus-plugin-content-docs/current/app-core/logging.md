@@ -6,6 +6,25 @@ sidebar_position: 5
 
 SpineJS livre un logger console sans dépendance (`AppLogger`) qui couvre les cas d'usage courants en développement et en production. Pour une sortie plus riche — transports fichier, JSON, rotation des logs — le package optionnel `@spinejs/winston-logger` fournit un remplacement clé en main.
 
+## Logger dans votre code
+
+Le logger actif est enregistré sous `loggerToken`. Injectez-le dans n'importe quel module ou service et appelez une méthode de niveau :
+
+```typescript
+import { Module, Logger, loggerToken } from "@spinejs/core";
+
+@Module({ inject: [loggerToken] })
+export class AuthModule {
+  constructor(private readonly logger: Logger) {}
+
+  async onInit(): Promise<void> {
+    this.logger.info("AuthModule initialized", AuthModule.name);
+  }
+}
+```
+
+Typez le champ en `Logger` (l'interface), **pas** `AppLogger` — le même module fonctionne alors sans changement, que l'app utilise le logger intégré ou Winston. C'est tout ce dont vous avez besoin au quotidien ; les sections ci-dessous couvrent l'interface, les options du logger intégré, le remplacement de l'implémentation et l'échelle des niveaux.
+
 ## L'interface `Logger`
 
 Tous les loggers de l'écosystème implémentent la même interface :
@@ -54,25 +73,6 @@ logger.error(new Error("Something went wrong"), "AuthService");
 | `stdout`  | `boolean`              | `true`   | Émet `info` et en dessous vers `stdout` (sinon `stderr`). |
 | `appName` | `string`               | `'App'`  | Préfixe affiché sur chaque ligne de log.                  |
 | `console` | `ConsoleFormatOptions` | `{}`     | Réglages fins du rendu console (couleurs, pid, etc.).     |
-
-## Injecter le logger
-
-Le logger actif est enregistré dans le conteneur global sous `loggerToken`. Injectez-le dans n'importe quel module ou service :
-
-```typescript
-import { Module, Logger, loggerToken } from "@spinejs/core";
-
-@Module({ inject: [loggerToken] })
-export class AuthModule {
-  constructor(private readonly logger: Logger) {}
-
-  async onInit(): Promise<void> {
-    this.logger.info("AuthModule initialized", AuthModule.name);
-  }
-}
-```
-
-Utiliser `Logger` (l'interface) comme type — et non `AppLogger` — garde le code découplé de l'implémentation concrète. Le même module fonctionne sans changement, que l'application utilise `AppLogger` ou `WinstonLogger`.
 
 ## Logger personnalisé
 

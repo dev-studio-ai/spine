@@ -6,6 +6,7 @@ export {
   getProviderScope,
   ResolvedTuple,
   InjectableOptions,
+  CtorDepsMatch,
 } from "./injectable";
 
 export {
@@ -14,5 +15,7 @@ export {
   ProviderConstructor,
   ProviderFactory,
   ProviderScope,
+  FactoryProvider,
+  ValueProvider,
   Token,
 } from "./container.types";

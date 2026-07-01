@@ -10,6 +10,14 @@ import {
 } from "./module-decorator";
 import { hasOnInit } from "./module";
 
+/**
+ * Hidden, non-enumerable slot where each module instance receives its own `Container` just before
+ * `onInit` (see `buildAndInitModule`). Framework-internal back-channel — never a public token, never
+ * in the DI graph. Keyed by `Symbol.for` so a downstream package (e.g. `@spinejs/gateway-core`) can read
+ * the same slot by re-deriving the key, without `@spinejs/core` exporting anything for it.
+ */
+const OWN_CONTAINER_SLOT = Symbol.for("spinejs:module-own-container");
+
 /** Human-readable name of a module identity (class or DynamicModule object), for error messages. */
 function identityName(identity: object): string {
   return typeof identity === "function"
@@ -318,6 +326,18 @@ export class ModuleLoader {
 
     const args = (node.inject ?? []).map((token) => ref.resolve(token));
     ref.instance = new ModuleConstructor(...args);
+
+    // Internal back-channel: stamp the module's own Container onto a hidden, non-enumerable slot
+    // BEFORE onInit. This is NOT a public API and NOT part of the DI graph — it is the framework's
+    // private way to let a *synthesized* module (e.g. the gateway feature module) resolve tokens it
+    // can only discover at instance time (per-route guard classes living in controller fields).
+    // The key is a `Symbol.for(...)` so a downstream package re-derives it without core exporting
+    // anything; user code never sees it. See `OWN_CONTAINER_SLOT`.
+    Object.defineProperty(ref.instance, OWN_CONTAINER_SLOT, {
+      value: ref.container,
+      enumerable: false,
+      configurable: true,
+    });
 
     if (hasOnInit(ref.instance)) {
       this.timer.start(node.identity);

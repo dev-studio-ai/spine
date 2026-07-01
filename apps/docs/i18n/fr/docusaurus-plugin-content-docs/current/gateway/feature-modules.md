@@ -6,7 +6,7 @@ sidebar_position: 5
 
 Les modules de fonctionnalité sont la colle entre vos contrôleurs et un transport de gateway. Ils encapsulent le câblage : instancier les contrôleurs via DI, résoudre les instances de guard, construire la guard map, et enregistrer les routes résultantes sur la gateway — le tout dans un `onInit()` synthétisé.
 
-`@spinejs/gateway` fournit deux fonctions de confort qui produisent ce câblage à partir d'un binding spécifique au transport :
+`@spinejs/gateway-core` fournit deux fonctions de confort qui produisent ce câblage à partir d'un binding spécifique au transport :
 
 | Fonction                                   | Style                                                | Quand l'utiliser                                                |
 | ------------------------------------------ | ---------------------------------------------------- | --------------------------------------------------------------- |
@@ -24,7 +24,7 @@ Liez les fonctions génériques à la classe de gateway et au module de votre tr
 import {
   gatewayFeatureFactory,
   gatewayModuleDecorator,
-} from "@spinejs/gateway";
+} from "@spinejs/gateway-core";
 import { ElectronIpcGateway } from "@spinejs/electron-ipc-gateway";
 import { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 
@@ -63,7 +63,7 @@ import { UserController } from "./user.controller";
     ipcFeature({ controllers: [HealthController] }),
     ipcFeature({
       controllers: [UserController],
-      imports: [UserModule], // additional imports needed by UserController
+      imports: [UserModule], // imports supplémentaires requis par UserController
     }),
   ],
 })
@@ -109,13 +109,12 @@ interface FeatureModuleConfig extends ModuleMetadata {
 
 Quand le module de fonctionnalité s'initialise, le framework :
 
-1. Collecte toutes les classes de guard uniques depuis les métadonnées `@UseGuards` de tous les contrôleurs.
-2. Construit l'ordre d'injection DI : `[gatewayToken, ...controllerClasses, ...guardClasses, ...userInject]`.
-3. Reçoit les instances résolues de la DI dans le même ordre.
-4. Construit le `guardMap: Map<GuardConstructor, Guard>`.
-5. Pour chaque contrôleur, appelle `getRoutes(controllerInstance, guardMap)` pour produire `RouteDescriptor[]`.
-6. Appelle `gateway.register(routes)` avec tous les descripteurs.
-7. Si la classe de l'utilisateur (forme décorateur) a son propre `onInit()`, l'appelle ensuite.
+1. Construit l'ordre d'injection DI `[gatewayToken, ...controllerClasses, ...userInject]` et reçoit les instances résolues.
+2. Lit son **propre container** (estampillé par le module loader du cœur sur un slot caché juste avant `onInit`).
+3. Parcourt chaque instance de contrôleur pour collecter les classes de guards référencées — `@UseGuards` de classe plus l'option `guards` par route sur les markers de champ — en résolvant chacune depuis ce container (enregistrement à la volée d'une classe inconnue), pour construire le `guardMap: Map<GuardConstructor, Guard>`.
+4. Pour chaque contrôleur, appelle `getRoutes(controllerInstance, guardMap)` pour produire `LoadedRoute[]`.
+5. Appelle `gateway.register(routes)` avec toutes les routes.
+6. Si la classe de l'utilisateur (forme décorateur) a son propre `onInit()`, l'appelle ensuite.
 
 ## Exemple complet de câblage
 
@@ -138,27 +137,27 @@ export class ProjectsIpcModule {}
 
 ```typescript
 // projects.controller.ts
-import { Controller, Handler, UseGuards } from "@spinejs/gateway";
+import { Controller, UseGuards } from "@spinejs/gateway-core";
 import { SessionGuard } from "../infrastructure/session.guard";
-import { ElectronIpcContext } from "../infrastructure/electron-ipc.types";
+import { handle } from "@spinejs/electron-ipc-gateway";
 import { z } from "zod";
 
 const createProjectSchema = z.object({ name: z.string().min(1) });
 
 @UseGuards(SessionGuard)
-@Controller()
+@Controller({ inject: [ProjectsService] })
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Handler({ address: "projects:list" })
-  list(ctx: ElectronIpcContext): Promise<Project[]> {
-    return this.projectsService.findAll(ctx.session.userId);
-  }
+  list = handle("projects:list", {}, (_input, ctx) =>
+    this.projectsService.findAll(ctx.session.userId)
+  );
 
-  @Handler({ address: "projects:create", input: createProjectSchema })
-  create(ctx: ElectronIpcContext, input: { name: string }): Promise<Project> {
-    return this.projectsService.create(ctx.session.userId, input.name);
-  }
+  create = handle(
+    "projects:create",
+    { input: createProjectSchema },
+    (input, ctx) => this.projectsService.create(ctx.session.userId, input.name)
+  );
 }
 ```
 
@@ -173,8 +172,8 @@ import { ProjectsIpcModule } from "./projects.ipc.module";
 export class MainModule {}
 ```
 
-## Auto-enregistrement des guards
+## Résolution des guards
 
-Vous n'avez pas besoin de lister manuellement les classes de guard dans le tableau `providers`. La factory du module de fonctionnalité scanne les métadonnées `@UseGuards` de tous les contrôleurs au moment de la définition et ajoute automatiquement toutes les classes de guard uniques à `providers` et `inject`.
+Vous n'avez pas besoin de lister manuellement les classes de guard dans le tableau `providers`. À l'`onInit`, le module de fonctionnalité parcourt les instances de contrôleurs pour collecter chaque classe de guard référencée — `@UseGuards` de classe **et** options `guards` par route — et résout chacune depuis son propre container, en enregistrant à la volée une classe inconnue.
 
-Les guards référencés dans `@UseGuards` doivent tout de même avoir leurs propres dépendances déclarées via `@Injectable` sur la classe du guard — le conteneur DI les résout à travers la chaîne normale de providers.
+Les guards doivent tout de même déclarer leurs propres dépendances via `@Injectable` sur la classe du guard, et ces dépendances doivent être joignables depuis le container du module de fonctionnalité (exports de ses imports + providers) — le container les résout à travers la chaîne normale de providers. Un guard dont une dépendance n'est pas joignable échoue à l'`onInit` avec une erreur claire.

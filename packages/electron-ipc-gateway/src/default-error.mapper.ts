@@ -1,4 +1,4 @@
-import type { ErrorMapper } from "@spinejs/gateway";
+import type { ErrorMapper } from "@spinejs/gateway-core";
 
 /**
  * Default `ErrorMapper`: maps any thrown error to its class name as a stable code (e.g.

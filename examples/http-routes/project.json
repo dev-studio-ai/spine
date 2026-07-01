@@ -1,8 +1,8 @@
 {
-  "name": "gateway",
+  "name": "example-http-routes",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/gateway/src",
-  "projectType": "library",
+  "sourceRoot": "examples/http-routes/src",
+  "projectType": "application",
   "tags": [],
   "targets": {
     "typecheck": {

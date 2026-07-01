@@ -3,13 +3,13 @@
     "message": "Sans reflect-metadata"
   },
   "home.feature.noReflect.body": {
-    "message": "Les décorateurs stockent leurs métadonnées dans de simples symboles de propriété directe. Sûr avec esbuild/swc, sans polyfill global ni surcharge inattendue à l'exécution."
+    "message": "Les décorateurs stockent leurs métadonnées dans de simples symboles de propriété directe. Pas de flag experimentalDecorators — les builds esbuild/swc standard fonctionnent, sans polyfill global ni surcharge inattendue à l'exécution."
   },
   "home.feature.transport.title": {
     "message": "Indépendant du transport"
   },
   "home.feature.transport.body": {
-    "message": "Le pipeline Gateway découple les contrôleurs du canal qui transporte les octets — IPC, HTTP, WebSocket, ou rien du tout."
+    "message": "Le pipeline Gateway sépare les contrôleurs de la couche de transport qui achemine les données — IPC, HTTP, WebSocket, ou rien du tout."
   },
   "home.feature.lifecycle.title": {
     "message": "Cycle de vie structuré"
@@ -36,7 +36,7 @@
     "message": "Workers d'arrière-plan, outils CLI, process d'applications desktop, fonctions serverless — tout ce qui dépasse un index.ts plat."
   },
   "home.hero.tagline": {
-    "message": "Modules, DI et cycle de vie pour les process Node au long cours."
+    "message": "Modules, DI et cycle de vie pour les process Node."
   },
   "home.hero.getStarted": {
     "message": "Commencer"
@@ -45,9 +45,9 @@
     "message": "Voir sur GitHub"
   },
   "home.meta.title": {
-    "message": "SpineJS — Modules, DI et cycle de vie pour Node au long cours"
+    "message": "SpineJS — Modules, DI et cycle de vie pour Node"
   },
   "home.meta.description": {
-    "message": "Modules, injection de dépendances et cycle de vie pour les process Node au long cours."
+    "message": "Modules, injection de dépendances et cycle de vie pour les process Node."
   }
 }

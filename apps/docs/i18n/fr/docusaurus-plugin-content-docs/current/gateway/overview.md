@@ -4,35 +4,57 @@ sidebar_position: 1
 
 # Aperçu Gateway
 
-`@spinejs/gateway` est le pipeline de messages indépendant du transport qui s'intercale entre votre logique applicative et la couche de communication (IPC, HTTP, WebSocket, ou tout transport personnalisé). Il définit un contrat message/réponse cohérent sans se lier à un runtime particulier.
+`@spinejs/gateway-core` fournit un pipeline de données entrantes indépendant du protocole, placé entre votre logique applicative et la couche de communication (IPC, HTTP, WebSocket, ou tout transport personnalisé). Il définit un contrat message/réponse cohérent, sans dépendre d'un runtime particulier.
 
-## Philosophie de conception
+## Ce que vous écrivez
+
+Vous écrivez de simples controllers avec des champs de route typés — aucun détail de transport ne s'y infiltre :
+
+```typescript
+@Controller({ inject: [UsersStore] })
+export class UsersController {
+  constructor(private readonly users: UsersStore) {}
+
+  // Le même controller fonctionne en HTTP ou en IPC, sans changement.
+  list = get("/users", {}, () => this.users.list());
+}
+```
+
+La gateway prend chaque appel entrant et le fait passer par un pipeline fixe — enrichir le contexte → vérifier les guards → valider l'input → invoquer votre handler → emballer le résultat dans une enveloppe — puis rend l'enveloppe au transport. Vous déclarez le handler ; le pipeline fait le reste.
+
+Nouveau ici ? Suivez le guide [Prise en main](../getting-started) pour une app HTTP exécutable, puis revenez pour les détails de conception ci-dessous.
+
+:::info `@spinejs/gateway-core` fournit des briques, pas une classe de base
+Ce package ne s'instancie ni ne s'étend pas directement. Il fournit les **briques** pour construire une gateway : le `DispatchPipeline` (guards → validation → invoke → enveloppe), les ports (`Validator`, `ContextFactory`, `ErrorMapper`), le loader de routes DI (`@Controller`, markers de routes en champ, `@UseGuards`) et le sucre feature-module. Une **gateway concrète** — `HttpGateway`, `ElectronIpcGateway` — compose ces briques et possède son propre bind/register. Voir l'ADR 0005 (`docs/adr/0005-gateway-composition-http-transport.md`).
+:::
+
+## Comment circule une requête
 
 Une erreur fréquente est d'écrire des handlers de transport qui appellent directement les services applicatifs, dispersent la logique de guard dans chaque handler et passent des objets bruts propres au transport (un event IPC, une requête HTTP, un message socket) au code métier. La gateway élimine ce couplage en établissant un pipeline clair aux responsabilités explicites.
 
 ```
-Raw transport call
+Appel de transport brut
   │
   ▼
-ContextFactory.create(raw)        ← enriches the call with app context (session, user, …)
+ContextFactory.create(raw)        ← enrichit l'appel avec le contexte app (session, utilisateur, …)
   │
   ▼
-Guards: canActivate(ctx)?         ← authorization checks (DI-resolved, composable)
+Guards: canActivate(ctx)?         ← contrôles d'autorisation (résolus par DI, composables)
   │
   ▼
-Validator.validate(schema, input) ← input narrowing (zod, or any parse()-compatible schema)
+Validator.validate(schema, input) ← restriction de l'entrée (zod, ou tout schéma compatible parse())
   │
   ▼
-Handler method invocation         ← your controller, receiving (ctx, input)
+Invocation du handler de route    ← votre route en champ du contrôleur, reçoit (input, ctx)
   │
   ▼
 Envelope<T, Code>                 ← { ok: true, data } | { ok: false, code }
   │
   ▼
-Transport sends the envelope back
+Le transport renvoie l'enveloppe
 ```
 
-La méthode `dispatch()` de la gateway implémente ce pipeline. Elle **ne lève jamais d'exception** : toute erreur — rejet de guard, échec de validation, exception de handler — est rattrapée et mappée vers un code d'erreur stable via `ErrorMapper`. L'appelant reçoit toujours une `Envelope`.
+La méthode partagée `DispatchPipeline.dispatch()` implémente ce pipeline. Elle **ne lève jamais d'exception** : toute erreur — rejet de guard, échec de validation, exception de handler — est rattrapée et mappée vers un code d'erreur stable via `ErrorMapper`. L'appelant reçoit toujours une `Envelope`.
 
 :::info Pourquoi une enveloppe, et non une exception levée ?
 Les frontières de transport (IPC, HTTP) sérialisent mal les exceptions levées et laissent fuiter les stack traces. Retourner une `Envelope` discriminée garde le contrat explicite et la surface d'erreur stable pour chaque consommateur.
@@ -55,7 +77,7 @@ const result = await ipcRenderer.invoke("users:list");
 if (result.ok) {
   console.log(result.data); // User[]
 } else {
-  console.error(result.code); // e.g. 'UNAUTHORIZED', 'SERVER', 'INVALID_INPUT'
+  console.error(result.code); // ex. 'UNAUTHORIZED', 'SERVER', 'INVALID_INPUT'
 }
 ```
 
@@ -63,17 +85,23 @@ Les codes d'erreur sont des chaînes définies par l'application — le cœur de
 
 ## Conception indépendante du transport
 
-La classe abstraite `Gateway<Ctx, Code>` détient la logique du pipeline. Les transports concrets l'étendent et implémentent une seule méthode :
+Le pipeline est un **helper composable**, pas une classe de base. `DispatchPipeline<Ctx, Code>` détient le cœur indépendant du transport (guards → validation → invoke → enveloppe) et la chaîne d'interceptors. Un transport **détient** un pipeline et appelle `dispatch()` depuis son propre écouteur :
 
 ```typescript
-abstract class Gateway<Ctx extends GatewayContext, Code extends string> {
-  protected abstract bind(route: RouteDescriptor<Ctx>): void;
+class HttpGateway<Ctx, Code> {
+  private readonly pipeline = new DispatchPipeline<Ctx, Code>(
+    validator,
+    errorMapper,
+    interceptors
+  );
+
+  register(routes: LoadedRoute<Ctx>[]) {
+    for (const route of routes) this.bind(route); // attache un écouteur de transport par route
+  }
 }
 ```
 
-`bind()` est appelée une fois par route enregistrée et a la responsabilité d'attacher un écouteur de transport (par ex. `ipcMain.handle(address, ...)` pour l'IPC). La méthode partagée `dispatch()` est ensuite appelée depuis cet écouteur.
-
-Cela signifie que le même code `@Controller` / `@Handler` peut servir un transport IPC dans une application Electron et un transport HTTP dans une application Fastify, sans aucune modification du contrôleur.
+Chaque transport gère l'extraction d'adresse, la construction du contexte et l'émission de l'enveloppe ; seul `dispatch()` est partagé. Cela signifie que le même code `@Controller` à routes en champ peut servir un transport IPC dans une application Electron et un transport HTTP, sans aucune modification du contrôleur.
 
 ## Ports
 

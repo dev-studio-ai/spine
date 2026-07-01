@@ -4,7 +4,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 
 const config: Config = {
   title: "SpineJS",
-  tagline: "Modules, DI, and lifecycle for long-lived Node processes",
+  tagline: "Modules, DI, and lifecycle for Node processes",
   url: "https://dev-studio-ai.github.io",
   baseUrl: "/spine/",
   onBrokenLinks: "throw",

@@ -1,4 +1,4 @@
-import type { Envelope, RouteDescriptor } from "@spinejs/gateway";
+import type { DispatchTarget, Envelope } from "@spinejs/gateway-core";
 import { ClsService } from "./cls.service";
 import { ClsInterceptor } from "./cls.interceptor";
 
@@ -7,8 +7,7 @@ interface AppContext {
   user: string;
 }
 
-const route: RouteDescriptor<AppContext> = {
-  address: "whoami",
+const target: DispatchTarget<AppContext> = {
   guards: [],
   invoke: () => undefined,
 };
@@ -25,7 +24,7 @@ describe("ClsInterceptor", () => {
     let seenUser: string | undefined;
 
     await interceptor.intercept(
-      route,
+      target,
       { event: {}, user: "alice" },
       undefined,
       async () => {
@@ -46,7 +45,7 @@ describe("ClsInterceptor", () => {
     let seenReqId: string | undefined;
 
     await interceptor.intercept(
-      route,
+      target,
       { event: {}, user: "bob" },
       undefined,
       async () => {
@@ -63,7 +62,7 @@ describe("ClsInterceptor", () => {
     const interceptor = new ClsInterceptor<AppContext>(cls);
 
     await interceptor.intercept(
-      route,
+      target,
       { event: {}, user: "alice" },
       undefined,
       () => okEnvelope()

@@ -6,6 +6,6 @@
   "types": "src/index.ts",
   "dependencies": {
     "@spinejs/core": "workspace:*",
-    "@spinejs/gateway": "workspace:*"
+    "@spinejs/gateway-core": "workspace:*"
   }
 }
