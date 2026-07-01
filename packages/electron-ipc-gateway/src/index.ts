@@ -6,6 +6,7 @@ export type {
 } from "./electron-ipc-base.types";
 export { ElectronIpcGatewayModule } from "./electron-ipc-gateway.module";
 export { IpcLoggingInterceptor } from "./ipc-logging.interceptor";
+export type { IpcLogRedactor } from "./ipc-logging.interceptor";
 export { ZodValidator } from "./zod.validator";
 export { DefaultErrorMapper } from "./default-error.mapper";
 export { ipcFeature, IpcModule } from "./electron-ipc-module";
