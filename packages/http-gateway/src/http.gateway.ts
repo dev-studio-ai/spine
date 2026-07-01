@@ -31,18 +31,22 @@ export class HttpGateway<
   Code extends string = string
 > {
   readonly app = new Hono();
-  private readonly pipeline: DispatchPipeline<Ctx, Code>;
+  private readonly pipeline: DispatchPipeline<Ctx, Code, HttpRoute<Ctx>>;
 
   constructor(
     validator: Validator,
     errorMapper: ErrorMapper<Code>,
     private readonly contextFactory: ContextFactory<HttpRaw, Ctx>,
-    interceptors: GatewayInterceptor<Ctx, Code>[] = [],
+    interceptors: GatewayInterceptor<Ctx, Code, HttpRoute<Ctx>>[] = [],
     private readonly statusMapper: (
       code: Code
     ) => number = defaultStatusMapper as (code: Code) => number
   ) {
-    this.pipeline = new DispatchPipeline(validator, errorMapper, interceptors);
+    this.pipeline = new DispatchPipeline<Ctx, Code, HttpRoute<Ctx>>(
+      validator,
+      errorMapper,
+      interceptors
+    );
   }
 
   /** Mounts pre-resolved HTTP routes on the Hono app. Called by the feature module. */

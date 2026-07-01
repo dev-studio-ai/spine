@@ -15,6 +15,7 @@ import type {
   Validator,
 } from "@spinejs/gateway-core";
 import { HttpGateway } from "./http.gateway";
+import type { HttpRoute } from "./http.gateway";
 import { ZodValidator } from "./zod.validator";
 import { DefaultHttpErrorMapper } from "./default-error.mapper";
 import type { HttpBaseContext, HttpRaw } from "./http-base.types";
@@ -26,9 +27,9 @@ const errorMapperToken = new InjectionToken<ErrorMapper<string>>(
 const contextFactoryToken = new InjectionToken<
   ContextFactory<HttpRaw, HttpBaseContext>
 >("http-gateway.context-factory");
-const interceptorsToken = new InjectionToken<GatewayInterceptor[]>(
-  "http-gateway.interceptors"
-);
+const interceptorsToken = new InjectionToken<
+  GatewayInterceptor<HttpBaseContext, string, HttpRoute>[]
+>("http-gateway.interceptors");
 const statusMapperToken = new InjectionToken<
   ((code: string) => number) | undefined
 >("http-gateway.status-mapper");
@@ -58,7 +59,7 @@ const portToken = new InjectionToken<number | undefined>("http-gateway.port");
         validator: Validator,
         errorMapper: ErrorMapper<string>,
         contextFactory: ContextFactory<HttpRaw, HttpBaseContext>,
-        interceptors: GatewayInterceptor[],
+        interceptors: GatewayInterceptor<HttpBaseContext, string, HttpRoute>[],
         statusMapper: ((code: string) => number) | undefined
       ) =>
         new HttpGateway(
@@ -106,7 +107,9 @@ export class HttpGatewayModule implements OnStart, OnStop {
     contextFactory?: ProviderAdapter<ContextFactory<HttpRaw, HttpBaseContext>>;
     errorMapper?: ProviderAdapter<ErrorMapper<string>>;
     validator?: ProviderAdapter<Validator>;
-    interceptors?: ProviderAdapter<GatewayInterceptor[]>;
+    interceptors?: ProviderAdapter<
+      GatewayInterceptor<HttpBaseContext, string, HttpRoute>[]
+    >;
     /** Maps an `ErrorMapper` code to an HTTP status. Defaults to the built-in BAD_REQUEST/UNAUTHORIZED/INTERNAL_ERROR mapping. */
     statusMapper?: ProviderAdapter<(code: string) => number>;
     port?: number;

@@ -15,6 +15,7 @@ import type {
   Validator,
 } from "@spinejs/gateway-core";
 import { ElectronIpcGateway } from "./electron-ipc.gateway";
+import type { IpcRoute } from "./electron-ipc.gateway";
 import { ZodValidator } from "./zod.validator";
 import { DefaultErrorMapper } from "./default-error.mapper";
 import type {
@@ -31,9 +32,9 @@ const errorMapperToken = new InjectionToken<ErrorMapper<string>>(
 const contextFactoryToken = new InjectionToken<
   ContextFactory<ElectronIpcRaw, ElectronIpcBaseContext>
 >("electron-ipc-gateway.context-factory");
-const interceptorsToken = new InjectionToken<GatewayInterceptor[]>(
-  "electron-ipc-gateway.interceptors"
-);
+const interceptorsToken = new InjectionToken<
+  GatewayInterceptor<ElectronIpcBaseContext, string, IpcRoute>[]
+>("electron-ipc-gateway.interceptors");
 
 /**
  * Gateway transport module for the Electron IPC binding. The base `@Module` registers the
@@ -61,7 +62,11 @@ const interceptorsToken = new InjectionToken<GatewayInterceptor[]>(
         errorMapper: ErrorMapper<string>,
         contextFactory: ContextFactory<ElectronIpcRaw, ElectronIpcBaseContext>,
         logger: Logger,
-        interceptors: GatewayInterceptor[]
+        interceptors: GatewayInterceptor<
+          ElectronIpcBaseContext,
+          string,
+          IpcRoute
+        >[]
       ) =>
         new ElectronIpcGateway(
           validator,
@@ -87,7 +92,9 @@ export class ElectronIpcGatewayModule {
     >;
     errorMapper?: ProviderAdapter<ErrorMapper<string>>;
     validator?: ProviderAdapter<Validator>;
-    interceptors?: ProviderAdapter<GatewayInterceptor[]>;
+    interceptors?: ProviderAdapter<
+      GatewayInterceptor<ElectronIpcBaseContext, string, IpcRoute>[]
+    >;
   }): DynamicModule {
     return {
       module: ElectronIpcGatewayModule,

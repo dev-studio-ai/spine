@@ -17,17 +17,22 @@ import {
  */
 export class DispatchPipeline<
   Ctx extends GatewayContext,
-  Code extends string = string
+  Code extends string = string,
+  Target extends DispatchTarget<Ctx> = DispatchTarget<Ctx>
 > {
   constructor(
     private readonly validator: Validator,
     private readonly errorMapper: ErrorMapper<Code>,
-    private readonly interceptors: GatewayInterceptor<Ctx, Code>[] = []
+    private readonly interceptors: GatewayInterceptor<Ctx, Code, Target>[] = []
   ) {}
 
-  /** Runs the interceptor chain then the core pipeline for one dispatch. Never throws. */
-  dispatch<T extends DispatchTarget<Ctx>>(
-    target: T,
+  /**
+   * Runs the interceptor chain then the core pipeline for one dispatch. Never throws. The transport
+   * binds `Target` to its own route type (e.g. `IpcRoute`/`HttpRoute`), so interceptors receive the
+   * address-bearing `LoadedRoute`, not just the address-less `DispatchTarget`.
+   */
+  dispatch(
+    target: Target,
     ctx: Ctx,
     rawInput: unknown
   ): Promise<Envelope<unknown, Code>> {
