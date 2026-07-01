@@ -438,6 +438,36 @@ describe("App / module system", () => {
     expect(exitCalls).toBe(1);
   });
 
+  it("force-exits once onStop() hangs past shutdownTimeout", async () => {
+    class HangingMod {
+      onStop() {
+        return new Promise<void>(() => {}); // never resolves
+      }
+    }
+
+    const app = new App([new ModuleNode({ module: HangingMod })], {
+      logger: silentLogger,
+      handleProcessExit: false,
+      shutdownTimeout: 20,
+    });
+    await app.init();
+
+    let exitCalls = 0;
+    const exitSpy = vi
+      .spyOn(process, "exit")
+      .mockImplementation((() => void exitCalls++) as never);
+    try {
+      // Not awaited: with a hung onStop() and process.exit() mocked, exit() never resolves.
+      // The hardKill timer is the only path that fires — give it past shutdownTimeout.
+      void app.exit();
+      await delay(50);
+    } finally {
+      exitSpy.mockRestore();
+    }
+
+    expect(exitCalls).toBe(1);
+  });
+
   it("fresh: a configured module yields a distinct instance per configure() call", async () => {
     let instances = 0;
     class Db {

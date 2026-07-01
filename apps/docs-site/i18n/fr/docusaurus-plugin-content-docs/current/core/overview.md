@@ -29,11 +29,12 @@ await app.start(); // Run onStart() on every module that implements OnStart.
 
 ### `AppOptions`
 
-| Option              | Type            | Défaut      | Description                                                      |
-| ------------------- | --------------- | ----------- | ---------------------------------------------------------------- |
-| `logger`            | `Logger`        | `AppLogger` | Instance de logger personnalisée (remplace celle intégrée).      |
-| `loggerOptions`     | `LoggerOptions` | `{}`        | Options transmises au `AppLogger` intégré.                       |
-| `handleProcessExit` | `boolean`       | `true`      | Quand `true`, écoute `SIGINT`/`SIGTERM` et appelle `app.exit()`. |
+| Option              | Type            | Défaut      | Description                                                                                         |
+| ------------------- | --------------- | ----------- | --------------------------------------------------------------------------------------------------- |
+| `logger`            | `Logger`        | `AppLogger` | Instance de logger personnalisée (remplace celle intégrée).                                         |
+| `loggerOptions`     | `LoggerOptions` | `{}`        | Options transmises au `AppLogger` intégré.                                                          |
+| `handleProcessExit` | `boolean`       | `true`      | Quand `true`, écoute `SIGINT`/`SIGTERM` et appelle `app.exit()`.                                    |
+| `shutdownTimeout`   | `number`        | `5000`      | Durée max (ms) de la séquence d'arrêt avant que `exit()` force la sortie ; `0` attend indéfiniment. |
 
 ### Méthodes
 

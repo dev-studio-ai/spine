@@ -69,11 +69,12 @@ Type the field as `Logger` (the interface) so it works with any implementation (
 
 ### `AppOptions`
 
-| Option              | Type            | Default     | Description                                                                                |
-| ------------------- | --------------- | ----------- | ------------------------------------------------------------------------------------------ |
-| `logger`            | `Logger`        | `AppLogger` | Custom logger (e.g. `WinstonLogger`).                                                      |
-| `loggerOptions`     | `LoggerOptions` | `{}`        | Built-in logger options (`level`).                                                         |
-| `handleProcessExit` | `boolean`       | `true`      | Register SIGINT/SIGTERM handlers. Pass `false` in Electron (use `ElectronModule` instead). |
+| Option              | Type            | Default     | Description                                                                                       |
+| ------------------- | --------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| `logger`            | `Logger`        | `AppLogger` | Custom logger (e.g. `WinstonLogger`).                                                             |
+| `loggerOptions`     | `LoggerOptions` | `{}`        | Built-in logger options (`level`).                                                                |
+| `handleProcessExit` | `boolean`       | `true`      | Register SIGINT/SIGTERM handlers. Pass `false` in Electron (use `ElectronModule` instead).        |
+| `shutdownTimeout`   | `number`        | `5000`      | Max ms for the shutdown sequence before `exit()` force-exits the process; `0` waits indefinitely. |
 
 ### Lifecycle hooks
 

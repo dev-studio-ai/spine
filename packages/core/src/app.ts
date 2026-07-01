@@ -9,7 +9,7 @@ export const appToken = new InjectionToken<App>("global.app");
 export const loggerToken = new InjectionToken<Logger>("global.logger");
 /**
  * Application root class.
- * Orchestrates config, logger, DI container and plugin manager,
+ * Orchestrates logger, DI container and module loader,
  * and manages the process lifecycle (signals, exceptions, clean exit).
  */
 export class App {
@@ -21,6 +21,7 @@ export class App {
   private started = false;
   private stopped = false;
   private hasExitLogger = false;
+  private readonly shutdownTimeout: number;
 
   // Stable handler refs: stored so process.removeListener() can detach them on stop().
   // Inline closures would be anonymous and impossible to remove → leaked across App instances.
@@ -42,6 +43,8 @@ export class App {
     }
 
     this.logger.info("⏳ Application initialization...", App.name);
+
+    this.shutdownTimeout = options?.shutdownTimeout ?? 5_000;
 
     this.handleProcessErrors();
 
@@ -128,6 +131,20 @@ export class App {
     if (this.exiting) return;
     this.exiting = true;
 
+    // Hard kill net: whatever hangs in the shutdown sequence (a dangling onStop(), a stuck
+    // logger flush) must not keep the process alive forever. This timer force-exits past
+    // `shutdownTimeout`; the clean path clears it before its own process.exit().
+    // `shutdownTimeout: 0` disables the net and waits indefinitely.
+    const hardKill = this.shutdownTimeout
+      ? setTimeout(() => {
+          this.logger.error(
+            `⌛ Graceful shutdown exceeded ${this.shutdownTimeout}ms, forcing exit`,
+            App.name
+          );
+          process.exit(code);
+        }, this.shutdownTimeout)
+      : undefined;
+
     try {
       await this.stop();
     } catch (e) {
@@ -138,6 +155,8 @@ export class App {
       this.hasExitLogger = true;
       await this.logger.exit();
     }
+
+    if (hardKill) clearTimeout(hardKill);
 
     process.exit(code);
   }
